@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Spring Boot local secret config
+backend/meetmap/src/main/resources/application-local.properties
