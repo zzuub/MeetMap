@@ -1,0 +1,169 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import "tailwindcss";
+
+/* ============================================================
+   MeetMap 디자인 토큰
+   근거: docs/frontend-feature-spec.md 2.1 / 2.2 (2026-08-31 개정)
+   "보태니컬 화이트" 팔레트. hex가 원본이므로 hex로 고정한다.
+   컴포넌트에 색상을 하드코딩하지 않는다.
+   ============================================================ */
+
+@theme {
+  /* ── 색상 ─────────────────────────────────────────────── */
+  --color-primary: #14382a; /* 로고, 헤더 텍스트, 활성 하단내비, secondary 버튼 테두리 */
+  --color-secondary: #96a377; /* 보조 태그, 기본 지도 pin */
+  --color-accent: #ddc497; /* CTA, 활성 필터칩, 선택된 지도 pin */
+  --color-accent-soft: #f5eedd; /* 배지 배경, 아이콘 박스 */
+  --color-point: #a86d58; /* 테라코타. 포인트 전용 — 메인 컬러로 쓰지 않는다 */
+  --color-text: #17170f;
+  --color-text-sub: #59503e;
+  --color-border: #ede7d6;
+  --color-surface: #ffffff;
+  --color-bg: #fbfaf6;
+  --color-active: #f0e7d0; /* 선택된 칩 배경 */
+  --color-success: #4e7b54; /* 모집중 배지 (흰 텍스트 OK) */
+  --color-warning: #ad6a2e; /* 마감임박 배지 (흰 텍스트 OK) */
+  --color-disabled-bg: #c9c2ae;
+
+  /* 소셜 로그인은 토큰 체계의 예외 — 브랜드 가이드 컬러 유지 (3.1) */
+  --color-kakao: #fee500;
+  --color-kakao-text: #191600;
+  --color-naver: #03c75a;
+
+  /* ── 라운드 (2.2) ─────────────────────────────────────── */
+  --radius-card: 18px;
+  --radius-sheet: 20px;
+  --radius-button: 13px;
+  --radius-chip: 999px;
+
+  /* ── 폰트 (2.2) ───────────────────────────────────────── */
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  /* 가격·평점·카운터 숫자 전용. shared/ui/Numeric.tsx 로만 사용한다 */
+  --font-numeric: Georgia, "Times New Roman", serif;
+
+  /* ── 셸 치수 (2.1) ────────────────────────────────────── */
+  --container-shell: 430px;
+
+  /* ── 애니메이션 (2.5) ─────────────────────────────────── */
+  --animate-fade-in: fade-in 0.16s ease-out; /* 토스트 */
+  --animate-sheet-up: sheet-up 0.2s ease-out; /* 바텀 시트 */
+  --animate-pop-in: pop-in 0.18s ease-out; /* 센터 모달 */
+  --animate-dim-in: dim-in 0.16s ease-out;
+}
+
+/* @theme 밖의 값은 Tailwind 유틸리티로 노출되지 않지만
+   var() 로는 참조 가능하다. 레이아웃 상수·딤은 여기에 둔다. */
+:root {
+  --height-header: 56px; /* 상단 헤더 (2.1) */
+  --height-bottom-nav: 68px; /* 하단 탭 (2.1) */
+  --height-fixed-cta: 84px; /* 상세 하단 고정 CTA (7.2) */
+  --dim-sheet: rgba(16, 28, 38, 0.38); /* 바텀 시트 딤 (2.5) */
+  --dim-modal: rgba(16, 28, 38, 0.42); /* 센터 모달 딤 (2.5) */
+  --gradient-hero: linear-gradient(135deg, #0a2119, #2e4a34 55%, #96a377);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   베이스
+   ============================================================ */
+
+html {
+  /* 모바일 주소창 대응 */
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  /* iOS 바운스 시 배경 노출 방지 */
+  overscroll-behavior-y: none;
+}
+
+/* 데스크톱: 430px 컬럼 유지 + 양옆 배경 (2.1) */
+@media (min-width: 431px) {
+  body {
+    background:
+      radial-gradient(
+        1200px 600px at 50% -10%,
+        var(--color-accent-soft),
+        transparent 60%
+      ),
+      var(--color-bg);
+  }
+}
+
+/* 히어로 예외 — 화면 전체는 밝고, 히어로 한 곳만 짙다 (2.2) */
+@utility bg-hero {
+  background: var(--gradient-hero);
+}
+
+/* 캐러셀 전용. 칩·필터에는 쓰지 않는다 (6.2 가로 스크롤 금지 원칙) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 접근성: 애니메이션 최소화 설정 존중 (15장) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 키보드 포커스만 링 표시 */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

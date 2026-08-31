@@ -1,0 +1,21 @@
+/**
+ * 환경 변수 접근 지점.
+ *
+ * `process.env` 를 다른 곳에서 직접 읽지 않는다. Next.js는 `NEXT_PUBLIC_*` 를
+ * 빌드 타임에 문자열 치환하므로, 동적 접근(`process.env[key]`)은 동작하지 않는다.
+ * 반드시 이 파일처럼 리터럴로 참조해야 한다.
+ */
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
+/**
+ * 목 데이터 모드.
+ *
+ * 백엔드가 아직 비어 있으므로(Spring 스켈레톤만 존재) 기본값은 켜짐이다.
+ * 실 API가 뜨면 `.env` 에서 `false` 로 내린다. 화면 코드는 이 값을 몰라야 하고,
+ * 분기는 `entities/*\/api/*Api.ts` 한 곳에서만 일어난다. (dev-plan P0-6)
+ */
+export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+
+/** 목 응답에 걸어줄 인위적 지연(ms). 스켈레톤·로딩 상태를 실제로 보기 위한 값. */
+export const MOCK_LATENCY_MS = 300;
