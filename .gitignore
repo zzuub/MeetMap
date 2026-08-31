@@ -1,0 +1,8 @@
+# Claude Code
+# launch.json 은 팀 공유 설정이라 커밋한다.
+# settings.local.json 은 개인이 승인한 권한 목록이라 공유하지 않는다.
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db

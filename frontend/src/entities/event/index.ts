@@ -1,4 +1,5 @@
-export { eventApi, type EventApi } from "./api/eventApi";
+export { eventApi } from "./api/eventApi";
+export type { EventApi } from "./model/ports";
 export type {
   EventDetail,
   EventListQuery,

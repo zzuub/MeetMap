@@ -1,5 +1,6 @@
 import { ENDPOINTS, fetchClient, type CursorPage } from "@/shared/api";
 import { USE_MOCK } from "@/shared/config";
+import type { EventApi } from "../model/ports";
 import type {
   EventDetail,
   EventListQuery,
@@ -9,27 +10,11 @@ import type {
 import { mockEventApi } from "./eventApi.mock";
 
 /**
- * 행사 조회 인터페이스 (dev-plan P0-6).
+ * 실 API 구현과 목 구현의 분기 지점 (dev-plan P0-6).
  *
- * **화면은 이 인터페이스만 안다.** 목/실 API 분기는 이 파일 마지막 줄 한 곳에서만
- * 일어나고, 백엔드가 뜨면 `NEXT_PUBLIC_USE_MOCK=false` 로 내리는 것으로 끝난다.
- * 컴포넌트 안에 `if (USE_MOCK)` 을 쓰지 않는다.
+ * 계약은 `model/ports.ts` 의 `EventApi` 에 있다. 백엔드가 뜨면
+ * `NEXT_PUBLIC_USE_MOCK=false` 로 내리는 것으로 전환이 끝난다.
  */
-export interface EventApi {
-  /** 홈 3개 섹션 일괄 조회 (5.3) */
-  getHomeFeed(params: { lat?: number; lng?: number }): Promise<HomeFeed>;
-  /** 탐색 목록. 커서 페이지네이션 (6.1) */
-  getList(query: EventListQuery): Promise<CursorPage<EventSummary>>;
-  getDetail(id: string): Promise<EventDetail>;
-  /** 지도 마커. 뷰포트 bbox 기준 (6.6) */
-  getMapMarkers(
-    query: EventListQuery & { bbox?: string },
-  ): Promise<EventSummary[]>;
-  search(keyword: string): Promise<EventSummary[]>;
-  /** 아웃링크 클릭 로깅 (7.3). 실패해도 사용자 흐름을 막지 않는다. */
-  logOutboundClick(id: string): Promise<void>;
-}
-
 const httpEventApi: EventApi = {
   getHomeFeed: ({ lat, lng }) =>
     fetchClient<HomeFeed>(ENDPOINTS.event.home, { query: { lat, lng } }),

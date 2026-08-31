@@ -12,6 +12,16 @@ app → widgets → features → entities → shared
 - **entities/** — 도메인 명사 단위. 백엔드 MSA 서비스 경계와 1:1로 대응시킨다 (예: event, user, review, provider).
 - **shared/** — 도메인 지식이 없는 재사용 자원. `ui`(디자인 시스템 컴포넌트), `lib`(순수 함수), `api`(fetch 클라이언트 공통 설정), `config`(환경변수·상수).
 
+### `shared/config` 의 마스터 데이터 예외
+
+`shared` 는 원칙적으로 도메인 지식을 갖지 않지만, **여러 entity 에 걸쳐 쓰이는 정적 참조 데이터**(카테고리·지역 코드·분위기 태그 등)는 `shared/config/constants.ts` 에 둔다. 기능정의서 14장의 FSD 매핑도 이 배치를 지정한다.
+
+특정 entity 로 내리지 않는 이유는 소유자를 정할 수 없기 때문이다. 예를 들어 `CATEGORIES` 는 event(행사 카테고리)와 user(관심 카테고리)가 함께 쓴다. `entities/event` 에 두면 `entities/user` 가 이를 참조해야 하는데, **동일 레이어 간 참조는 금지**되어 있다(린트로 막혀 있다). `shared` 로 끌어올리는 것이 레이어 규칙을 지키는 유일한 배치다.
+
+로직이 아니라 **값의 목록**만 둔다. 도메인 규칙·판정 함수는 여기 두지 않는다.
+
+> 백엔드가 마스터 API 를 제공하면 이 파일은 타입 소스 겸 fallback 으로 남는다.
+
 각 폴더는 `index.ts`로 공개 API만 export하고, 나머지 내부 파일은 외부에서 직접 import하지 않는다.
 
 한 화면에서만 쓰는 컴포넌트는 공통 레이어로 올리지 말고 해당 라우트 옆의 `_components/`에 로컬로 둔다.

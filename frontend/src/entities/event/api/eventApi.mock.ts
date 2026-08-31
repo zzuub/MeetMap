@@ -1,13 +1,13 @@
-import { ApiError, emptyPage, type CursorPage } from "@/shared/api";
+import { ApiError, paginateArray } from "@/shared/api";
 import { MOCK_LATENCY_MS, ONLY_20S_MAX_AGE } from "@/shared/config";
 import { MOCK_EVENTS } from "../mock/events";
+import type { EventApi } from "../model/ports";
 import type {
   EventDetail,
   EventListQuery,
   EventSummary,
   HomeFeed,
 } from "../model/types";
-import type { EventApi } from "./eventApi";
 
 const DEFAULT_LIMIT = 10;
 
@@ -40,7 +40,11 @@ export const mockEventApi: EventApi = {
 
     const filtered = applyFilters(MOCK_EVENTS, query);
     const sorted = applySort(filtered, query.sort);
-    return paginate(sorted, query.cursor ?? null, query.limit ?? DEFAULT_LIMIT);
+    return paginateArray(
+      sorted,
+      query.cursor ?? null,
+      query.limit ?? DEFAULT_LIMIT,
+    );
   },
 
   async getDetail(id) {
@@ -135,26 +139,6 @@ function applySort(
     default:
       return sorted.sort((a, b) => b.popularity - a.popularity);
   }
-}
-
-function paginate(
-  items: EventSummary[],
-  cursor: string | null,
-  limit: number,
-): CursorPage<EventSummary> {
-  if (items.length === 0) return emptyPage();
-
-  const start = cursor ? Number(cursor) : 0;
-  if (Number.isNaN(start)) return emptyPage();
-
-  const slice = items.slice(start, start + limit);
-  const nextIndex = start + slice.length;
-
-  return {
-    items: slice,
-    nextCursor: nextIndex < items.length ? String(nextIndex) : null,
-    totalCount: items.length,
-  };
 }
 
 function delay(): Promise<void> {

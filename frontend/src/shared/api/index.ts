@@ -6,4 +6,4 @@ export {
 } from "./ApiError";
 export { ENDPOINTS } from "./endpoints";
 export { fetchClient, type FetchOptions } from "./fetchClient";
-export { emptyPage, type CursorPage } from "./types";
+export { emptyPage, paginateArray, type CursorPage } from "./types";
