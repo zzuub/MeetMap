@@ -1,10 +1,14 @@
 # MeetMap 개발 요구사항 · 진행 순서
 
-> 짝 문서: `docs/frontend-feature-spec.md` (화면·기능 상세) / `src/README.md` (FSD 규칙)
-> 이 문서는 **"무엇을 어떤 순서로 만들 것인가"** 만 다룬다. 화면 세부 사양은 기능정의서 장 번호로 참조한다.
+> 짝 문서
+> - `docs/frontend-feature-spec.md` — 화면·기능 상세 (사양)
+> - `docs/progress.md` — **진행 현황과 기술 결정 기록.** 어디까지 되었는지는 그쪽이 원본이다
+> - `src/README.md` — FSD 규칙
 >
-> 현재 상태 (기준일 2026-08-31)
-> - 프론트: `src/app` 에 초기 페이지만 존재. `widgets / features / entities / shared` 는 README만 있는 빈 껍데기.
+> 이 문서는 **"무엇을 어떤 순서로 만들 것인가"** 만 다룬다. 화면 세부 사양은 기능정의서 장 번호로 참조한다.
+> **진행 상태를 여기에 적지 않는다** — 두 군데서 관리하면 반드시 어긋난다. `progress.md` 2장을 본다.
+>
+> 전제 (기준일 2026-08-31)
 > - 백엔드: `backend/meetmap` Spring Boot 스켈레톤 + `testController` 1개. **실 API 없음.**
 > - 목업: Onboarding / User v2 / Actions / My / Support / **Admin / Provider / Provider Manage / Admin Manage / Common** 10종. Provider·Admin 목업도 이제 존재하며 User v2와 동일한 컬러 시스템(2.2) 적용 완료. 단 Admin·Provider 화면 상세 기능정의는 아직 `frontend-feature-spec.md`에 문서화되지 않음(USER 한정 문서) — 착수 전 별도 문서 필요.
 > - User v2 지도 화면에 지역(시/도→구 2단) 선택 시트, 마커 시각 전용 라벨, 줌 컨트롤 추가 완료(6.3·6.6 참조).
