@@ -16,7 +16,7 @@ app → widgets → features → entities → shared
 
 `shared` 는 원칙적으로 도메인 지식을 갖지 않지만, **여러 entity 에 걸쳐 쓰이는 정적 참조 데이터**(카테고리·지역 코드·분위기 태그 등)는 `shared/config/constants.ts` 에 둔다. 기능정의서 14장의 FSD 매핑도 이 배치를 지정한다.
 
-특정 entity 로 내리지 않는 이유는 소유자를 정할 수 없기 때문이다. 예를 들어 `CATEGORIES` 는 event(행사 카테고리)와 user(관심 카테고리)가 함께 쓴다. `entities/event` 에 두면 `entities/user` 가 이를 참조해야 하는데, **동일 레이어 간 참조는 금지**되어 있다(린트로 막혀 있다). `shared` 로 끌어올리는 것이 레이어 규칙을 지키는 유일한 배치다.
+특정 entity 로 내리지 않는 이유는 소유자를 정할 수 없기 때문이다. 예를 들어 `CATEGORIES` 는 event(소개팅 카테고리)와 user(관심 카테고리)가 함께 쓴다. `entities/event` 에 두면 `entities/user` 가 이를 참조해야 하는데, **동일 레이어 간 참조는 금지**되어 있다(린트로 막혀 있다). `shared` 로 끌어올리는 것이 레이어 규칙을 지키는 유일한 배치다.
 
 로직이 아니라 **값의 목록**만 둔다. 도메인 규칙·판정 함수는 여기 두지 않는다.
 

@@ -7,7 +7,7 @@ export interface CursorPage<T> {
   items: T[];
   /** 다음 페이지 커서. `null` 이면 마지막 페이지다. */
   nextCursor: string | null;
-  /** 전체 건수. 탐색 화면의 `총 N개 모임` 표기에 쓴다 (6.2). */
+  /** 전체 건수. 탐색 화면의 `총 N개 소개팅` 표기에 쓴다 (6.2). */
   totalCount: number;
 }
 

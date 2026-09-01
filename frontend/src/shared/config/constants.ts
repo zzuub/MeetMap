@@ -69,7 +69,7 @@ export const DEFAULT_PROVINCE: ProvinceCode = "SEOUL";
 
 /**
  * 서울 25개 자치구.
- * 화면에는 **실제 행사가 있는 구만** 노출한다(6.3). 필터링은 조회 결과 기준이며,
+ * 화면에는 **실제 소개팅이 있는 구만** 노출한다(6.3). 필터링은 조회 결과 기준이며,
  * 이 배열은 코드↔라벨 매핑의 원본이다.
  */
 export const SEOUL_DISTRICTS = [

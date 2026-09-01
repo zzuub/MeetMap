@@ -28,7 +28,7 @@ export interface TermsAgreement {
 }
 
 export interface NotificationSettings {
-  /** 찜한 행사 잔여 3석 이하 (10.3) */
+  /** 찜한 소개팅 잔여 3석 이하 (10.3) */
   deadlineAlert: boolean;
   newInAreaAlert: boolean;
   reviewRequestAlert: boolean;

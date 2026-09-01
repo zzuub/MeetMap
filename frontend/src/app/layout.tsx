@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "MeetMap",
-  description: "오늘 갈 모임, 위치와 분위기로 골라요",
+  description: "오늘 갈 소개팅, 위치와 분위기로 골라요",
 };
 
 export const viewport: Viewport = {

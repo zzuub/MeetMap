@@ -12,7 +12,7 @@ export interface AppNotification {
   /** ISO — 화면에는 상대 시간으로 표기한다 (formatRelativeTime) */
   createdAt: string;
   isRead: boolean;
-  /** 딥링크. 마감임박→행사 상세, 신규→탐색, 후기→후기 작성 (10.2) */
+  /** 딥링크. 마감임박→소개팅 상세, 신규→탐색, 후기→후기 작성 (10.2) */
   linkUrl: string;
 }
 

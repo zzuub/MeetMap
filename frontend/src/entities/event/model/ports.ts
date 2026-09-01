@@ -7,7 +7,7 @@ import type {
 } from "./types";
 
 /**
- * 행사 조회 계약 (port).
+ * 소개팅 조회 계약 (port).
  *
  * **화면은 이 인터페이스만 안다.** 목/실 API 구현은 `api/` 에 있고, 분기는
  * `api/eventApi.ts` 마지막 한 줄에서만 일어난다. 컴포넌트 안에 `if (USE_MOCK)`

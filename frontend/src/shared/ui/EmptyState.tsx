@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 interface EmptyStateProps {
-  /** 굵은 한 줄. 예: "조건에 맞는 모임이 없어요" */
+  /** 굵은 한 줄. 예: "조건에 맞는 소개팅이 없어요" */
   title: string;
   /** 다음 행동을 알려주는 보조 문구. 예: "필터를 조정해 다시 찾아보세요" */
   description?: string;

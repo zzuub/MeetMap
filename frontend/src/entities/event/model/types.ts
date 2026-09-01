@@ -8,7 +8,7 @@ export type TimeSlotFilter = TimeSlot | "ALL";
 export type EventStatus = "모집중" | "마감임박" | "마감";
 
 /**
- * 행사 측 성별 모집 정책.
+ * 소개팅 측 성별 모집 정책.
  *
  * ⚠️ 목업의 성별 필터는 `무관`이 아니면 결과가 항상 0건이 되는 미완성 상태다(6.4).
  * 이 필드 정의가 확정되기 전까지 필터 매칭 로직을 구현하지 않는다
@@ -16,7 +16,7 @@ export type EventStatus = "모집중" | "마감임박" | "마감";
  */
 export type GenderPolicy = "ANY" | "BALANCED" | "MALE_ONLY" | "FEMALE_ONLY";
 
-/** 탐색 필터의 성별 조건 (6.4) — 행사 측 정책과 다른 축이다 */
+/** 탐색 필터의 성별 조건 (6.4) — 소개팅 측 정책과 다른 축이다 */
 export type GenderFilter = "ANY" | "MALE" | "FEMALE";
 
 export type SortOption = "popular" | "latest" | "priceAsc" | "priceDesc";
@@ -95,11 +95,11 @@ export interface EventListQuery {
 
 /** 홈 3개 섹션 일괄 조회 응답 (5.3) */
 export interface HomeFeed {
-  /** 오늘 인기 모임 — popularity 내림차순, 최대 6건 */
+  /** 오늘 인기 소개팅 — popularity 내림차순, 최대 6건 */
   popular: EventSummary[];
-  /** 여성 신청 많은 모임 — femaleRatio 내림차순, 최대 6건 */
+  /** 여성 신청 많은 소개팅 — femaleRatio 내림차순, 최대 6건 */
   femaleFriendly: EventSummary[];
-  /** 지금 신청 가능한 모임 — status === '모집중', 최대 4건 */
+  /** 지금 신청 가능한 소개팅 — status === '모집중', 최대 4건 */
   openNow: EventSummary[];
   /** 추천 기준 문구용. 위치 권한 거부 시 선호 지역명으로 대체된다 (5-5) */
   baseAreaLabel: string;

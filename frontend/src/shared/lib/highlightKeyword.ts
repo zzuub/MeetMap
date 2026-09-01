@@ -2,7 +2,7 @@
  * 검색 결과 제목의 키워드 하이라이트용 분할 (11.1).
  *
  * 문자열을 `{ text, matched }` 조각으로 쪼개 돌려준다. HTML을 만들지 않는 이유는
- * `dangerouslySetInnerHTML` 을 쓰지 않기 위해서다 — 행사명은 주최사가 넣는
+ * `dangerouslySetInnerHTML` 을 쓰지 않기 위해서다 — 소개팅명은 주최사가 넣는
  * 외부 입력이라 XSS 경로가 된다.
  */
 export interface HighlightPart {

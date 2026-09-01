@@ -6,7 +6,17 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-08-31 (Phase 0 완료 시점)
+> 마지막 갱신: 2026-09-01 (도메인 재정의 반영)
+>
+> ## ⚠️ 먼저 알아야 할 것 — 2026-09-01 도메인 재정의
+>
+> MeetMap 은 **인스타그램에 개인 단위로 흩어진 로테이션 소개팅을 한곳에 모아 비교·탐색하게 해주는 통합 플랫폼**이다. 소개팅을 직접 주최하지 않고, 신청·결제는 주최사 기존 폼으로 리다이렉트한다. 일반 모임은 코어가 아니라 추후 확장 옵션이다.
+>
+> 이 재정의로 **데이터 모델과 필터 축이 바뀌었다. 문서는 갱신됐지만 `src/` 코드는 아직 이전 모델이다.** Phase 1 착수 전에 코드 반영이 선행된다.
+>
+> 반드시 읽을 것: `progress.md` **4.6**(결정 근거 전문) → `frontend-feature-spec.md` **상단 경고 블록**.
+>
+> 요약: `category` 삭제 / 상태 2개(`신청 가능`·`마감`) / `remainingSeats`·`femaleRatio`·`applyDeadline`·`genderPolicy` 삭제 / 연령은 출생연도 범위 / 가격은 남녀 분리 / `TimeSlot` 4종(오전·오후·디너·심야) / `locationPrecision`·`jobGroups` 신설.
 
 ---
 
@@ -132,9 +142,11 @@ const feed = await eventApi.getHomeFeed({});
 
 `dev-plan.md` 2장 Phase 1 표, `frontend-feature-spec.md` 5·6·7·11·14장 참조.
 
-착수 순서: **P1-1 `EventCard` 5 variant** → P1-2 배지·게이지 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+> **착수 전 선행 작업.** 도메인 재정의를 `src/` 에 먼저 반영한다 — `entities/event/model/types.ts`, `shared/config/constants.ts`(`CATEGORIES` 삭제, `TIME_SLOTS` 4종), `entities/event/mock/events.ts` 8건 전면 교체, `entities/user/model/types.ts`(`interestCategories` 삭제), `entities/notification/`(`urgent` 삭제). 이걸 건너뛰고 P1-1 부터 만들면 카드가 존재하지 않는 필드를 그리게 된다.
 
-**P1-1 요점**: `feature`(홈 가로 196px) / `ratio`(성비 바 포함) / `compact`(가로 62~66px) / `list`(가로 84~92px) / `sheet`(마커 시트 88px). 한 컴포넌트에 `variant` prop 으로 통합한다(기능정의서 14.1). 위치는 `entities/event/ui/`.
+착수 순서: **P1-1 `EventCard` 5 variant** → P1-2 배지·정원·가격 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+
+**P1-1 요점**: `feature`(홈 가로 196px) / `ratio`(정원 `남 N · 여 N` 표기 — 성비 바 아님) / `compact`(가로 62~66px) / `list`(가로 84~92px) / `sheet`(마커 시트 88px). 한 컴포넌트에 `variant` prop 으로 통합한다(기능정의서 14.1). 위치는 `entities/event/ui/`.
 
 **Phase 1 DoD**: 로그인 없이 홈 → 탐색 → 상세 → 외부 이동까지 목 데이터로 끊김 없이 진행된다.
 
@@ -142,7 +154,9 @@ const feed = await eventApi.getHomeFeed({});
 
 | 항목 | 막는 것 |
 | --- | --- |
-| **`genderPolicy` 필드 정의 미정** | P1-5 성별 필터. 목 구현에서 매칭 로직을 **의도적으로 비워둠**. 추측으로 채우면 목업과 같은 "항상 0건" 버그를 재현하게 된다 |
+| **도메인 재정의 코드 미반영** | Phase 1 전체. 위 선행 작업 참조 |
+| **목업이 이전 정의 기준** | User v2 / Actions / My 에 카테고리·잔여석·성비 게이지·단일 가격이 남아 있다. **충돌 시 기능정의서를 따른다** |
+| 직업군 마스터 미정규화 | P1-5 필터. 주최사마다 표기가 제각각 |
 | 서버 상태 라이브러리(TanStack Query) 미도입 | P1-4 무한 스크롤, P2-7 찜 낙관적 업데이트. 직접 구현 비용을 감안하면 도입 권장이나 미결정 |
 | 페이지네이션 방식 | 커서 + 무한 스크롤 기본안으로 진행 중 |
 
