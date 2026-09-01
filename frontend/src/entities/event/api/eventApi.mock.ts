@@ -57,7 +57,7 @@ export const mockEventApi: EventApi = {
         kind: "NOT_FOUND",
         code: "NOTFOUND_404",
         status: 404,
-        message: "요청한 행사를 찾을 수 없습니다.",
+        message: "요청한 소개팅을 찾을 수 없습니다.",
       });
     }
     return found;
@@ -75,7 +75,7 @@ export const mockEventApi: EventApi = {
     const q = keyword.trim().toLowerCase();
     if (!q) return [];
 
-    // 검색 대상: 행사명 + 지역 + 카테고리 + 주최사 (11.1)
+    // 검색 대상: 소개팅명 + 지역 + 카테고리 + 주최사 (11.1)
     return MOCK_EVENTS.filter((event) =>
       [event.title, event.area, event.category, event.provider]
         .join(" ")
@@ -115,7 +115,7 @@ function applyFilters(
     if (query.only20s && event.maxAge > ONLY_20S_MAX_AGE) return false;
 
     // 성별 조건은 의도적으로 구현하지 않는다.
-    // 행사 측 `genderPolicy` 필드 정의가 선행되어야 한다 (6.4 / dev-plan blocking #4).
+    // 소개팅 측 `genderPolicy` 필드 정의가 선행되어야 한다 (6.4 / dev-plan blocking #4).
     // 지금 매칭 로직을 추측으로 넣으면 목업과 같은 "항상 0건" 버그를 재현하게 된다.
 
     return true;

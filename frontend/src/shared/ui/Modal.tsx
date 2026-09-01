@@ -28,7 +28,7 @@ interface ModalProps {
  *
  * `Sheet` 와 같은 이유로 `document.body` 로 포털한다 — `position: fixed` 가
  * 조상의 `transform`/`filter`/`backdrop-filter` 에 갇히는 것을 막는다.
- * 이 모달은 행사 상세(히어로 이미지 + 고정 CTA) 위에서 열리므로 특히 중요하다.
+ * 이 모달은 소개팅 상세(히어로 이미지 + 고정 CTA) 위에서 열리므로 특히 중요하다.
  */
 export function Modal({
   open,

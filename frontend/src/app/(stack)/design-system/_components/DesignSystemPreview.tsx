@@ -137,8 +137,8 @@ export function DesignSystemPreview() {
           <div className="rounded-card border border-border bg-surface">
             <EmptyState
               icon="🔍"
-              title="조건에 맞는 모임이 없어요"
-              description="적용한 필터를 하나씩 풀어보면 더 많은 모임을 볼 수 있어요"
+              title="조건에 맞는 소개팅이 없어요"
+              description="적용한 필터를 하나씩 풀어보면 더 많은 소개팅을 볼 수 있어요"
               action={<PrimaryButton variant="secondary">필터 초기화</PrimaryButton>}
             />
           </div>
