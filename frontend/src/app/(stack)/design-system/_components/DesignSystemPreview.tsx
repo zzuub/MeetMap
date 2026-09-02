@@ -102,8 +102,8 @@ export function DesignSystemPreview() {
             ]}
           />
           <div className="flex items-center justify-between rounded-card border border-border bg-surface px-4 py-3">
-            <span className="text-[14px] text-text">마감임박 알림</span>
-            <Toggle checked={alertOn} onChange={setAlertOn} label="마감임박 알림" />
+            <span className="text-[14px] text-text">관심지역 신규 소개팅</span>
+            <Toggle checked={alertOn} onChange={setAlertOn} label="관심지역 신규 소개팅" />
           </div>
           <Checkbox checked={agreed} onChange={setAgreed}>
             만 19세 이상입니다

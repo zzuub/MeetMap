@@ -7,8 +7,6 @@ export interface UserProfile {
   /** 1975~2007 (3.4) */
   birthYear: number;
   gender: "F" | "M";
-  /** ≤ 5 (3.4) */
-  interestCategories: string[];
   /** ≤ 3 (3.4) */
   preferredAreas: string[];
   profileImageUrl: string | null;
@@ -28,8 +26,6 @@ export interface TermsAgreement {
 }
 
 export interface NotificationSettings {
-  /** 찜한 소개팅 잔여 3석 이하 (10.3) */
-  deadlineAlert: boolean;
   newInAreaAlert: boolean;
   reviewRequestAlert: boolean;
   recommendationAlert: boolean;

@@ -1,25 +1,52 @@
 import type { DistrictCode, ProvinceCode } from "@/shared/config";
 
-/** 근거: docs/frontend-feature-spec.md 12장 */
-
-export type TimeSlot = "LUNCH" | "DINNER" | "LATE_NIGHT";
-export type TimeSlotFilter = TimeSlot | "ALL";
-
-export type EventStatus = "모집중" | "마감임박" | "마감";
+/** 근거: docs/frontend-feature-spec.md 12장 (2026-09-01 도메인 재정의 확정본) */
 
 /**
- * 소개팅 측 성별 모집 정책.
+ * 시간대. 경계는 **시작 시각** 기준이다 (6.2).
+ * 오전 `~12:00` / 오후 `12:00~17:00` / 디너 `17:00~21:00` / 심야 `21:00~`
  *
- * ⚠️ 목업의 성별 필터는 `무관`이 아니면 결과가 항상 0건이 되는 미완성 상태다(6.4).
- * 이 필드 정의가 확정되기 전까지 필터 매칭 로직을 구현하지 않는다
- * (dev-plan blocking #4).
+ * 삭제한 카테고리 축의 역할을 대신한다 — 낮 소개팅과 심야 소개팅은 복장·주류·
+ * 기대치가 다르고, 시각은 모든 주최사 게시물에서 결측 없이 얻을 수 있다.
  */
-export type GenderPolicy = "ANY" | "BALANCED" | "MALE_ONLY" | "FEMALE_ONLY";
+export type TimeSlot = "MORNING" | "AFTERNOON" | "DINNER" | "LATE_NIGHT";
+export type TimeSlotFilter = TimeSlot | "ALL";
 
-/** 탐색 필터의 성별 조건 (6.4) — 소개팅 측 정책과 다른 축이다 */
-export type GenderFilter = "ANY" | "MALE" | "FEMALE";
+/**
+ * 모집 상태 2종.
+ *
+ * 선착순이 아니라 **주최사가 지원자를 심사해 선발**한다. 마감 선언 전까지 계속
+ * 받으므로 `잔여 좌석`·`마감임박`이라는 값이 존재하지 않는다.
+ */
+export type EventStatus = "신청 가능" | "마감";
+
+/** 정원 합계 기준 파생값 (6.4). `deriveScale` 로 산출한다 */
+export type EventScale = "SMALL" | "STANDARD" | "LARGE";
+export type ScaleFilter = EventScale | "ALL";
+
+/**
+ * 위치 정밀도 (6.6).
+ *
+ * 인스타 게시물에 정확한 장소가 없는 소개팅이 상당수다. 동 → 지하철역 → 구 순으로
+ * 핀을 내리고, 정밀도를 함께 들고 다닌다. 정확한 주소처럼 보이면 사용자가 헛걸음한다.
+ */
+export type LocationPrecision = "EXACT" | "STATION" | "DISTRICT";
+
+/** 일정 필터 (6.4 2층) */
+export type WhenFilter = "ALL" | "THIS_WEEK" | "LATER";
+
+/** 모집 상태 필터 (6.4 3층). `OPEN` 이면 `status === '신청 가능'` 만 */
+export type StatusFilter = "ALL" | "OPEN";
 
 export type SortOption = "popular" | "latest" | "priceAsc" | "priceDesc";
+
+/**
+ * 가격·자격 판정의 기준이 되는 성별.
+ *
+ * `entities/user` 의 `UserProfile['gender']` 와 같은 값이지만 타입을 직접 참조하지
+ * 않는다 — entity 끼리는 서로를 import 하지 않는다(FSD 동일 레이어 규칙).
+ */
+export type ViewerGender = "F" | "M";
 
 export interface EventSummary {
   id: string;
@@ -28,50 +55,117 @@ export interface EventSummary {
   shortTitle: string;
   /** 주최사 */
   provider: string;
-  category: string;
   thumbnailUrl: string;
+
+  /* ── 일정 ────────────────────────────────────────────── */
+
   /** ISO 8601 */
   date: string;
-  /** '8/14(목)' — 서버가 내려주는 표시용 문자열 */
+  /** '9/5(토)' — 서버가 내려주는 표시용 문자열 */
   dateLabel: string;
   /** '19:30' */
   timeLabel: string;
   timeSlot: TimeSlot;
-  /** KRW */
-  price: number;
+
+  /* ── 참가 조건 ───────────────────────────────────────── */
+
+  /**
+   * 참가 가능 출생연도. 주최사는 나이가 아니라 **출생연도**로 모집한다
+   * (`90~96년생`). 1990 = 90년생.
+   */
+  birthYearFrom: number;
+  birthYearTo: number;
+
+  /* ── 정원 ────────────────────────────────────────────── */
+
+  /**
+   * 남녀 분리 모집. **두 값은 같다** — 주최사가 `7:7`·`15:15` 처럼 정원을 고정해
+   * 따로 모집하므로 성비는 항상 50% 다. 그래서 성비 게이지를 그리지 않고
+   * `남 N · 여 N` 으로 표기한다 (P1-2).
+   *
+   * 값을 하나로 합치지 않고 둘로 유지하는 이유는 **예외를 받을 수 있게** 하기
+   * 위해서다. 한쪽만 추가 모집하는 회차가 나중에 들어와도 스키마를 바꾸지 않고
+   * 담을 수 있고, `deriveScale`·`isEligible` 이 그 경우에도 답을 낸다.
+   * 대신 화면은 동수를 기본으로 그린다 — 비대칭이 흔해지면 그때 표기를 손본다.
+   */
+  maleCapacity: number;
+  femaleCapacity: number;
+  /** 한쪽 성별 정원 기준 파생값. 서버 산출값이며 `deriveScale` 과 같은 규칙이다 */
+  scale: EventScale;
+
+  /* ── 가격 ────────────────────────────────────────────── */
+
+  /**
+   * 남녀 가격이 다르다. 카드·리스트에는 **사용자 성별 기준값만** 노출하고,
+   * 상세(7.1)·외부 이동 모달(7.3)에서는 양쪽을 모두 표기한다.
+   *
+   * `null` 은 **가격 미확인**이다. 신청 폼 안에만 가격이 있어 등록 시점에 확보하지
+   * 못하는 건이 있다. 화면에서는 `링크 확인` 으로 떨어지고, 비교함의 `가성비`
+   * 배지 후보에서도 빠진다 (8장).
+   */
+  malePrice: number | null;
+  femalePrice: number | null;
+
   status: EventStatus;
-  remainingSeats: number;
-  minAge: number;
-  maxAge: number;
-  /** 0~100 */
-  femaleRatio: number;
-  genderPolicy: GenderPolicy;
+
+  /**
+   * 참석자 직업군 **집계값**. 개별 참석자 행은 저장·표시하지 않는다 (7.2).
+   *
+   * 등록 폼에서 자유 입력되는 태그라 닫힌 유니온이 아니라 `string[]` 이다.
+   * `JOB_GROUPS` 는 강제 마스터가 아니라 입력 시 먼저 제안하는 추천 태그다.
+   */
+  jobGroups: string[];
   /** 분위기 태그 (6.4) */
   mood: string[];
-  /** '성수동' — 동 단위. 프로필·온보딩 선호 지역과 연동되는 축 */
+
+  /* ── 위치 ────────────────────────────────────────────── */
+
+  /** '성수·건대' — 동 단위. 프로필·온보딩 선호 지역과 연동되는 축 */
   area: string;
   /** MVP1은 'SEOUL' 고정 (6.1 / 6.3) */
   province: ProvinceCode;
   /** '성동구' — 구 단위. 지도/탐색 지역 필터 전용. `area` 와 별개 축이다 */
   district: DistrictCode;
+  locationPrecision: LocationPrecision;
+  /**
+   * `locationPrecision === 'STATION'` 일 때의 기준 역명 ('성수역').
+   * 나머지 정밀도에서는 `null`.
+   *
+   * ⚠️ 12장에 없는 필드다. 6.6 마커 시트가 `○○역 인근` 을 표시해야 하는데
+   * 마커 시트는 `EventSummary` 만 받고, 12장의 `venueName` 은 `EventDetail` 에만
+   * 있으며 `EXACT` 전용이라 역명을 담을 자리가 없다. 최소 보완으로 추가했다.
+   */
+  stationName: string | null;
+  lat: number;
+  lng: number;
   /** 위치 권한이 없으면 `null`. 화면에서는 '-' 로 떨어진다 (8장) */
   distanceKm: number | null;
-  /** 0~5 */
+
+  /* ── 평판·정렬 ───────────────────────────────────────── */
+
+  /** 0~5. 후기가 0건이면 0 */
   rating: number;
   reviewCount: number;
   /** 정렬용 서버 산출값. 산식은 미확정 (16장) */
   popularity: number;
+  /** ISO — 홈 '새로 등록된 소개팅' 섹션과 `sort=latest` 의 정렬 축 (5.3) */
+  createdAt: string;
   isLiked: boolean;
-  lat: number;
-  lng: number;
 }
 
 export interface EventDetail extends EventSummary {
   description: string;
-  /** ISO 8601 — 신청 마감 시각 */
-  applyDeadline: string;
+  /** 'Bar noy' — `locationPrecision === 'EXACT'` 일 때만. 아니면 `null` */
+  venueName: string | null;
+  /** '서울 서초구 반포동 92-4' — 상동 */
+  address: string | null;
   /** 주최사 외부 신청 페이지. 7.3 모달을 거쳐서만 연다 */
   externalApplyUrl: string;
+  /**
+   * 원본 참석자 리스트 링크. **주최사가 표시에 동의한 경우에만** 채운다 (7.2).
+   * 리스트 자체를 복제해 오지 않고 아웃링크로만 보낸다.
+   */
+  attendeeListUrl: string | null;
   images: string[];
 }
 
@@ -81,12 +175,24 @@ export interface EventListQuery {
   province?: ProvinceCode;
   /** 'ALL' 이면 전지역 */
   district?: DistrictCode | "ALL";
+  when?: WhenFilter;
   slot?: TimeSlotFilter;
+  scale?: ScaleFilter;
+  status?: StatusFilter;
+  /**
+   * 가격 상한. **사용자 성별 기준 단일 축**이다 — 여성이면 `femalePrice`,
+   * 남성이면 `malePrice` 와 비교한다. 서버가 인증 주체의 성별로 해석하므로
+   * 성별을 쿼리에 싣지 않는다 (13장). 게스트에게는 노출하지 않는다.
+   */
+  maxPrice?: number;
+  /**
+   * 프로필 기반 자격 필터. 로그인 사용자의 `birthYear` 가 `birthYearFrom~To` 에
+   * 들고 내 성별 정원이 0이 아닌 건만 남긴다. 로그인 사용자 기본 ON (6.4 1층).
+   */
+  eligibleOnly?: boolean;
   sort?: SortOption;
   /** 분위기 다중 선택 (OR 조건) */
   mood?: string[];
-  only20s?: boolean;
-  gender?: GenderFilter;
   /** 동 단위 지역 (프로필 선호 지역) */
   area?: string;
   cursor?: string | null;
@@ -95,12 +201,17 @@ export interface EventListQuery {
 
 /** 홈 3개 섹션 일괄 조회 응답 (5.3) */
 export interface HomeFeed {
-  /** 오늘 인기 소개팅 — popularity 내림차순, 최대 6건 */
-  popular: EventSummary[];
-  /** 여성 신청 많은 소개팅 — femaleRatio 내림차순, 최대 6건 */
-  femaleFriendly: EventSummary[];
-  /** 지금 신청 가능한 소개팅 — status === '모집중', 최대 4건 */
-  openNow: EventSummary[];
+  /** 이번 주 인기 소개팅 — 이번 주 개최 + popularity 내림차순, 최대 6건 */
+  weeklyPopular: EventSummary[];
+  /**
+   * 내 나이대 소개팅 — 프로필 `birthYear` 가 `birthYearFrom~To` 에 포함, 최신순 6건.
+   *
+   * **게스트·출생연도 미입력이면 화면에서 섹션 자체를 숨기고 `새로 등록된` 을
+   * 위로 올린다** (5.3). 판단은 화면이 세션으로 한다.
+   */
+  myAgeGroup: EventSummary[];
+  /** 새로 등록된 소개팅 — `createdAt` 내림차순, 최대 4건 */
+  newlyAdded: EventSummary[];
   /** 추천 기준 문구용. 위치 권한 거부 시 선호 지역명으로 대체된다 (5-5) */
   baseAreaLabel: string;
 }

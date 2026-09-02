@@ -45,16 +45,25 @@ const httpEventApi: EventApi = {
   },
 };
 
-/** 배열·불리언을 쿼리스트링 형태로 눌러 담는다 (6.1 URL 설계와 동일 형식). */
+/**
+ * 배열·불리언을 쿼리스트링 형태로 눌러 담는다 (6.1 URL 설계와 동일 형식).
+ *
+ * `maxPrice`·`eligibleOnly` 에는 성별·출생연도를 싣지 않는다 —
+ * **서버가 인증 주체로 해석한다** (13장). 클라이언트가 프로필 값을 실어 보내면
+ * 자기 조건을 위조할 수 있는 축이 생긴다.
+ */
 function serializeQuery(query: EventListQuery) {
   return {
     province: query.province,
     district: query.district,
+    when: query.when,
     slot: query.slot,
+    scale: query.scale,
+    status: query.status,
+    maxPrice: query.maxPrice,
+    eligibleOnly: query.eligibleOnly ? "1" : undefined,
     sort: query.sort,
     mood: query.mood?.length ? query.mood.join(",") : undefined,
-    only20s: query.only20s ? "1" : undefined,
-    gender: query.gender,
     area: query.area,
     cursor: query.cursor ?? undefined,
     limit: query.limit,
