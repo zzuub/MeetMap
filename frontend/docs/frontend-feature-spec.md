@@ -481,7 +481,7 @@ MVP1은 서울시로만 서비스 범위를 한정하지만, 향후 경기·인�
 | 줌 컨트롤 | 지도 우측 하단 `+ / −` 버튼. 확대/축소 한계에 도달하면 해당 버튼 비활성 스타일로 전환 |
 | 마커 클릭 | 하단 마커 시트 오픈 |
 | 마커 소스 | 현재 적용된 지역(6.3)·필터(6.4) 결과와 동일 목록 |
-| **위치 정밀도 표시** | `locationPrecision`에 따라 마커 모양을 구분한다 — `EXACT`(정확한 주소): 채운 마커 / `STATION`(지하철역 기준): 테두리 마커 + 시트에 `○○역 인근` / `DISTRICT`(구 중심): 반투명 마커 + 시트에 `○○구` |
+| **위치 정밀도 표시** | `locationPrecision`에 따라 마커 모양을 구분한다 — `EXACT`(정확한 주소): 채운 마커 / `STATION`(지하철역 기준): 테두리 마커 + 시트에 `{stationName} 인근` / `DISTRICT`(구 중심): 반투명 마커 + 시트에 `{district}` |
 | 클러스터링 | 목업 미정의 — **TBD** |
 
 **마커 바텀 시트**
@@ -520,7 +520,7 @@ MVP1은 서울시로만 서비스 범위를 한정하지만, 향후 경기·인�
 | 타이틀 | 소개팅명 |
 | 메타 | `주최사 · 날짜(요일) 시각 · 지역 거리km` |
 | 정보 카드 | 참가비(**남·여 양쪽 모두 표기**) / 참가 연령(`N~N년생`) / 모집 정원(`남 N · 여 N`) / 참석자 직업군 |
-| 장소 | `locationPrecision === 'EXACT'`면 장소명 + 주소, 아니면 `○○역 인근` / `○○구` (6.6) |
+| 장소 | `locationPrecision`별로 — `EXACT`: `venueName` + `address` / `STATION`: `{stationName} 인근` / `DISTRICT`: `{district}` (6.6) |
 | 참석자 정보 | **집계값만** 표기 — 출생연도 범위 / 직업군 / 남·녀 정원. 개별 참석자 행은 저장·표시하지 않는다 |
 | 소개 | 소개팅 설명 본문 |
 | 하단 고정 CTA | 찜 / 비교 담기 / 신청하기 |
@@ -768,10 +768,15 @@ export interface EventSummary {
   birthYearTo: number;          // 1996  (= 96년생)
 
   /* 정원 — 남녀 분리 모집. 선착순이 아니라 주최사 심사 선발이라
-     '잔여 좌석' 개념이 존재하지 않는다 */
+     '잔여 좌석' 개념이 존재하지 않는다.
+     ⚠️ 두 값은 같다 — 주최사가 7:7·15:15 처럼 정원을 고정해 따로 모집한다.
+     그럼에도 필드를 합치지 않은 것은 한쪽만 추가 모집하는 예외 회차를
+     스키마 변경 없이 받기 위해서다 */
   maleCapacity: number;         // 7
   femaleCapacity: number;       // 7
-  scale: EventScale;            // 정원 합계 기준 파생값 (6.4)
+  /* 규모 — 6.4 의 5:5 / 6:6~9:9 / 10:10 경계를 그대로 쓴다. 즉 '합계'가 아니라
+     한쪽 성별 정원 기준이다. 비대칭 건이 들어오면 큰 쪽으로 판정한다 */
+  scale: EventScale;            // 한쪽 정원 기준 파생값 (6.4)
 
   /* 가격 — 남녀 가격이 다르다. 화면에는 사용자 성별 기준값만 노출하고,
      상세(7.1)에서는 양쪽을 모두 표기한다.
@@ -789,6 +794,11 @@ export interface EventSummary {
   province: 'SEOUL';            // 시/도 (MVP1은 'SEOUL' 고정. 6.1·6.3 참조)
   district: string;             // '성동구' (구 단위, 지도 지역 필터 전용 — area와 별개 축)
   locationPrecision: LocationPrecision;
+  /* '성수역' — locationPrecision === 'STATION' 일 때만. 나머지는 null.
+     6.6 마커 시트가 '○○역 인근'을 표시해야 하는데 마커 시트는 EventSummary 만
+     받고, 아래 venueName 은 EventDetail 의 EXACT 전용이라 역명을 담을 자리가
+     없다. 그래서 Summary 에 둔다 */
+  stationName: string | null;
   lat: number;
   lng: number;
   distanceKm: number | null;    // 위치 권한 없으면 null

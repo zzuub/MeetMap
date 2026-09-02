@@ -131,9 +131,10 @@ export interface EventSummary {
    * `locationPrecision === 'STATION'` 일 때의 기준 역명 ('성수역').
    * 나머지 정밀도에서는 `null`.
    *
-   * ⚠️ 12장에 없는 필드다. 6.6 마커 시트가 `○○역 인근` 을 표시해야 하는데
-   * 마커 시트는 `EventSummary` 만 받고, 12장의 `venueName` 은 `EventDetail` 에만
-   * 있으며 `EXACT` 전용이라 역명을 담을 자리가 없다. 최소 보완으로 추가했다.
+   * 6.6 마커 시트가 `○○역 인근` 을 표시해야 하는데 마커 시트는 `EventSummary` 만
+   * 받고, `venueName` 은 `EventDetail` 의 `EXACT` 전용이라 역명을 담을 자리가
+   * 없다. 그래서 Summary 에 둔다. (P1-0 에서 코드가 먼저 추가하고 12장을 뒤따라
+   * 갱신했다 — `progress.md` 4.13)
    */
   stationName: string | null;
   lat: number;

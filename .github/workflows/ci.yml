@@ -35,6 +35,24 @@ jobs:
       - name: Test frontend
         run: npm test
 
+      # 날짜 판정(`weekRangeKst`)이 실행 환경 타임존을 읽지 않는지 실증한다.
+      #
+      # 구현은 `getUTC*`/`Date.UTC` 만 쓰지만 그건 구조적 근거일 뿐이다.
+      # `getUTCDay()` 가 `getDay()` 로 한 글자 바뀌면 서버(UTC)와 브라우저(KST)가
+      # 서로 다른 주를 계산하고, `when=THIS_WEEK` 에서 소개팅이 통째로 사라진다.
+      #
+      # 이 회귀는 **오프셋 대역마다 다른 시각에서만** 드러난다. 짝이 되는 픽스처가
+      # `derive.test.ts` 의 weekRangeKst 블록 뒤쪽 두 케이스이고, 아래 두 TZ 가
+      # 각각 그중 하나를 깨뜨린다 — 둘 다 돌려야 양쪽 대역이 닫힌다.
+      # (기본 스텝은 러너 기본값인 UTC 로 이미 돌았다.)
+      - name: Test frontend (timezone independence)
+        run: |
+          for tz in America/Los_Angeles Pacific/Kiritimati; do
+            echo "::group::TZ=$tz"
+            TZ="$tz" npm test
+            echo "::endgroup::"
+          done
+
       - name: Build frontend
         run: npm run build
 

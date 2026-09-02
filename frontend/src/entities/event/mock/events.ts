@@ -19,6 +19,7 @@ import type { EventDetail } from "../model/types";
  * | `scale` 3종 | SMALL(004·008) / STANDARD(001·005·006·007) / LARGE(002·003) |
  * | `timeSlot` 4종 | MORNING(005) / AFTERNOON(006) / DINNER(5건) / LATE_NIGHT(003) |
  * | 일정 | 이번 주 5건(9/4~9/6) / 그 이후 3건 — `when` 필터가 양쪽 다 결과를 낸다 |
+ * | 가격 | `PRICE_CAPS` 3종(3만/5만/7만)이 남·여 어느 기준으로도 서로 다른 건수를 낸다 |
  *
  * 기준일은 **2026-09-02(수)** 다. 이번 주는 8/31(월)~9/6(일).
  * 날짜가 과거로 밀리면 `when=THIS_WEEK` 가 0건이 되므로 그때 갱신한다.
@@ -293,8 +294,10 @@ export const MOCK_EVENTS: EventDetail[] = [
     maleCapacity: 9,
     femaleCapacity: 9,
     scale: "STANDARD",
-    malePrice: 49000,
-    femalePrice: 35000,
+    // 라운지 대관 프리미엄 건. 가격 상한 칩 3종(3만/5만/7만)이 각각 다른 결과를
+    // 내려면 5만원을 넘는 건이 하나는 있어야 한다 — 없으면 5만·7만 칩이 같은 필터다
+    malePrice: 69000,
+    femalePrice: 55000,
     // 인기 상위인데 마감된 건. 홈 '이번 주 인기' 첫 화면에서 마감 배지가 보인다
     status: "마감",
     jobGroups: ["전문직", "외국계", "대기업"],

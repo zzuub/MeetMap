@@ -41,6 +41,34 @@ describe("weekRangeKst", () => {
 
     expect(new Date(start).toISOString()).toBe("2026-09-06T15:00:00.000Z"); // 9/7 00:00 KST
   });
+
+  /*
+   * 아래 두 케이스는 **CI 의 타임존 매트릭스와 짝**이다(.github/workflows/ci.yml).
+   *
+   * 구현이 `getUTCDay()` 대신 `getDay()` 같은 로컬 TZ API 를 한 줄이라도 쓰면
+   * 서버(UTC)와 브라우저(KST 등)가 서로 다른 주를 계산하고, `when=THIS_WEEK`
+   * 결과에서 소개팅이 통째로 사라진다. 그런데 그 회귀는 **어떤 시각을 넣느냐에
+   * 따라 드러나기도 하고 안 드러나기도 한다** — 위 케이스들은 KST·UTC·PT 어디서
+   * 읽어도 요일이 같아서 잡지 못한다.
+   *
+   * 그래서 "+9h 한 값을 로컬로 읽으면 요일이 갈리는" 순간을 골라 고정했다.
+   * 각 케이스는 특정 오프셋 대역에서만 실패하므로 CI 가 그 대역의 TZ 로도 돌린다.
+   */
+  it("음수 오프셋 환경에서 요일이 밀려도 KST 주를 유지한다", () => {
+    // now = 9/7(월) 05:00 KST. +9h 한 값을 미주 시간대로 읽으면 9/6(일)로 밀린다
+    const { start, end } = weekRangeKst(new Date("2026-09-06T20:00:00Z"));
+
+    expect(new Date(start).toISOString()).toBe("2026-09-06T15:00:00.000Z"); // 9/7(월) 00:00 KST
+    expect(new Date(end).toISOString()).toBe("2026-09-13T14:59:59.999Z"); // 9/13(일) 23:59:59.999 KST
+  });
+
+  it("+14 오프셋 환경에서 요일이 앞서가도 KST 주를 유지한다", () => {
+    // now = 9/6(일) 14:00 KST. +9h 한 값을 UTC+14 로 읽으면 9/7(월)로 앞서간다
+    const { start, end } = weekRangeKst(new Date("2026-09-06T05:00:00Z"));
+
+    expect(new Date(start).toISOString()).toBe("2026-08-30T15:00:00.000Z"); // 8/31(월) 00:00 KST
+    expect(new Date(end).toISOString()).toBe("2026-09-06T14:59:59.999Z"); // 9/6(일) 23:59:59.999 KST
+  });
 });
 
 describe("isThisWeek", () => {

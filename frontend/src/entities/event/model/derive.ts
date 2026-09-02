@@ -22,10 +22,6 @@ const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
  * 그럼에도 **큰 쪽**을 기준으로 삼는 것은 예외 처리다. 한쪽만 추가 모집하는
  * 회차(`10:4`) 같은 비대칭 건이 나중에 들어와도 판정이 멈추지 않아야 한다.
  * 이때 "한쪽이라도 10명을 모집하면 대규모"가 사용자가 체감하는 규모에 가깝다.
- *
- * ⚠️ 12장의 `scale` 주석은 "정원 합계 기준"이라고 적혀 있으나, 6.4 본문의
- * 경계는 `5:5`/`10:10` 이라는 **한쪽 기준** 표기다. 남녀 동수 전제에서는 둘이
- * 같은 말이고, 비대칭이 섞이는 순간에만 갈린다. 6.4 표기를 따랐다.
  */
 export function deriveScale(maleCapacity: number, femaleCapacity: number): EventScale {
   const perSide = Math.max(maleCapacity, femaleCapacity);

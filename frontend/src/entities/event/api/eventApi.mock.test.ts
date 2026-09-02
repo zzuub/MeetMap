@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { PRICE_CAPS } from "@/shared/config";
 import { MOCK_EVENTS } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
-import { deriveScale, isThisWeek } from "../model/derive";
+import { deriveScale, isThisWeek, priceFor } from "../model/derive";
 import type { EventListQuery } from "../model/types";
 import { applyFilters, mockEventApi } from "./eventApi.mock";
 
@@ -128,6 +129,23 @@ describe("applyFilters", () => {
     expect(cheap.map((e) => e.id)).toContain("evt-006");
   });
 
+  it("가격 상한 칩 3종이 각각 다른 건수를 낸다", () => {
+    // 목 데이터에 5만원 초과 건이 없으면 5만·7만 칩이 같은 필터가 되어
+    // 개발 중에 구별되지 않는다. 성별이 바뀌어도 유지돼야 하므로 양쪽 다 본다
+    for (const gender of ["F", "M"] as const) {
+      const counts = PRICE_CAPS.map(
+        (cap) =>
+          MOCK_EVENTS.filter((event) => {
+            const price = priceFor(event, gender);
+            return price !== null && price <= cap.value;
+          }).length,
+      );
+      expect(new Set(counts).size, `${gender} 기준 상한별 건수: ${counts}`).toBe(
+        PRICE_CAPS.length,
+      );
+    }
+  });
+
   it("가격 미확인 건은 maxPrice 필터에서 빠진다", () => {
     expect(ids({ maxPrice: 70000 })).not.toContain("evt-004");
     expect(ids({})).toContain("evt-004");
@@ -175,7 +193,7 @@ describe("mockEventApi", () => {
 
     const desc = await mockEventApi.getList({ sort: "priceDesc", limit: 20 });
     expect(desc.items.at(-1)?.femalePrice).toBeNull();
-    expect(desc.items[0]?.femalePrice).toBe(39000);
+    expect(desc.items[0]?.femalePrice).toBe(55000);
   });
 
   it("getHomeFeed 의 세 섹션이 각자의 규칙을 지킨다", async () => {
