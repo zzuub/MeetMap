@@ -13,6 +13,7 @@ import type { EventDetail } from "../model/types";
  * | 경계 | 건 |
  * | --- | --- |
  * | 가격 미확인(`null`) | evt-004 — 카드는 `링크 확인`, 비교함 `가성비` 후보 제외 |
+ * | 이미지 미동의(`thumbnailUrl: null`) | evt-006 — 정보 등록만 동의한 주최사 (7.2) |
  * | 후기 0건(`rating: 0`) | evt-003 — 평점 자리가 비는 경우 |
  * | `status: '마감'` | evt-007 — 그것도 인기 상위라 홈 첫 화면에 뜬다 |
  * | `locationPrecision` 3종 | EXACT(001·004·007) / STATION(002·005·008) / DISTRICT(003·006) |
@@ -243,8 +244,10 @@ export const MOCK_EVENTS: EventDetail[] = [
     title: "여의도 오후 티타임 소개팅",
     shortTitle: "여의도 티타임",
     provider: "애프터눈",
-    thumbnailUrl: "/mock/event-yeouido.jpg",
-    images: ["/mock/event-yeouido.jpg"],
+    // 정보 등록에는 동의했지만 **이미지 사용 동의를 주지 않은** 주최사 (7.2).
+    // 이미지가 없다고 소개팅을 숨기지 않는다 — 카드는 대체 표시로 떨어진다
+    thumbnailUrl: null,
+    images: [],
     date: "2026-09-13T14:00:00+09:00",
     dateLabel: "9/13(일)",
     timeLabel: "14:00",
