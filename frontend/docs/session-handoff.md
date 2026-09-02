@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-02 (P1-1·P1-2 머지 + **P1-0b·P1-2b 완료**, P1-3 착수 직전)
+> 마지막 갱신: 2026-09-02 (P1-0b·P1-2b·**P1-2c 완료**, P1-3 착수 직전)
 
 ---
 
@@ -131,7 +131,7 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating` — 4.21) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/` 카드 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
 | `widgets/` | `app-header` `bottom-nav` |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
@@ -159,6 +159,13 @@ const feed = await eventApi.getHomeFeed({});
 **컴포넌트에 `if (USE_MOCK)` 을 쓰지 않는다.**
 
 개발용 역할 스위치: 브라우저 콘솔에서 `document.cookie = "meetmap_mock_role=USER;path=/"` (값 예: `USER`, `PROVIDER:PENDING`, `ADMIN`). 쿠키가 없으면 게스트.
+
+### 코드 컨벤션 — 리뷰에서 걸리는 것들
+
+- **함수 하나가 50줄을 넘으면 쪼갠다.** 변형·분기가 늘어나는 컴포넌트는 `EventCard/` 처럼 **표 + 파일**로 나눈다 (`progress.md` 4.22)
+- **주석은 15~25% 를 넘기지 않는다.** 근거·대안·번복 조건은 `progress.md` 4장이 원본이고 소스에는 참조만 남긴다 — 주석은 코드와 함께 안 고쳐져 썩는다
+- **테스트에 목 데이터 id 를 쓰지 않는다.** `toEqual(["evt-003"])` 은 목 한 줄만 고쳐도 무관한 테스트를 깨뜨린다. 성질로 단언한다(`expectFilterMatches` 참고)
+- `any`·`as any`·`@ts-ignore`·non-null `!` 는 **현재 0건이다.** 유지한다
 
 ### 확인 방법
 

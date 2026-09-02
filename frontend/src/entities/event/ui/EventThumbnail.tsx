@@ -20,21 +20,9 @@ interface EventThumbnailProps {
 /**
  * 카드 썸네일.
  *
- * **이미지가 없는 것은 오류가 아니라 정상 경로다.** 주최사 등록은 동의 기반이고
- * 동의 범위가 `정보 등록` / `이미지 사용` / `참석자 리스트 표시` 로 나뉘어(7.2),
- * 정보만 허락하고 이미지는 주지 않는 주최사가 실제로 있다. 이미지가 없다고
- * 소개팅을 목록에서 빼면 컨택이 덜 진행된 주최사의 소개팅이 통째로 사라진다.
- *
- * 그래서 두 갈래를 같은 대체 표시로 떨어뜨린다.
- * - `thumbnailUrl === null` — 이미지 사용 동의 없음. **요청 자체를 보내지 않는다**
- * - 로드 실패 — 원본이 내려갔거나 URL 이 깨진 경우. `onError` 로 받는다
- *
- * 대체 표시는 회색 빈 상자가 아니라 **주최사 이름이 든 색 블록**이다. 목록에서
- * 이미지 없는 카드가 여러 장 이어질 때 전부 같은 상자로 보이면 서로 구분이
- * 안 되므로, 이름으로 색을 정해 카드마다 다른 톤이 나오게 한다.
- *
- * 전체가 `aria-hidden` 이다 — 대체 표시는 이미지의 자리를 대신하는 장식이고,
- * 실제 이미지였다면 `alt=""` 였을 자리다. 제목·주최사는 카드 본문이 읽힌다 (15장).
+ * **이미지가 없는 것은 오류가 아니라 정상 경로다** — 이미지 사용 동의를 주지 않은
+ * 주최사가 실재한다 (7.2 · `progress.md` 4.18). 두 갈래를 같은 대체 표시로 받는다.
+ * `null` 은 **요청 자체를 보내지 않고**, 로드 실패는 `onError` 로 잡는다.
  */
 export function EventThumbnail({ src, label, sizes, className }: EventThumbnailProps) {
   const [failed, setFailed] = useState(false);
@@ -58,10 +46,7 @@ export function EventThumbnail({ src, label, sizes, className }: EventThumbnailP
   );
 }
 
-/**
- * 색 조합은 토큰만 쓴다 (2.2). `--color-accent` 위에 흰 텍스트를 올리지 않는다는
- * 규칙 때문에 강조색 계열은 항상 짙은 글자와 짝짓는다.
- */
+/** 토큰만 쓴다. `--color-accent` 계열은 항상 짙은 글자와 짝짓는다 (2.2) */
 const TONES = [
   "bg-accent-soft text-secondary",
   "bg-active text-primary/55",
@@ -97,8 +82,8 @@ function Fallback({ label }: { label: string }) {
 }
 
 /**
- * 이름으로 톤을 정한다. 순수 함수라 서버·클라이언트가 같은 답을 내고,
- * 같은 주최사의 소개팅은 목록 어디에서나 같은 색으로 보인다.
+ * 이름으로 톤을 정한다 — 이미지 없는 카드가 여러 장 이어질 때 전부 같은 회색
+ * 상자면 구분되지 않는다. 순수 함수라 하이드레이션에 안전하다.
  */
 function toneFor(label: string): string {
   let sum = 0;
