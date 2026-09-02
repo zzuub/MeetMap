@@ -943,7 +943,7 @@ app/
 widgets/
   app-header/            AppHeader (로고·검색·알림 / 뒤로가기·타이틀·액션)
   bottom-nav/            BottomNav
-  home-feed/             HomeFeed (헤드라인 + 지도카드 + 퀵칩 + 3개 섹션 조립)
+  home-feed/             HomeFeed (헤드라인 + 지도카드 + 3개 섹션 조립. 퀵 필터 칩 바 없음 — 5.4)
   explore-board/         ExploreBoard (컨트롤바 + 리스트/지도 스위칭)
   event-detail/          EventDetailView (히어로 + 정보카드 + 고정 CTA)
   compare-board/         CompareBoard (컬럼 헤더 + 비교표)
@@ -955,7 +955,9 @@ features/
   terms-agreement/       TermsAgreementForm, useTermsAgreement
   profile-setup/         ProfileSetupForm, useProfileSetup
   location-permission/   LocationPermissionGate, useGeolocation, AreaSelector
-  event-filter/          FilterChipBar, FilterSheet, useEventFilter (URL 동기화)
+  event-filter/          TimeSlotChipBar(6.2 상단 시간대 칩), AppliedFilterChips(6.2 적용 필터
+                         칩 줄 — 조건 0개면 미렌더), FilterSheet(6.4 3층), DistrictSheet(6.3),
+                         useEventFilter (URL 동기화)
   event-sort/            SortSelect, ViewToggle
   event-like/            LikeButton, useLikeEvent, likeEventApi
   event-compare/         CompareBar, CompareTable, useCompareStore (localStorage)
@@ -967,8 +969,10 @@ features/
   review-write/          ReviewForm, StarRating, ReviewTagPicker, useReviewDraft
 
 entities/
-  event/                 EventCard(variant), EventStatusBadge, TimeSlotBadge,
-                         FemaleRatioBar, PriceText, types, eventApi
+  event/                 EventCard(variant 5종 — 14.1), EventStatusBadge(2종), TimeSlotBadge(4종),
+                         CapacityText(`남 N · 여 N`), PriceText(성별 기준값), BirthYearRangeText,
+                         types, derive(deriveScale·isEligible·priceFor·isThisWeek), eventApi
+                         ⚠️ FemaleRatioBar 는 만들지 않는다 — 정원이 남녀 동수라 성비가 항상 50%다
   user/                  ProfileCard, CompletionMeter, types, userApi
   notification/          NotificationCard, types, notificationApi
   review/                ReviewCard, RatingDistribution, ReviewTagChip, types, reviewApi
@@ -980,7 +984,8 @@ shared/
   lib/                   formatPrice, formatEventDate, formatRelativeTime, cn,
                          highlightKeyword, clampSelection
   api/                   fetchClient (baseURL · 에러 정규화 · 인증 헤더)
-  config/                theme.ts, constants.ts (CATEGORIES, AREAS, DISTRICTS, MOOD_TAGS, REVIEW_TAGS)
+  config/                theme.ts, constants.ts (AREAS, PROVINCES/SEOUL_DISTRICTS, TIME_SLOTS,
+                         WHEN_OPTIONS, SCALE_OPTIONS, PRICE_CAPS, MOOD_TAGS, JOB_GROUPS, REVIEW_TAGS)
 ```
 
 ### 14.1 카드 컴포넌트 변형

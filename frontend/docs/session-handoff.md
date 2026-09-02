@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-02 (P1-0 완료, P1-1 착수 직전)
+> 마지막 갱신: 2026-09-02 (P1-0 머지 완료, P1-1 착수 직전)
 
 ---
 
@@ -140,6 +140,7 @@ const feed = await eventApi.getHomeFeed({});
 
 - `/design-system` — shared/ui 전 컴포넌트가 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
+- **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---
@@ -183,25 +184,26 @@ const feed = await eventApi.getHomeFeed({});
 
 `dev-plan.md` 2장 Phase 1 표, `frontend-feature-spec.md` 5·6·7·11·14장 참조.
 
-### P1-0 — 데이터 모델을 코드에 반영 ✅ 완료 (#9 / `0fa3efb`)
+### P1-0 — 데이터 모델을 코드에 반영 ✅ 완료 (#9 / PR #10 머지)
 
 아래 표는 **무엇이 어떻게 바뀌었는지의 지도**로 남긴다. 근거는 `progress.md` 3장 · 4.13~4.15.
 
 | 파일 | 바뀐 것 |
 | --- | --- |
-| `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체. 12장에 없는 `stationName` 을 하나 추가했다 — 6.6 마커 시트가 `○○역 인근` 을 그려야 하는데 담을 자리가 없었다 (`progress.md` 4.13) |
+| `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체. `stationName` 을 하나 추가했다 — 6.6 마커 시트가 `{stationName} 인근` 을 그려야 하는데 `venueName` 은 `EventDetail` 의 `EXACT` 전용이라 자리가 없었다. **12장에도 반영해 뒀다** (`progress.md` 4.13) |
 | `entities/event/model/derive.ts` 🆕 | `deriveScale` `isThisWeek`/`weekRangeKst` `priceFor` `isEligible`. **자격·가격 판정을 화면에서 다시 짜지 않는다** |
 | `shared/config/constants.ts` | `CATEGORIES`·`GENDER_FILTERS`·`ONLY_20S_MAX_AGE`·`DEADLINE_ALERT_SEAT_THRESHOLD` 삭제. `TIME_SLOTS` 4종, `WHEN_OPTIONS`·`SCALE_OPTIONS`·`PRICE_CAPS`·`JOB_GROUPS` 신설 |
-| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 |
+| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 / `PRICE_CAPS` 3종(3만·5만·7만)이 남·여 어느 기준으로도 서로 다른 건수 |
 | `entities/event/mock/viewer.ts` 🆕 | `MOCK_VIEWER`(1996년생·여). `eligibleOnly`·`maxPrice`·가격 정렬은 쿼리에 성별·출생연도를 싣지 않으므로(13장) 목에서 인증 주체를 대신한다 |
 | `entities/event/api/eventApi.mock.ts` | 필터를 `when`·`scale`·`status`·`maxPrice`·`eligibleOnly` 로, 홈 3섹션을 `weeklyPopular`/`myAgeGroup`/`newlyAdded` 로 |
 | `entities/user` · `entities/notification` | `interestCategories` / `NotificationSettings.deadlineAlert` / `urgent` kind 삭제 |
 
-**P1-1 이후가 알아야 할 전제 3가지**
+**P1-1 이후가 알아야 할 전제 4가지**
 
 - **남녀 정원은 동수다** (`7:7`·`15:15`). 성비 게이지를 그리지 않고 `남 N · 여 N` 으로 표기한다. 필드를 둘로 유지한 건 예외를 받기 위해서다 (`progress.md` 4.14)
 - **`sort=latest` 는 `createdAt` 기준**이다. 개최일 임박순이 아니다
 - **`maxPrice` 는 가격 미확인(`null`) 건을 제외**한다. 카드에서는 `링크 확인` 으로 떨어진다
+- **`scale` 배지는 큰 쪽 정원 기준**이다. 동수인 동안은 문제없지만 비대칭이 들어오면 `남 20 · 여 1` 이 `대규모` 를 단다 — 여성에게는 1석뿐인데. 지금 분기를 만들지는 않되 배지 옆 `남 N · 여 N` 을 빼지 않는다 (`progress.md` 4.14)
 
 ### 착수 순서
 
