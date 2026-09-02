@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-01 (도메인 재정의 머지 완료, Phase 1 착수 직전)
+> 마지막 갱신: 2026-09-02 (P1-0 완료, P1-1 착수 직전)
 
 ---
 
@@ -18,11 +18,11 @@ MeetMap 은 **인스타그램에 개인 단위로 흩어진 로테이션 소개�
 
 성장 단계는 ① 운영자가 주최사에 컨택·양해를 구하고 **대신 등록** → ② 주최사 셀프서비스 등록 → ③ 결제 내재화(별도 `payment-service`) 순이며, **현재는 ①** 이다.
 
-### 문서·목업은 갱신됐고, 코드는 아직 이전 모델이다
+### 문서·목업·코드가 모두 새 기준이다
 
-PR #8(`e2e87c4`)이 `main` 에 머지되어 **기능정의서·개발계획·용어는 새 기준**이다. 목업 10종도 Claude Design 에서 전부 갱신됐다. **그러나 `src/` 는 용어 치환만 반영됐다** — 타입·상수·목데이터는 손대지 않았다.
+PR #8(`e2e87c4`)로 **기능정의서·개발계획·용어**가, 이슈 #9(`0fa3efb`)의 **P1-0** 으로 **타입·상수·목데이터·목 API** 가 새 기준이 됐다.
 
-**Phase 1 의 첫 작업은 화면이 아니라 코드에 데이터 모델을 반영하는 것이다**(5장 P1-0).
+**남은 것은 화면과 목업이다.** 목업 10종은 Claude Design 에서 갱신됐으나 일부에 옛 값(카테고리·잔여석·성비 게이지·단일 가격)이 남아 있을 수 있다 — **어긋나 보이면 기능정의서가 원본이다.**
 
 실제 주최사 운영 방식을 조사한 결과 목업이 전제한 값 중 **도메인에 존재하지 않는 것**들이 드러났다.
 
@@ -114,13 +114,13 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 
 `features/` 는 **비어 있다.** Phase 1 에서 처음 채운다.
 
-> ⚠️ `entities/event/model/types.ts` · `shared/config/constants.ts` · `entities/event/mock/events.ts` 는 **0장 표의 이전 모델 상태**다. 그대로 쓰지 말고 P1-0 에서 먼저 고친다.
+> `entities/event/model/derive.ts` 에 파생 규칙이 모여 있다 — `deriveScale` `isThisWeek` `priceFor` `isEligible`. 자격·가격 판정을 화면에서 다시 구현하지 않는다. 목 모드의 "인증 주체"(출생연도·성별)는 `entities/event/mock/viewer.ts` 의 `MOCK_VIEWER` 다.
 
 ### 목업 위치 — 리포지토리에 없다
 
 목업 10종(`MeetMap User v2` / `Actions` / `My` / `Support` / `Onboarding` / `Common` / `Provider` / `Provider Manage` / `Admin` / `Admin Manage`)은 **Claude Design 캔버스**의 `MeetMap UI/UX 작업` 프로젝트에 있다. git 에 없으므로 파일로 열 수 없다. 필요하면 사용자에게 URL 을 요청한다.
 
-**10종 전부 2026-09-01 새 기준으로 갱신 완료**다. 목업과 기능정의서가 어긋나 보이면 먼저 기능정의서를 다시 확인한다 — 기능정의서가 사양의 원본이다.
+10종 전부 2026-09-01 에 손봤으나 **User v2 / Actions / My 에 옛 값(카테고리·잔여석·성비 게이지·단일 가격)이 남아 있다**(`progress.md` 5장). 목업과 기능정의서가 어긋나면 **기능정의서가 사양의 원본**이다.
 
 ### 데이터 가져오는 법
 
@@ -183,22 +183,29 @@ const feed = await eventApi.getHomeFeed({});
 
 `dev-plan.md` 2장 Phase 1 표, `frontend-feature-spec.md` 5·6·7·11·14장 참조.
 
-### P1-0 (선행) — 데이터 모델을 코드에 반영
+### P1-0 — 데이터 모델을 코드에 반영 ✅ 완료 (#9 / `0fa3efb`)
 
-**이걸 건너뛰고 P1-1 부터 만들면 카드가 존재하지 않는 필드를 그리게 된다.** 0장 표가 명세이고, 기능정의서 12장이 확정본이다.
+아래 표는 **무엇이 어떻게 바뀌었는지의 지도**로 남긴다. 근거는 `progress.md` 3장 · 4.13~4.15.
 
-| 파일 | 할 일 |
+| 파일 | 바뀐 것 |
 | --- | --- |
-| `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체 |
-| `shared/config/constants.ts` | `CATEGORIES`·`MAX_INTEREST_CATEGORIES` **삭제**, `TIME_SLOTS` 4종으로 |
-| `entities/event/mock/events.ts` | 목 8건 **전면 교체.** 현재 데이터는 취미 모임(러닝 크루·쿠킹 클래스·전시 도슨트)이라 로테이션 소개팅이 아니다. 경계값(가격 `null`, `locationPrecision` 3종, 마감 건, 후기 0건)을 일부러 섞는다 |
-| `entities/event/api/eventApi.mock.ts` | 필터 로직을 새 쿼리 파라미터(`when`·`scale`·`status`·`maxPrice`·`eligibleOnly`)에 맞춘다 |
-| `entities/user/model/types.ts` | `interestCategories` 삭제, `NotificationSettings.deadlineAlert` 삭제 |
-| `entities/notification/model/types.ts` | `urgent` kind 삭제 |
+| `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체. 12장에 없는 `stationName` 을 하나 추가했다 — 6.6 마커 시트가 `○○역 인근` 을 그려야 하는데 담을 자리가 없었다 (`progress.md` 4.13) |
+| `entities/event/model/derive.ts` 🆕 | `deriveScale` `isThisWeek`/`weekRangeKst` `priceFor` `isEligible`. **자격·가격 판정을 화면에서 다시 짜지 않는다** |
+| `shared/config/constants.ts` | `CATEGORIES`·`GENDER_FILTERS`·`ONLY_20S_MAX_AGE`·`DEADLINE_ALERT_SEAT_THRESHOLD` 삭제. `TIME_SLOTS` 4종, `WHEN_OPTIONS`·`SCALE_OPTIONS`·`PRICE_CAPS`·`JOB_GROUPS` 신설 |
+| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 |
+| `entities/event/mock/viewer.ts` 🆕 | `MOCK_VIEWER`(1996년생·여). `eligibleOnly`·`maxPrice`·가격 정렬은 쿼리에 성별·출생연도를 싣지 않으므로(13장) 목에서 인증 주체를 대신한다 |
+| `entities/event/api/eventApi.mock.ts` | 필터를 `when`·`scale`·`status`·`maxPrice`·`eligibleOnly` 로, 홈 3섹션을 `weeklyPopular`/`myAgeGroup`/`newlyAdded` 로 |
+| `entities/user` · `entities/notification` | `interestCategories` / `NotificationSettings.deadlineAlert` / `urgent` kind 삭제 |
+
+**P1-1 이후가 알아야 할 전제 3가지**
+
+- **남녀 정원은 동수다** (`7:7`·`15:15`). 성비 게이지를 그리지 않고 `남 N · 여 N` 으로 표기한다. 필드를 둘로 유지한 건 예외를 받기 위해서다 (`progress.md` 4.14)
+- **`sort=latest` 는 `createdAt` 기준**이다. 개최일 임박순이 아니다
+- **`maxPrice` 는 가격 미확인(`null`) 건을 제외**한다. 카드에서는 `링크 확인` 으로 떨어진다
 
 ### 착수 순서
 
-**P1-0 데이터 모델** → P1-1 `EventCard` variant → P1-2 배지·정원·가격 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+~~P1-0 데이터 모델~~(완료, #9) → **P1-1 `EventCard` variant** → P1-2 배지·정원·가격 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
 
 **P1-1 요점**: `feature`(홈 가로 196px) / `ratio`(홈 `내 나이대` — 정원 `남 N · 여 N` 표기, **성비 바 아님**) / `compact`(가로 62~66px) / `list`(가로 84~92px) / `sheet`(마커 시트 88px). 한 컴포넌트에 `variant` prop 으로 통합한다(기능정의서 14.1). 위치는 `entities/event/ui/`.
 
@@ -214,10 +221,11 @@ const feed = await eventApi.getHomeFeed({});
 | --- | --- |
 | 서버 상태 라이브러리(TanStack Query) 미도입 | P1-4 무한 스크롤, P2-7 찜 낙관적 업데이트. 직접 구현 비용을 감안하면 도입 권장이나 미결정 |
 | 페이지네이션 방식 | 커서 + 무한 스크롤 기본안으로 진행 중 |
-| **직업군 마스터 미정규화** | P1-5 필터·P1-7 상세. 주최사마다 표기가 제각각이다 (`dev-plan.md` 4장 #11) |
 | **하단 탭 `지도` → `탐색`(리스트 기본) 개편 여부** | P1-4·P1-6. `전체보기 >` 로 리스트에 도착하는데 하단 탭은 `지도` 가 켜진다. 사용자가 문제 제기했으나 **미결** |
 
-> `genderPolicy` blocking 은 **해소됐다.** 성별 조건 필터를 삭제하고 남녀 정원 분리로 대체했다.
+> **해소된 blocking 2건.**
+> - `genderPolicy` — 성별 조건 필터를 삭제하고 남녀 정원 분리로 대체했다.
+> - **직업군 마스터 정규화** — 직업군은 필터 축이 아니라 상세 표시 전용이고, 값은 등록 폼에서 자유 입력되는 태그다. 표기 수렴은 Phase 6/7 등록 폼의 과제로 내려갔다 (`progress.md` 4.15 / `dev-plan.md` #11).
 
 **P1-8 은 타협 불가.** 결제 비대행 고지·조건 확인 블록·하단 경고가 전부 들어가야 하고, 이 모달을 우회하는 진입 경로(지도 마커 시트의 신청 버튼 포함)를 만들지 않는다. 조건 확인 블록은 참가 연령(`N~N년생`)·모집 정원(`남 N · 여 N`)·참가비(남·여 양쪽)이며 `신청 마감` 항목은 없다.
 

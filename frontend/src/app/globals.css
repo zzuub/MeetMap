@@ -22,7 +22,7 @@
   --color-bg: #fbfaf6;
   --color-active: #f0e7d0; /* 선택된 칩 배경 */
   --color-success: #4e7b54; /* 모집중 배지 (흰 텍스트 OK) */
-  --color-warning: #ad6a2e; /* 마감임박 배지 (흰 텍스트 OK) */
+  --color-warning: #ad6a2e; /* 경고·주의 표기 (흰 텍스트 OK) */
   --color-disabled-bg: #c9c2ae;
 
   /* 소셜 로그인은 토큰 체계의 예외 — 브랜드 가이드 컬러 유지 (3.1) */
