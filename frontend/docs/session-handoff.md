@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-02 (P1-0 머지 완료, P1-1 착수 직전)
+> 마지막 갱신: 2026-09-02 (P1-1·P1-2 머지 완료, **P1-0b 착수 직전**)
 
 ---
 
@@ -42,6 +42,30 @@ PR #8(`e2e87c4`)로 **기능정의서·개발계획·용어**가, 이슈 #9(`0fa
 **필터 축 선정 기준**: *모든 주최사 게시물에서 결측 없이 얻을 수 있는가.* 운영자가 손으로 등록하는 단계라 이게 절대적이다. 반쯤 빈 필터는 켜는 순간 멀쩡한 소개팅을 숨겨서 없느니만 못하다.
 
 근거 전문은 `progress.md` **4.6**, 화면 영향은 `frontend-feature-spec.md` **상단 경고 블록**에 있다.
+
+### 0.1 ⚠️ 2026-09-02 2차 재정의 — 평점은 주최사에 쌓인다
+
+**소개팅 회차에는 평점이 없다.** 사용자가 평점을 보는 시점은 그 회차가 열리기 전이고, 회차는 1회성이라 신규 회차는 정의상 후기 0건이다. 게다가 정원 7:7 중 후기를 쓰는 사람은 회차당 2~4명뿐이라 표본도 없다.
+
+배달 앱의 **가게 리뷰**와 같은 구조로 옮겼다 — **후기는 회차에 대해 쓰지만 주최사에 쌓인다.**
+
+| 필드·화면 | 조치 |
+| --- | --- |
+| `EventSummary.rating` · `reviewCount` | **삭제** |
+| `EventSummary.provider: string` | → **`{ id, name }` 객체**. id 없이는 주최사 페이지 링크도 후기 귀속도 불가능하다 |
+| `entities/provider/` | **신설**. ⚠️ `entities/event` 는 이걸 import 할 수 없다(FSD) — event 가 쓰는 `{ id, name }` 는 event 슬라이스가 직접 정의한다 |
+| 주최사 소개 페이지 | **신설** `/providers/[providerId]` (기능정의서 **7.4**). 한 줄 소개 · 인스타 아웃링크 · 평점 요약 · 모집 중인 회차 · 후기 목록 |
+| 후기 목록 라우트 | `/providers/[id]/reviews` + `/my/reviews`. **회차별 후기 목록은 만들지 않는다** (오랜 TBD 해소) |
+| 탐색 정렬 | `평점 높은순` 추가 → **5종**. 정렬 키는 원본 평균이 아니라 **베이지안 보정값**(`ratingScore`) |
+| 비교함 `후기` 행 | → `주최사 평점` |
+| **카드 5종** | **평점을 그리지 않는다.** 목록 응답이 평점을 나를 이유가 없다 |
+
+**두 개의 임계를 헷갈리지 않는다.**
+- **표시 임계 5건** — 후기 5건 미만이면 평점 숫자를 숨기고 `후기 N건` 만. 평점은 **항상 건수와 함께** 쓴다(`4.6 (23)`)
+- **정렬은 임계를 쓰지 않는다** — 하드 컷은 절벽을 만든다. `ratingScore = (C×m + 평점합)/(C+n)`, `C=10` `m=4.3`. 후기 0건 주최사는 맨 아래가 아니라 **중간**에 놓인다
+- **`ratingScore` 를 화면에 노출하지 않는다.** 원본 평균과 나란히 보이면 설명할 수 없다
+
+근거 전문은 `progress.md` **4.19·4.20**, 화면 사양은 `frontend-feature-spec.md` **7.4** 다.
 
 ---
 
@@ -107,7 +131,7 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` `formatRelativeTime` `formatDistance` …) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + `EventApi` 포트 + mock/http 구현 + 목 8건) `user` `notification` `review` `account`(역할·라우트 가드) |
+| `entities/` | `event`(타입 + `EventApi` 포트 + mock/http 구현 + 목 8건 + **`ui/` 카드 5종·조각 6종** + `labels`) `user` `notification` `review` `account`(역할·라우트 가드) |
 | `widgets/` | `app-header` `bottom-nav` |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
@@ -198,7 +222,9 @@ const feed = await eventApi.getHomeFeed({});
 | `entities/event/api/eventApi.mock.ts` | 필터를 `when`·`scale`·`status`·`maxPrice`·`eligibleOnly` 로, 홈 3섹션을 `weeklyPopular`/`myAgeGroup`/`newlyAdded` 로 |
 | `entities/user` · `entities/notification` | `interestCategories` / `NotificationSettings.deadlineAlert` / `urgent` kind 삭제 |
 
-**P1-1 이후가 알아야 할 전제 4가지**
+**P1-1 이후가 알아야 할 전제 5가지**
+
+- **카드에는 평점이 없다.** 회차 평점은 존재하지 않는 값이고(0.1) 평점은 주최사에 쌓인다. `RatingText` 를 만들지 않았다. 평점이 나오는 화면은 상세 주최사 블록(7.1)·주최사 페이지(7.4)·비교함(8장)·후기 목록(10.4) 넷뿐이다
 
 - **남녀 정원은 동수다** (`7:7`·`15:15`). 성비 게이지를 그리지 않고 `남 N · 여 N` 으로 표기한다. 필드를 둘로 유지한 건 예외를 받기 위해서다 (`progress.md` 4.14)
 - **`sort=latest` 는 `createdAt` 기준**이다. 개최일 임박순이 아니다
@@ -207,9 +233,11 @@ const feed = await eventApi.getHomeFeed({});
 
 ### 착수 순서
 
-~~P1-0 데이터 모델~~(완료, #9) → **P1-1 `EventCard` variant** → P1-2 배지·정원·가격 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+~~P1-0 데이터 모델~~(#9) → ~~P1-1 `EventCard` variant~~ · ~~P1-2 배지·정원·가격~~(#11) → **P1-0b `provider` 객체 승격** → P1-2b 카드 참조 수정 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
 
-**P1-1 요점**: `feature`(홈 가로 196px) / `ratio`(홈 `내 나이대` — 정원 `남 N · 여 N` 표기, **성비 바 아님**) / `compact`(가로 62~66px) / `list`(가로 84~92px) / `sheet`(마커 시트 88px). 한 컴포넌트에 `variant` prop 으로 통합한다(기능정의서 14.1). 위치는 `entities/event/ui/`.
+**P1-0b 요점** (지금 여기다): `EventSummary.provider: string` → `{ id, name }`, `rating`·`reviewCount` 삭제, `entities/provider` 신설(타입 + 포트 + mock/http). **목 데이터를 주최사당 2~3 회차로 재구성한다** — 지금은 주최사 7개에 회차 8건(`로테이션서울`만 2건)이라 주최사 단위 집계가 의미를 갖지 못한다. 사양은 기능정의서 **7.4**, 근거는 `progress.md` **4.19**.
+
+**P1-6 요점**: 정렬이 **5종**이다 — 인기순(기본) / 최신순 / **평점 높은순** / 가격 낮은순 / 가격 높은순. 평점 정렬은 주최사 `ratingScore`(베이지안 보정) 기준이고 **게스트에게도 노출**한다(가격 정렬과 달리 인증 주체가 필요 없다). 2차 정렬은 개최일 가까운 순 → `progress.md` 4.20.
 
 **P1-3 요점**: 홈은 헤더 → 헤드라인·추천 기준 → 지도 프로모 카드 → 섹션 3개(`이번 주 인기` / `내 나이대` / `새로 등록된`) 순이다. **퀵 필터 칩 바는 만들지 않는다.** 게스트는 `내 나이대` 섹션을 숨기고 `새로 등록된` 을 위로 올린다.
 
@@ -224,10 +252,13 @@ const feed = await eventApi.getHomeFeed({});
 | 서버 상태 라이브러리(TanStack Query) 미도입 | P1-4 무한 스크롤, P2-7 찜 낙관적 업데이트. 직접 구현 비용을 감안하면 도입 권장이나 미결정 |
 | 페이지네이션 방식 | 커서 + 무한 스크롤 기본안으로 진행 중 |
 | **하단 탭 `지도` → `탐색`(리스트 기본) 개편 여부** | P1-4·P1-6. `전체보기 >` 로 리스트에 도착하는데 하단 탭은 `지도` 가 켜진다. 사용자가 문제 제기했으나 **미결** |
+| **`ratio`·`compact` 카드의 모집 상태 표시** | P1-3. 5.3 섹션 B·C 표시 항목에 상태가 없어 **마감된 소개팅이 신청 가능해 보인다.** `evt-007` 은 인기 2위라 홈 첫 화면에 실제로 뜬다. 표시 항목을 늘리려면 기능정의서 5.3 을 고쳐야 한다 |
+| **홈 `신규 입점 주최사` 섹션** | P1-3. 평점순이 기존 주최사에 유리하니 균형추를 달자는 제안. **보류** — 섹션 C 와 겹치고, 주최사 7개인 지금은 "신규"가 전체이며, 주최사 카드라는 새 변형이 필요하다 (`progress.md` 5장) |
 
-> **해소된 blocking 2건.**
+> **해소된 blocking 3건.**
 > - `genderPolicy` — 성별 조건 필터를 삭제하고 남녀 정원 분리로 대체했다.
 > - **직업군 마스터 정규화** — 직업군은 필터 축이 아니라 상세 표시 전용이고, 값은 등록 폼에서 자유 입력되는 태그다. 표기 수렴은 Phase 6/7 등록 폼의 과제로 내려갔다 (`progress.md` 4.15 / `dev-plan.md` #11).
+> - **후기 목록 라우트 분리** — 평점 귀속을 주최사로 확정하면서 `/providers/[id]/reviews` + `/my/reviews` 로 갈렸다. 회차별 후기 목록은 만들지 않는다 (기능정의서 10.4).
 
 **P1-8 은 타협 불가.** 결제 비대행 고지·조건 확인 블록·하단 경고가 전부 들어가야 하고, 이 모달을 우회하는 진입 경로(지도 마커 시트의 신청 버튼 포함)를 만들지 않는다. 조건 확인 블록은 참가 연령(`N~N년생`)·모집 정원(`남 N · 여 N`)·참가비(남·여 양쪽)이며 `신청 마감` 항목은 없다.
 
