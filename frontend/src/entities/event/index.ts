@@ -23,6 +23,8 @@ export type { EventApi } from "./model/ports";
 export type {
   EventDetail,
   EventListQuery,
+  EventProviderDetail,
+  EventProviderRef,
   EventScale,
   EventStatus,
   EventSummary,

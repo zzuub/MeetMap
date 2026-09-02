@@ -38,7 +38,42 @@ export type WhenFilter = "ALL" | "THIS_WEEK" | "LATER";
 /** 모집 상태 필터 (6.4 3층). `OPEN` 이면 `status === '신청 가능'` 만 */
 export type StatusFilter = "ALL" | "OPEN";
 
-export type SortOption = "popular" | "latest" | "priceAsc" | "priceDesc";
+export type SortOption =
+  | "popular"
+  | "latest"
+  | "rating"
+  | "priceAsc"
+  | "priceDesc";
+
+/**
+ * 카드·메타 줄이 쓰는 **주최사 최소 형태**.
+ *
+ * `entities/provider` 의 `ProviderSummary` 를 import 하지 않는다 — entity 끼리는
+ * 서로를 참조하지 않는다(FSD 동일 레이어 규칙). 목록 화면이 주최사에 대해 알아야
+ * 하는 것은 **이름(표시)과 id(링크)** 뿐이라 여기서 그 둘만 정의한다.
+ *
+ * ⚠️ **평점을 넣지 않는다.** 카드 5종 어디에도 주최사 평점을 그리지 않으므로
+ * (7.4) 목록 응답이 평점을 나를 이유가 없다.
+ */
+export interface EventProviderRef {
+  id: string;
+  name: string;
+}
+
+/**
+ * 상세(7.1)의 **주최사 블록**이 쓰는 형태. 소개 페이지로 가기 전에 보여주는
+ * 미리보기라 한 줄 소개와 평점까지 필요하다.
+ *
+ * 별도 조회로 나누지 않고 상세 응답에 실어 보낸다 — 화면에 바로 보이는 블록을
+ * 위해 왕복을 한 번 더 도는 것은 손해다.
+ */
+export interface EventProviderDetail extends EventProviderRef {
+  /** 한 줄 소개 */
+  tagline: string;
+  /** 후기 `REVIEW_DISPLAY_MIN_COUNT` 건 미만이면 `null` — 화면은 `후기 N건` 만 쓴다 */
+  rating: number | null;
+  reviewCount: number;
+}
 
 /**
  * 가격·자격 판정의 기준이 되는 성별.
@@ -53,8 +88,13 @@ export interface EventSummary {
   title: string;
   /** 비교함 컬럼 헤더용 축약 제목 (8장) */
   shortTitle: string;
-  /** 주최사 */
-  provider: string;
+  /**
+   * 주최사. **문자열이 아니라 객체다** (2026-09-02).
+   *
+   * id 가 없으면 주최사 소개 페이지(7.4)로 링크할 수도, 후기를 귀속시킬 수도
+   * 없다. 후기·평점은 회차가 아니라 주최사에 쌓인다 (`progress.md` 4.19).
+   */
+  provider: EventProviderRef;
   /**
    * 대표 이미지. **`null` 은 "이미지 사용 동의를 받지 못했다"** 는 뜻이다.
    *
@@ -155,9 +195,17 @@ export interface EventSummary {
 
   /* ── 평판·정렬 ───────────────────────────────────────── */
 
-  /** 0~5. 후기가 0건이면 0 */
-  rating: number;
-  reviewCount: number;
+  /*
+   * `rating` / `reviewCount` 는 2026-09-02 삭제됐다.
+   *
+   * **회차 평점은 성립하지 않는 값이다.** 사용자가 평점을 보는 시점은 그 회차가
+   * 열리기 전이고, 회차는 1회성이라 신규 회차는 정의상 후기 0건이다. 게다가
+   * 정원 7:7 중 참여 인증까지 마치고 후기를 쓰는 사람은 회차당 2~4명뿐이라
+   * 표본도 없다.
+   *
+   * 평점은 **주최사에 쌓인다** — `entities/provider` (`progress.md` 4.19).
+   */
+
   /** 정렬용 서버 산출값. 산식은 미확정 (16장) */
   popularity: number;
   /** ISO — 홈 '새로 등록된 소개팅' 섹션과 `sort=latest` 의 정렬 축 (5.3) */
@@ -166,6 +214,8 @@ export interface EventSummary {
 }
 
 export interface EventDetail extends EventSummary {
+  /** 상세는 주최사 블록(7.1)을 그리므로 한 줄 소개·평점까지 받는다 */
+  provider: EventProviderDetail;
   description: string;
   /** 'Bar noy' — `locationPrecision === 'EXACT'` 일 때만. 아니면 `null` */
   venueName: string | null;
@@ -207,6 +257,13 @@ export interface EventListQuery {
   mood?: string[];
   /** 동 단위 지역 (프로필 선호 지역) */
   area?: string;
+  /**
+   * 주최사의 회차만. 주최사 소개 페이지(7.4)의 `진행 중인 소개팅` 블록이 쓴다.
+   *
+   * 그 화면은 `status: 'OPEN'` 과 함께 걸어 **모집 중인 회차만** 가져온다 —
+   * 마감된 회차를 주최사 페이지에 늘어놓을 이유가 없다.
+   */
+  providerId?: string;
   cursor?: string | null;
   limit?: number;
 }

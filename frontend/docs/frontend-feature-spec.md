@@ -658,7 +658,7 @@ MeetMap은 **결제를 대행하지 않는 중개 플랫폼**이다. 신청·결
 | 헤더 | `AppHeader` 뒤로가기 + 주최사명 | `(stack)` 그룹 |
 | 프로필 | 주최사명 / **한 줄 소개**(`tagline`) / **인스타그램 아웃링크** | 인스타 프로필의 bio 배치를 따른다 |
 | 평점 요약 | 평균 평점(세리프) + 별 + `후기 N건`. **후기 5건 미만이면 평점을 숨기고 `후기 N건`만** | 아래 임계 규칙 |
-| 진행 중인 소개팅 | `status === '신청 가능'`인 회차를 **개최일 가까운 순**으로. `list` 카드(6.5) | 마감 회차는 노출하지 않는다 |
+| 진행 중인 소개팅 | `status === '신청 가능'`인 회차를 **개최일 가까운 순**으로. `list` 카드(6.5) | `eventApi.getList({ providerId, status: 'OPEN' })`. 마감 회차는 노출하지 않는다 |
 | 후기 목록 | 최근 3건 + `후기 전체보기 >` → `/providers/[id]/reviews` | 카드 형식은 10.4와 동일 |
 
 - **인스타그램 아웃링크는 새 탭**(`target="_blank" rel="noopener noreferrer"`)이다. 외부 신청 이동(7.3)과 달리 **확인 모달을 거치지 않는다** — 신청·결제 행위가 아니라 단순 참조 링크이므로 결제 비대행 고지의 대상이 아니다.
@@ -892,7 +892,7 @@ export interface EventSummary {
      상세(7.1)와 주최사 페이지(7.4)뿐이고 둘 다 단건 조회다.
      ⚠️ entities/event 는 entities/provider 를 import 할 수 없다(FSD 동일 레이어
      금지). 이 최소 형태는 event 슬라이스가 직접 정의한다 */
-  provider: { id: string; name: string };
+  provider: EventProviderRef;
   /* 대표 이미지. null = '이미지 사용 동의를 받지 못했다'.
      주최사 등록은 동의 기반이고 동의 범위가 정보 등록 / 이미지 사용 /
      참석자 리스트 표시 로 나뉜다(7.2). 정보만 허락하는 주최사가 있으므로
@@ -955,9 +955,9 @@ export interface EventSummary {
 }
 
 export interface EventDetail extends EventSummary {
-  /* 상세는 주최사 블록(7.1)을 그리므로 평점까지 받는다.
-     목록(EventSummary)은 받지 않는다 — 카드에 평점을 그리지 않는다 */
-  provider: ProviderSummary;
+  /* 상세는 주최사 블록(7.1)을 그리므로 한 줄 소개·평점까지 받는다.
+     목록(EventSummary)은 { id, name } 만 받는다 — 카드에 평점을 그리지 않는다 */
+  provider: EventProviderDetail;
   description: string;
   venueName: string | null;      // 'Bar noy' — locationPrecision === 'EXACT'일 때만
   address: string | null;        // '서울 서초구 반포동 92-4' — 상동
@@ -1027,10 +1027,37 @@ export interface ProviderSummary {
 }
 
 export interface ProviderDetail extends ProviderSummary {
-  /* 모집 중인 회차만. 개최일 가까운 순 (7.4) */
-  openEvents: EventSummary[];
-  recentReviews: Review[];      // 최근 3건
-  reviewSummary: ReviewSummary;
+  description: string | null;   // 소개 본문. 컨택 직후라 못 받은 주최사는 null
+  registeredAt: string;         // ISO — 등록 시점(운영자가 대신 등록한 날)
+}
+```
+
+> **모집 중인 회차와 후기 목록을 `ProviderDetail` 에 담지 않는다.** `entities/provider`
+> 는 `entities/event`·`entities/review` 를 import 할 수 없다(FSD 동일 레이어 금지).
+> 주최사 페이지(7.4)는 세 포트를 **상위 레이어에서 조립**한다.
+>
+> ```ts
+> providerApi.getDetail(id)                                  // 프로필 + 평점 요약
+> eventApi.getList({ providerId: id, status: 'OPEN' })       // 진행 중인 소개팅
+> reviewApi.getByProvider(id, { limit: 3 })                  // 최근 후기
+> ```
+>
+> 서버는 `GET /providers/{id}` 하나로 다 내려도 된다. 나뉘는 것은 **프론트의 타입
+> 경계**이지 API 경계가 아니다.
+
+```ts
+// entities/event — 목록이 나르는 주최사 최소 형태.
+// entities/provider 를 import 할 수 없어 event 슬라이스가 직접 정의한다.
+export interface EventProviderRef {
+  id: string;
+  name: string;
+}
+
+// 상세(7.1)의 주최사 블록용. 별도 조회를 한 번 더 돌지 않으려고 상세 응답에 싣는다
+export interface EventProviderDetail extends EventProviderRef {
+  tagline: string;
+  rating: number | null;        // 후기 5건 미만이면 null
+  reviewCount: number;
 }
 ```
 

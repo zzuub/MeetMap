@@ -114,7 +114,7 @@ export function EventCard({
         <div className="relative">
           <EventThumbnail
             src={event.thumbnailUrl}
-            label={event.provider}
+            label={event.provider.name}
             sizes="196px"
             className="h-[118px] w-full"
           />
@@ -167,7 +167,7 @@ export function EventCard({
       <article className={cn(SHELL, "flex items-center gap-3 p-2.5", className)}>
         <EventThumbnail
           src={event.thumbnailUrl}
-          label={event.provider}
+          label={event.provider.name}
           sizes="64px"
           className="size-16 rounded-[12px]"
         />
@@ -190,7 +190,7 @@ export function EventCard({
       <article className={cn(SHELL, "flex gap-3 p-3", className)}>
         <EventThumbnail
           src={event.thumbnailUrl}
-          label={event.provider}
+          label={event.provider.name}
           sizes="92px"
           className="size-[92px] rounded-[14px]"
         />
@@ -233,7 +233,7 @@ export function EventCard({
       <div className="flex gap-3">
         <EventThumbnail
           src={event.thumbnailUrl}
-          label={event.provider}
+          label={event.provider.name}
           sizes="88px"
           className="size-[88px] rounded-[14px]"
         />

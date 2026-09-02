@@ -50,9 +50,12 @@ const VIEWERS: { code: string; label: string; viewer: EventCardViewer | null }[]
 /** 목 데이터에 심어 둔 경계값 (P1-0). `entities/event/mock/events.ts` 주석 참조 */
 const BOUNDARY_CASES = [
   { id: "evt-004", label: "가격 미확인", note: "malePrice·femalePrice 가 모두 null" },
-  { id: "evt-006", label: "이미지 미동의", note: "thumbnailUrl 이 null (7.2 동의 범위)" },
+  {
+    id: "evt-006",
+    label: "이미지 미동의",
+    note: "thumbnailUrl 이 null — 주최사 단위 동의라 prv-004 회차는 둘 다 비어 있다 (7.2)",
+  },
   { id: "evt-007", label: "마감", note: "인기 상위인데 마감된 건" },
-  { id: "evt-003", label: "후기 0건", note: "rating 0 · reviewCount 0" },
 ];
 
 const ALL_VARIANTS: EventCardVariant[] = [
@@ -368,9 +371,11 @@ export function DesignSystemPreview({ events }: DesignSystemPreviewProps) {
               표시 항목을 늘릴지는 미결 — 기능정의서를 고쳐야 하는 사안이다.
             </li>
             <li>
-              <b className="text-text">후기 0건</b> — 5종 어디에도 드러나지 않는다.
-              5.3·6.5·7.1 어느 표시 항목에도 평점이 없다. 후기는 비교함(8장)과 후기
-              목록(10.4)의 축이다.
+              <b className="text-text">평점</b> — 5종 어디에도 없다. 2026-09-02 재정의로{" "}
+              <b className="text-text">회차 평점이 삭제됐다</b> — 사용자가 평점을 보는
+              시점은 회차가 열리기 전이라 신규 회차는 정의상 후기 0건이다. 평점은
+              주최사에 쌓이고, 상세의 주최사 블록(7.1)·주최사 페이지(7.4)·비교함(8장)에서
+              나온다.
             </li>
           </ul>
 

@@ -139,14 +139,14 @@ export function locationLabel(
 export function providerScheduleLabel(
   event: Pick<EventSummary, "provider" | "dateLabel" | "timeLabel">,
 ): string {
-  return `${event.provider} · ${event.dateLabel} ${event.timeLabel}`;
+  return `${event.provider.name} · ${event.dateLabel} ${event.timeLabel}`;
 }
 
 /** `'로테이션서울 · 디너 19:30'` — 홈 `새로 등록된` 소형 카드 (5.3) */
 export function providerSlotLabel(
   event: Pick<EventSummary, "provider" | "timeSlot" | "timeLabel">,
 ): string {
-  return `${event.provider} · ${timeSlotLabel(event.timeSlot)} ${event.timeLabel}`;
+  return `${event.provider.name} · ${timeSlotLabel(event.timeSlot)} ${event.timeLabel}`;
 }
 
 /* ── 내부 ───────────────────────────────────────────────── */

@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-02 (P1-1·P1-2 머지 완료, **P1-0b 착수 직전**)
+> 마지막 갱신: 2026-09-02 (P1-1·P1-2 머지 + **P1-0b·P1-2b 완료**, P1-3 착수 직전)
 
 ---
 
@@ -128,10 +128,10 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | 위치 | 내용 |
 | --- | --- |
 | `shared/ui/` | `PrimaryButton` `Chip` `SegmentedControl` `Sheet` `Modal` `Toast`(+`useToast`) `Numeric` `Skeleton` `EmptyState` `ErrorState` `Toggle` `Checkbox` `IconButton` |
-| `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` `formatRelativeTime` `formatDistance` …) |
+| `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating` — 4.21) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + `EventApi` 포트 + mock/http 구현 + 목 8건 + **`ui/` 카드 5종·조각 6종** + `labels`) `user` `notification` `review` `account`(역할·라우트 가드) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/` 카드 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
 | `widgets/` | `app-header` `bottom-nav` |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
@@ -233,9 +233,9 @@ const feed = await eventApi.getHomeFeed({});
 
 ### 착수 순서
 
-~~P1-0 데이터 모델~~(#9) → ~~P1-1 `EventCard` variant~~ · ~~P1-2 배지·정원·가격~~(#11) → **P1-0b `provider` 객체 승격** → P1-2b 카드 참조 수정 → P1-3 홈 → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+~~P1-0 데이터 모델~~(#9) → ~~P1-1·P1-2 카드·조각~~(#11) → ~~P1-0b `provider` 승격~~ · ~~P1-2b 카드 참조~~ → **P1-3 홈** → P1-4 탐색 리스트 → P1-5 필터 시트 → **P1-5c 적용 필터 칩 줄** → P1-5b 지역 시트 → P1-6 정렬/뷰 → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
 
-**P1-0b 요점** (지금 여기다): `EventSummary.provider: string` → `{ id, name }`, `rating`·`reviewCount` 삭제, `entities/provider` 신설(타입 + 포트 + mock/http). **목 데이터를 주최사당 2~3 회차로 재구성한다** — 지금은 주최사 7개에 회차 8건(`로테이션서울`만 2건)이라 주최사 단위 집계가 의미를 갖지 못한다. 사양은 기능정의서 **7.4**, 근거는 `progress.md` **4.19**.
+**P1-0b 는 끝났다.** `entities/provider` 가 있고, 목 데이터는 **주최사 4곳 × 회차 2건**이다 — `prv-001`(모집 중 1건, 나머지 마감) / `prv-002`(평점 표시) / `prv-003`(**표시 임계 미달**, 후기 3건) / `prv-004`(**후기 0건 + 이미지 미동의**). 남은 것은 주최사 페이지 화면(**P5-4**)이다.
 
 **P1-6 요점**: 정렬이 **5종**이다 — 인기순(기본) / 최신순 / **평점 높은순** / 가격 낮은순 / 가격 높은순. 평점 정렬은 주최사 `ratingScore`(베이지안 보정) 기준이고 **게스트에게도 노출**한다(가격 정렬과 달리 인증 주체가 필요 없다). 2차 정렬은 개최일 가까운 순 → `progress.md` 4.20.
 
