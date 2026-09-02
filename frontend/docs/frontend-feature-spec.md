@@ -755,7 +755,11 @@ export interface EventSummary {
   title: string;
   shortTitle: string;           // 비교함 컬럼용 축약 제목
   provider: string;             // 주최사
-  thumbnailUrl: string;
+  /* 대표 이미지. null = '이미지 사용 동의를 받지 못했다'.
+     주최사 등록은 동의 기반이고 동의 범위가 정보 등록 / 이미지 사용 /
+     참석자 리스트 표시 로 나뉜다(7.2). 정보만 허락하는 주최사가 있으므로
+     없는 상태가 정상 경로다 — 이미지가 없다고 목록에서 빼지 않는다 */
+  thumbnailUrl: string | null;
 
   /* 일정 */
   date: string;                 // ISO 8601
