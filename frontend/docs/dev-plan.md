@@ -72,7 +72,7 @@ Phase 7  PROVIDER 셀프서비스  가입·심사 → 소개팅 등록/수정 �
 | P0-4 | 공통 피드백 패턴 | `shared/ui/Toast.tsx`, `Sheet.tsx`, `Modal.tsx` | 2.5 규격(1.8초 소멸, 딤 클릭 닫힘, 포커스 트랩, Esc) 충족 |
 | P0-5 | fetch 클라이언트 | `shared/api/fetchClient.ts` | baseURL·인증 헤더·에러 정규화(오류코드 + 발생시각, 11.2 근거) |
 | P0-6 | **목 데이터 레이어** | `entities/*/mock/`, `NEXT_PUBLIC_USE_MOCK` | 백엔드 없이 전 화면 동작. 실 API 전환 시 `*Api.ts` 구현체만 교체 |
-| P0-7 | **인증·역할 모델 확정** | `middleware.ts`, `entities/account/` | 3장 설계 확정 및 라우트 가드 동작 |
+| P0-7 | **인증·역할 모델 확정** | `src/proxy.ts`, `entities/account/` | 3장 설계 확정 및 라우트 가드 동작 |
 | P0-8 | 데이터 타입 확정 | `entities/{event,user,notification,review}/model/types.ts` | 기능정의서 12장 그대로 이식 |
 
 > P0-6이 이 프로젝트의 속도를 가른다. 백엔드가 비어 있으므로 **API 인터페이스를 먼저 고정하고 목으로 개발**해야 프론트가 백엔드를 기다리지 않는다. 기능정의서 13장 API 목록이 그 계약서다.
@@ -87,6 +87,7 @@ Phase 7  PROVIDER 셀프서비스  가입·심사 → 소개팅 등록/수정 �
 | P1-2 | 상태(2종)·시간대(4종) 배지, 정원(`남 N · 여 N`) 표기, **성별 기준 가격 텍스트** | 12장 | `entities/event/ui/`. 성비 게이지는 삭제 — 정원이 남녀 고정이라 항상 50%다 |
 | **P1-0b** | **`provider` 객체 승격 + 회차 평점 삭제** | 12장·7.4 | `EventSummary.provider: string` → `{ id, name }`. `rating`·`reviewCount` 삭제. `entities/provider` 신설(타입 + 포트 + mock/http). 목 데이터를 **주최사당 2~3 회차**로 재구성 — 지금은 주최사 7개에 회차 8건이라 집계가 의미를 갖지 못한다 |
 | **P1-2b** | 카드·조각의 `provider` 참조 수정 | 6.5·5.3 | `event.provider` → `event.provider.name`. 카드에는 **평점을 넣지 않는다**(7.4) |
+| **P1-2c** | **코드 품질 정리** (동작 변경 없음) | — | `EventCard` 를 변형별 레이아웃 파일로 분리(한 함수 202줄 → 20줄, progress 4.22). 주석을 기존 컨벤션(12~24%)으로 압축. 테스트에서 목 데이터 id 하드코딩 제거 |
 | P1-3 | 홈 `/` | 5장 | 헤더 + 헤드라인 + 지도 프로모 + 3개 섹션(`이번 주 인기` / `내 나이대` / `새로 등록된`) 렌더. **퀵 필터 칩 바는 만들지 않는다**(5.4). 게스트는 `내 나이대` 섹션 숨김 |
 | P1-4 | 탐색 리스트 `/explore?view=list` | 6.1·6.2·6.5 | **필터 상태 전부 URL 쿼리스트링 동기화**. 새로고침·뒤로가기 유지 |
 | P1-5 | 필터 시트 | 6.4 | **3층 구조**(자격 토글 / 일정·시간대 / 규모·분위기·가격·상태). 칩 선택 즉시 결과 수 실시간 반영, 적용 버튼 없음 |
@@ -259,7 +260,7 @@ export interface Membership {       // 역할 부여 (Account 1:N)
 ### 3.5 라우트 가드
 
 ```
-// middleware.ts — 경로 프리픽스 기반
+// src/proxy.ts — 경로 프리픽스 기반 (Next 16 은 middleware.ts 대신 proxy.ts 규약)
 /onboarding, /, /explore, /events, /search   → 비로그인 허용 (게스트 탐색)
 /likes, /compare, /my, /reviews/write        → USER 필요
 /provider/**                                 → PROVIDER + status ACTIVE
@@ -305,6 +306,9 @@ export interface Membership {       // 역할 부여 (Account 1:N)
 
 1. **레이어 방향 준수** — `app → widgets → features → entities → shared`. 역방향·동일 레이어 참조 금지 (`src/README.md`).
 2. **한 화면 전용 컴포넌트는 올리지 않는다** — 라우트 옆 `_components/`에 둔다.
+2-1. **함수 하나가 50줄을 넘으면 쪼갠다.** 변형·분기가 늘어나는 컴포넌트는 `EventCard/` 처럼 **표 + 파일**로 나눈다 (progress 4.22). 한 함수에서 분기하면 변형이 늘 때마다 기존 코드를 연다.
+2-2. **주석은 15~25%를 넘기지 않는다.** 근거·대안·번복 조건은 `progress.md` 4장이 원본이고 소스에는 참조만 남긴다 — 주석은 코드와 함께 고쳐지지 않아 썩는다.
+2-3. **테스트에 목 데이터 id 를 쓰지 않는다.** `toEqual(["evt-003"])` 은 목을 한 줄만 고쳐도 무관한 테스트를 깨뜨린다. 성질로 단언한다(`expectFilterMatches` 참고).
 3. **폴더는 `index.ts`로만 공개** — 내부 파일 직접 import 금지.
 4. **URL이 상태의 원본** — 탐색 필터·정렬·뷰는 쿼리스트링. `useState`로 들고 있지 않는다 (2.4).
 5. **비활성 버튼의 라벨이 사유를 말한다** — 별도 에러 토스트를 띄우지 않는다 (2.5). 이 제품의 일관된 패턴이다.

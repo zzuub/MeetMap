@@ -1145,6 +1145,9 @@ app/
   (stack)/my/reviews/page.tsx
   (stack)/reviews/write/[eventId]/page.tsx
   error.tsx / not-found.tsx / loading.tsx
+  _consistency/                                 # entity 간 목 데이터 교차 검증 (라우트 아님)
+                                                # 레이어 경계 규칙이 app 을 빼고 있어 두
+                                                # entity 를 함께 볼 수 있는 유일한 자리다
 
 widgets/
   app-header/            AppHeader (로고·검색·알림 / 뒤로가기·타이틀·액션)
@@ -1177,16 +1180,24 @@ features/
   review-write/          ReviewForm, StarRating, ReviewTagPicker, useReviewDraft
 
 entities/
-  event/                 EventCard(variant 5종 — 14.1), EventStatusBadge(2종), TimeSlotBadge(4종),
-                         CapacityText(`남 N · 여 N`), PriceText(성별 기준값), BirthYearRangeText,
-                         EventThumbnail(이미지 미동의·로드실패 대체 표시), labels(표기 규칙),
-                         types, derive(deriveScale·isEligible·priceFor·isThisWeek), eventApi
+  event/
+    ui/EventCard/        index(변형→레이아웃 표) + FeatureCard·RatioCard·CompactCard·
+                         ListCard·SheetCard + parts(CardTitle·CardPrice·EligibilityBadge)
+                         ⚠️ 변형 추가는 **파일 하나 + 표 한 줄**이다. 한 함수에서 분기하지
+                         않는다 (progress.md 4.22)
+    ui/                  EventStatusBadge(2종), TimeSlotBadge(4종), CapacityText(`남 N · 여 N`),
+                         PriceText(성별 기준값), BirthYearRangeText,
+                         EventThumbnail(이미지 미동의·로드실패 대체 표시)
+    model/               types, derive(deriveScale·isEligible·priceFor·isThisWeek),
+                         labels(표기 규칙), ports
+    api/ · mock/         eventApi(목/실 분기), 목 8건 + MOCK_VIEWER
                          ⚠️ FemaleRatioBar 는 만들지 않는다 — 정원이 남녀 동수라 성비가 항상 50%다
                          ⚠️ 카드에 평점을 그리지 않는다 — 회차 평점은 존재하지 않는 값이다 (7.4)
-  provider/              ProviderCard, ProviderRatingText(`4.6 (23)` / 5건 미만은 `후기 N건`),
-                         types, providerApi
+  provider/              types(ProviderSummary·ProviderDetail), ports, providerApi, 목 4곳
+                         **미구현(P5-4)**: ProviderCard, ProviderRatingText(`4.6 (23)` /
+                         5건 미만은 `후기 N건`)
                          ⚠️ entities 끼리는 서로 import 하지 않는다. event 가 쓰는 주최사 최소
-                         형태({id, name})는 event 슬라이스가 직접 정의한다
+                         형태(`EventProviderRef`)는 event 슬라이스가 직접 정의한다
   user/                  ProfileCard, CompletionMeter, types, userApi
   notification/          NotificationCard, types, notificationApi
   review/                ReviewCard, RatingDistribution, ReviewTagChip, types, reviewApi
@@ -1196,7 +1207,9 @@ shared/
                          IconButton, PrimaryButton, EmptyState, ErrorState, Skeleton,
                          Numeric(세리프 숫자), Checkbox, StarInput
   lib/                   formatPrice, formatEventDate, formatRelativeTime, cn,
-                         highlightKeyword, clampSelection
+                         highlightKeyword, clampSelection,
+                         rating(ratingScore·canShowRating — 주최사 규칙이지만 event 의 정렬도
+                         같은 산식을 써야 해서 shared 에 둔다. progress.md 4.21)
   api/                   fetchClient (baseURL · 에러 정규화 · 인증 헤더)
   config/                theme.ts, constants.ts (AREAS, PROVINCES/SEOUL_DISTRICTS, TIME_SLOTS,
                          WHEN_OPTIONS, SCALE_OPTIONS, PRICE_CAPS, MOOD_TAGS, JOB_GROUPS, REVIEW_TAGS)

@@ -20,11 +20,26 @@ app → widgets → features → entities → shared
 
 로직이 아니라 **값의 목록**만 둔다. 도메인 규칙·판정 함수는 여기 두지 않는다.
 
+> **예외 하나 — `shared/lib/rating.ts`.** 주최사 평점 산식은 도메인 규칙인데도 `shared` 에 있다. 탐색 정렬(`sort=rating`)이 **소개팅 목록**을 주최사 평점 순으로 세우기 때문에 `entities/event` 와 `entities/provider` 가 같은 산식을 봐야 하는데, entity 끼리는 서로를 참조할 수 없다. 위 `AREAS` 와 같은 이유로 내려온 것이다. 대안 비교는 `docs/progress.md` 4.21.
+
 > 백엔드가 마스터 API 를 제공하면 이 파일은 타입 소스 겸 fallback 으로 남는다.
 
 각 폴더는 `index.ts`로 공개 API만 export하고, 나머지 내부 파일은 외부에서 직접 import하지 않는다.
 
 한 화면에서만 쓰는 컴포넌트는 공통 레이어로 올리지 말고 해당 라우트 옆의 `_components/`에 로컬로 둔다.
+
+### 한 컴포넌트가 변형(variant)을 여럿 가질 때
+
+한 함수에서 `if (variant === …)` 로 나누지 않는다. **변형 → 컴포넌트 표**를 두고 변형마다 파일을 나눈다. 변형 추가가 기존 코드를 여는 일이 되면 안 된다.
+
+```
+entities/event/ui/EventCard/
+  index.tsx      LAYOUTS 표 + 어느 변형에나 같은 것(기본 링크 대상 등)
+  parts.tsx      변형이 달라도 규칙이 같은 것(링크 히트 영역·가격 기준)
+  FeatureCard.tsx … SheetCard.tsx   변형마다 다른 것(크기·배치·표시 항목)
+```
+
+`parts` 에 크기를 넣지 않는다 — 레이아웃이 오버라이드하려 들고, `cn()` 이 Tailwind 충돌을 해결하지 못해 조용히 깨진다. 근거는 `docs/progress.md` 4.22.
 
 ## 린트로 강제된다
 
@@ -47,3 +62,5 @@ entities/account/
 
 `app/` 안에서 `_`로 시작하는 폴더는 라우팅에서 제외된다(private folder).
 `_components/`가 라우트가 되지 않는 이유이고, 반대로 **실제 라우트 폴더에는 `_`를 붙이면 안 된다**.
+
+`app/_consistency/` 도 같은 장치다. **entity 두 슬라이스의 목 데이터가 어긋나지 않는지 검증하는 테스트**가 거기 있다 — 레이어 경계 규칙이 `app` 을 대상에서 빼고 있어(`eslint.config.mjs` 의 `layerBoundaryRules`) 두 entity 를 함께 import 할 수 있는 유일한 자리이기 때문이다. 슬라이스 내부가 아니라 **공개 API 로만** 접근한다.

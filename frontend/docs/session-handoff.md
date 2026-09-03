@@ -6,7 +6,7 @@
 >
 > **읽는 순서**: 이 문서 → `progress.md` 2·4·5장 → 착수할 Phase 의 `dev-plan.md` 항목 → 해당 `frontend-feature-spec.md` 장
 >
-> 마지막 갱신: 2026-09-02 (P1-0b·P1-2b·**P1-2c 완료**, P1-3 착수 직전)
+> 마지막 갱신: 2026-09-03 (P1-0b·P1-2b·P1-2c + 코드리뷰 반영 완료, **P1-3 착수 직전**)
 
 ---
 
@@ -166,10 +166,12 @@ const feed = await eventApi.getHomeFeed({});
 - **주석은 15~25% 를 넘기지 않는다.** 근거·대안·번복 조건은 `progress.md` 4장이 원본이고 소스에는 참조만 남긴다 — 주석은 코드와 함께 안 고쳐져 썩는다
 - **테스트에 목 데이터 id 를 쓰지 않는다.** `toEqual(["evt-003"])` 은 목 한 줄만 고쳐도 무관한 테스트를 깨뜨린다. 성질로 단언한다(`expectFilterMatches` 참고)
 - `any`·`as any`·`@ts-ignore`·non-null `!` 는 **현재 0건이다.** 유지한다
+- **정렬 테스트는 뒤집어 넣어 본다.** 목이 이미 그 축으로 정렬돼 있으면 `Array.sort` 안정성만으로 통과해 비교 함수 버그를 못 잡는다 — `sort=rating` 이 실제로 그랬다. `정렬 축에 동률이 없다` 테스트가 그 시점을 알려준다
+- **entity 두 슬라이스의 목 데이터가 겹치면** `src/app/_consistency/` 에 교차 검증 테스트를 둔다. 레이어 경계 규칙이 `app` 을 빼고 있어 두 entity 를 함께 볼 수 있는 유일한 자리다 (`progress.md` 4.21)
 
 ### 확인 방법
 
-- `/design-system` — shared/ui 전 컴포넌트가 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
+- `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다. 쇼케이스는 산출물 단위로 파일이 갈려 있다(`EventCardShowcase` / `SharedUiShowcase`)
 - `npm test`(vitest) / `npm run lint` / `npm run build`
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
