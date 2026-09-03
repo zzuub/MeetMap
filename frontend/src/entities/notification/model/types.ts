@@ -1,4 +1,4 @@
-/** 근거: docs/frontend-feature-spec.md 10.2 / 12장 */
+/** 근거: docs/spec/08-마이-알림-후기.md 10.2 · docs/spec/10-데이터모델.md */
 
 export type NotificationKind = "new" | "review" | "info";
 

@@ -5,7 +5,7 @@
  * 곳(지도 SDK 마커, canvas, 라이브러리 옵션 객체 등)에서만 참조한다.
  * **JSX 스타일링에는 쓰지 않는다** — Tailwind 유틸리티(`bg-accent`, `text-text-sub`)를 쓴다.
  *
- * 근거: docs/frontend-feature-spec.md 2.1 / 2.2
+ * 근거: docs/spec/02-공통규칙.md 2.1 / 2.2
  */
 
 export const COLORS = {

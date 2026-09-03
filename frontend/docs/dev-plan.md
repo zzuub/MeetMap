@@ -1,7 +1,7 @@
 # MeetMap 개발 요구사항 · 진행 순서
 
 > 짝 문서
-> - `docs/frontend-feature-spec.md` — 화면·기능 상세 (사양)
+> - `docs/spec/00-index.md` — 화면·기능 상세 (사양). 장별로 나뉘어 있다
 > - `docs/progress.md` — **진행 현황과 기술 결정 기록.** 어디까지 되었는지는 그쪽이 원본이다
 > - `src/README.md` — FSD 규칙
 >
@@ -10,13 +10,13 @@
 >
 > **⚠️ 2026-09-01 도메인 재정의.** 제품이 "소개팅·미팅 행사 통합 탐색"에서 **"인스타그램에 개인 단위로 흩어진 로테이션 소개팅을 한곳에 모아 비교·탐색하게 해주는 통합 플랫폼"** 으로 좁혀졌다. 소개팅을 직접 주최하지 않으며, 신청·결제는 주최사 기존 폼으로 리다이렉트한다. 일반 모임은 코어가 아니라 **추후 확장 옵션**이다.
 >
-> 이 재정의로 목업에 그려져 있으나 실제 도메인에 없는 값(취미 카테고리 / 잔여 좌석 / 성비 / 단일 가격 / 신청 마감일)이 드러났고, 기능정의서에 반영했다. **상세는 `frontend-feature-spec.md` 상단 경고 블록 참조.** Phase 1 착수 전 아래 3장 P1 항목을 그 기준으로 다시 읽을 것.
+> 이 재정의로 목업에 그려져 있으나 실제 도메인에 없는 값(취미 카테고리 / 잔여 좌석 / 성비 / 단일 가격 / 신청 마감일)이 드러났고, 기능정의서에 반영했다. **상세는 `spec/15-도메인-재정의-이력.md` 참조.** Phase 1 착수 전 아래 3장 P1 항목을 그 기준으로 다시 읽을 것.
 >
 > **성장 단계** — ① 운영자(나)가 주최사에 컨택·양해를 구하고 대신 등록 → ② 주최사 셀프서비스 등록 → ③ 결제 내재화(별도 `payment-service`). 현재는 ①.
 >
 > 전제 (기준일 2026-08-31)
 > - 백엔드: `backend/meetmap` Spring Boot 스켈레톤 + `testController` 1개. **실 API 없음.**
-> - 목업: Onboarding / User v2 / Actions / My / Support / **Admin / Provider / Provider Manage / Admin Manage / Common** 10종. Provider·Admin 목업도 이제 존재하며 User v2와 동일한 컬러 시스템(2.2) 적용 완료. 단 Admin·Provider 화면 상세 기능정의는 아직 `frontend-feature-spec.md`에 문서화되지 않음(USER 한정 문서) — 착수 전 별도 문서 필요.
+> - 목업: Onboarding / User v2 / Actions / My / Support / **Admin / Provider / Provider Manage / Admin Manage / Common** 10종. Provider·Admin 목업도 이제 존재하며 User v2와 동일한 컬러 시스템(2.2) 적용 완료. 단 Admin·Provider 화면 상세 기능정의는 아직 `spec/` 에 문서화되지 않음(USER 한정 문서) — 착수 전 별도 문서 필요.
 > - User v2 지도 화면에 지역(시/도→구 2단) 선택 시트, 마커 시각 전용 라벨, 줌 컨트롤 추가 완료(6.3·6.6 참조).
 
 ---
@@ -307,7 +307,7 @@ export interface Membership {       // 역할 부여 (Account 1:N)
 1. **레이어 방향 준수** — `app → widgets → features → entities → shared`. 역방향·동일 레이어 참조 금지 (`src/README.md`).
 2. **한 화면 전용 컴포넌트는 올리지 않는다** — 라우트 옆 `_components/`에 둔다.
 2-1. **함수 하나가 50줄을 넘으면 쪼갠다.** 변형·분기가 늘어나는 컴포넌트는 `EventCard/` 처럼 **표 + 파일**로 나눈다 (progress 4.22). 한 함수에서 분기하면 변형이 늘 때마다 기존 코드를 연다.
-2-2. **주석은 15~25%를 넘기지 않는다.** 근거·대안·번복 조건은 `progress.md` 4장이 원본이고 소스에는 참조만 남긴다 — 주석은 코드와 함께 고쳐지지 않아 썩는다.
+2-2. **주석은 15~25%를 넘기지 않는다.** 근거·대안·번복 조건은 `decisions.md` 가 원본이고 소스에는 참조만 남긴다 — 주석은 코드와 함께 고쳐지지 않아 썩는다.
 2-3. **테스트에 목 데이터 id 를 쓰지 않는다.** `toEqual(["evt-003"])` 은 목을 한 줄만 고쳐도 무관한 테스트를 깨뜨린다. 성질로 단언한다(`expectFilterMatches` 참고).
 3. **폴더는 `index.ts`로만 공개** — 내부 파일 직접 import 금지.
 4. **URL이 상태의 원본** — 탐색 필터·정렬·뷰는 쿼리스트링. `useState`로 들고 있지 않는다 (2.4).

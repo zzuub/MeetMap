@@ -21,7 +21,7 @@ interface EventThumbnailProps {
  * 카드 썸네일.
  *
  * **이미지가 없는 것은 오류가 아니라 정상 경로다** — 이미지 사용 동의를 주지 않은
- * 주최사가 실재한다 (7.2 · `progress.md` 4.18). 두 갈래를 같은 대체 표시로 받는다.
+ * 주최사가 실재한다 (7.2 · `decisions.md` 4.18). 두 갈래를 같은 대체 표시로 받는다.
  * `null` 은 **요청 자체를 보내지 않고**, 로드 실패는 `onError` 로 잡는다.
  */
 export function EventThumbnail({ src, label, sizes, className }: EventThumbnailProps) {

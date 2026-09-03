@@ -20,7 +20,7 @@ app → widgets → features → entities → shared
 
 로직이 아니라 **값의 목록**만 둔다. 도메인 규칙·판정 함수는 여기 두지 않는다.
 
-> **예외 하나 — `shared/lib/rating.ts`.** 주최사 평점 산식은 도메인 규칙인데도 `shared` 에 있다. 탐색 정렬(`sort=rating`)이 **소개팅 목록**을 주최사 평점 순으로 세우기 때문에 `entities/event` 와 `entities/provider` 가 같은 산식을 봐야 하는데, entity 끼리는 서로를 참조할 수 없다. 위 `AREAS` 와 같은 이유로 내려온 것이다. 대안 비교는 `docs/progress.md` 4.21.
+> **예외 하나 — `shared/lib/rating.ts`.** 주최사 평점 산식은 도메인 규칙인데도 `shared` 에 있다. 탐색 정렬(`sort=rating`)이 **소개팅 목록**을 주최사 평점 순으로 세우기 때문에 `entities/event` 와 `entities/provider` 가 같은 산식을 봐야 하는데, entity 끼리는 서로를 참조할 수 없다. 위 `AREAS` 와 같은 이유로 내려온 것이다. 대안 비교는 `docs/decisions.md` 4.21.
 
 > 백엔드가 마스터 API 를 제공하면 이 파일은 타입 소스 겸 fallback 으로 남는다.
 
@@ -39,7 +39,7 @@ entities/event/ui/EventCard/
   FeatureCard.tsx … SheetCard.tsx   변형마다 다른 것(크기·배치·표시 항목)
 ```
 
-`parts` 에 크기를 넣지 않는다 — 레이아웃이 오버라이드하려 들고, `cn()` 이 Tailwind 충돌을 해결하지 못해 조용히 깨진다. 근거는 `docs/progress.md` 4.22.
+`parts` 에 크기를 넣지 않는다 — 레이아웃이 오버라이드하려 들고, `cn()` 이 Tailwind 충돌을 해결하지 못해 조용히 깨진다. 근거는 `docs/decisions.md` 4.22.
 
 ## 린트로 강제된다
 

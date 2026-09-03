@@ -194,7 +194,7 @@ function byCreatedAtDesc(a: EventSummary, b: EventSummary): number {
  *
  * **2차 정렬은 개최일 가까운 순**이다. 같은 주최사의 회차는 정렬 키가 같아
  * 뭉쳐 나오는데, 그 안에서라도 임박한 것이 위로 와야 한다. 주최사당 연속 노출
- * 상한은 아직 걸지 않는다 (`progress.md` 4.20).
+ * 상한은 아직 걸지 않는다 (`decisions.md` 4.20).
  */
 function byProviderRating(a: EventSummary, b: EventSummary): number {
   const diff =
