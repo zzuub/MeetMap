@@ -37,7 +37,7 @@
 | --- | --- |
 | 진행 단계 | **Phase 1 진행 중.** P1-0~P1-2(#11/PR #12 머지) + P1-0b·P1-2b 완료. **P1-3(홈) 착수 전** |
 | 소스 파일 | 99개 (테스트 제외) / 약 5,950줄 |
-| 테스트 | 130개 (8파일), `npm test` |
+| 테스트 | 135개 (9파일), `npm test` |
 | 스택 | Next.js 16.3.3 · React 19.2.4 · TypeScript 5 · Tailwind CSS v4 · Vitest 4 |
 | 백엔드 | Spring Boot 스켈레톤. **실 API 없음** → 목 데이터로 개발 중 |
 | CI | `lint` → `test` → `build` (frontend) / `gradlew build -x test` (backend) |
@@ -87,6 +87,20 @@ Phase 2~7 은 `docs/dev-plan.md` 참조.
 ---
 
 ## 3. 작업 이력
+
+### 2026-09-03 · [#12](https://github.com/zzuub/MeetMap/issues/12)
+**코드리뷰 반영 — 테스트 갭 2건과 목 데이터 중복 가드**
+
+- **`sort=latest` 가 `applySort` 경로로 한 번도 테스트되지 않았다.** `getHomeFeed` 의 `newlyAdded`(`byCreatedAtDesc` 직접 호출)만 덮고 있어서 정렬 분기는 비어 있었다. 가격 정렬과 같은 패턴으로 추가했다
+- **목 주최사 수치 중복에 실제 가드를 붙였다** — `src/app/_consistency/providerRating.test.ts`. 레이어 경계 규칙이 `app` 을 대상에서 빼고 있다는 점을 이용해 두 entity 의 **공개 API** 로 교차 검증한다 → 4.21
+- **`정렬 축에 동률이 없다` 불변식 추가** — 동률이 생기면 `Array.sort` 안정성만으로 정렬 테스트가 통과해 비교 함수 버그를 못 잡는다. `sort=rating` 이 실제로 그랬다. 이제 목 데이터에 동률이 들어오는 순간 테스트가 알려준다
+- **`EventProviderRef`/`EventProviderDetail` 에 상호 `@see` 링크** — 필드명이 같고 타입만 다른 대응 관계를 JSDoc 이 설명한다
+
+**리뷰가 확인해 준 것**: 카드가 `EventSummary` 만 받고 `EventProviderRef` 에 `rating` 이 없어 **"카드에 평점 없음"을 타입 체커가 강제**하고 있다. 코드베이스 어디서도 `.provider.rating` 을 읽지 않는다. 4.21 의 3가지 대안 비교도 실제 ESLint 제약 위에 서 있음이 확인됐고, 네 번째 대안(FSD 교차 참조 `@x`)을 4.21 에 기록했다.
+
+**남긴 리스크**: 지금은 가격·등록시각에 동률이 없어 안전하지만, 목을 늘리다 가격이 겹치면 `priceAsc`/`priceDesc` 도 같은 이유로 조용히 무의미해진다. 위 불변식 테스트가 그 시점을 알려주고, 그때 `rating` 에서 쓴 **뒤집어 넣기**를 적용하면 된다.
+
+검증: `tsc`·`eslint`·`vitest 135건`(9파일) 통과. 교차 검증 테스트는 변이 4종(후기 수·평점·**임계 미만 주최사 평균**·주최사 이름)으로 전부 검출을 확인했다.
 
 ### 2026-09-02 · [#12](https://github.com/zzuub/MeetMap/issues/12)
 **P1-2c — 코드 품질 정리 (동작 변경 없음)**
@@ -494,10 +508,17 @@ ratingScore = (C × m + 평점합) / (C + n)     C=10(신뢰 상수), m=4.3(전�
 | 산식을 양쪽에 복사 | 목록 정렬과 주최사 페이지의 순위가 어긋난다. 그런데 **화면에서는 티가 안 난다** — 정렬은 목록에서만 보이고 평점은 상세에서만 보인다 |
 | `EventProviderRef` 에 `ratingScore` 를 실어 보낸다 | 화면에 절대 노출하면 안 되는 값(4.20)을 화면이 받는 타입에 넣게 된다 |
 | 이벤트 목 데이터에 정렬 키를 하드코딩 | 상수를 고치면 조용히 어긋난다 |
+| FSD 의 **교차 참조**(`entities/provider/@x/rating.ts`)로 event 에만 좁게 여는 것 | 코드 위치가 "주최사의 규칙"임을 드러내는 장점은 있으나, ESLint 에 슬라이스별 예외를 관리해야 하고 예외를 한 번 열면 다음 요청이 따라온다. **평점 외의 축(진행자 등)이 `shared` 에 쌓이기 시작하면 그때 재검토한다** (2026-09-03 리뷰 제안) |
 
 `shared/config` 에 도메인 마스터를 둔 선례(4.2)와 같은 성격이다 — 여러 레이어가 같은 답을 봐야 하는 규칙은 아래로 내린다.
 
-**남은 중복 하나**: 목 주최사의 **원본 평균·후기 수**는 `entities/provider/mock/providers.ts` 와 `entities/event/mock/events.ts` 양쪽에 있다. 같은 이유(entity 간 import 금지)로 구조가 강제한 것이고, 실서버에서는 조인 한 번이면 될 일이다. 두 파일에 서로를 가리키는 경고 주석을 달아 뒀다. 어긋나면 목록 정렬과 주최사 페이지의 평점이 다른 답을 낸다.
+**남은 중복 하나 — 이제 테스트가 막는다**: 목 주최사의 **원본 평균·후기 수**는 `entities/provider/mock/providers.ts` 와 `entities/event/mock/events.ts` 양쪽에 있다. 구조가 강제한 중복이고(entity 간 import 금지) 실서버에서는 조인 한 번이면 될 일이다.
+
+처음에는 서로를 가리키는 주석으로만 막았는데, **주석은 방어책이 아니다.** 2026-09-03 리뷰에서 빠져나갈 구멍을 찾았다 — 레이어 경계 규칙은 `src/{shared,entities,features,widgets}/**` 에만 걸리고 `app` 은 대상에서 빠져 있다(`eslint.config.mjs` 의 `layerBoundaryRules`). 그래서 `src/app/_consistency/providerRating.test.ts` 가 **두 entity 의 공개 API 로만** 교차 검증한다. `_` 폴더는 App Router 가 라우트로 잡지 않는다.
+
+임계 미만 주최사(후기 5건 미만)는 양쪽 다 `rating` 이 `null` 이라 값 비교로는 평균 어긋남이 안 잡힌다. 그래서 **탐색의 평점 정렬 순서가 주최사 `ratingScore` 내림차순과 일치하는지**를 함께 본다 — 보정값이 그 평균에서 나오므로 순서가 대신 잡아준다. 변이 4종(후기 수·평점·임계 미만 평균·이름)으로 전부 검출을 확인했다.
+
+`widgets/provider-profile` 이 생기면(P5-4) 그쪽이 두 포트를 조립하는 자리이므로 테스트도 같이 옮긴다.
 
 **번복 조건**: 평점이 주최사 외에 다른 축(예: 진행자)에도 붙게 되면 `shared` 에 두는 것이 부담스러워진다. 그때는 `entities` 위에 얇은 도메인 레이어를 두는 쪽을 검토한다.
 
@@ -557,7 +578,7 @@ Phase 착수를 막는 것부터. 전체 목록은 `docs/dev-plan.md` 4장 + 기
 - **`cn()` 이 Tailwind 클래스 충돌을 해결하지 않는다** — 문자열 결합만 한다. 컴포넌트 `className` 오버라이드 시 기본값과 겹치지 않는 유틸리티를 넘겨야 한다. 충돌이 실제로 문제되면 `tailwind-merge` 도입 검토. 카드 조각은 이 제약 때문에 타이포를 아예 갖지 않는다 → 4.17
 - **터치 타깃 44×44 미달 3건** (15장 기준) — `Chip` 38px / `SegmentedControl` 36px / `Toggle` 30×52px. 전부 P0-3 `shared/ui` 다. `IconButton`(44) 처럼 **시각 크기는 두고 히트 영역만 넓히는** 방식으로 고쳐야 하며, 세 컴포넌트를 손대면 모든 화면의 컨트롤 높이가 바뀌므로 별도 작업으로 뺀다
 - **`_next/image` 400 노이즈** — `public/mock/` 이 없어 목 6건의 썸네일이 요청당 3회(srcset) 실패한다. 대체 표시가 받아내지만 콘솔이 시끄러워 진짜 에러가 묻힌다 → 4.18
-- **목 주최사 수치가 두 파일에 중복** — `entities/provider/mock/providers.ts` 와 `entities/event/mock/events.ts` 가 같은 원본 평균·후기 수를 들고 있다. entity 간 import 금지가 강제한 중복이라 자동 검증 장치를 걸 자리가 없다(테스트도 같은 규칙에 걸린다). 서로를 가리키는 주석으로만 막아 뒀다 → 4.21
+- ~~**목 주최사 수치가 두 파일에 중복**~~ — **2026-09-03 해소.** `src/app/_consistency/` 의 교차 검증 테스트가 두 entity 의 공개 API 로 값을 대조한다. 중복 자체는 남지만 어긋나면 CI 가 잡는다 → 4.21
 - **`PrimaryButton` 이름과 책임 불일치** — `variant="secondary"` 를 받는다. 기능정의서 14장 명칭을 따른 것
 - **`.idea/` 가 이미 git 에 추적되고 있다** — `.gitignore` 에 넣어도 효과가 없다. 제거하려면 `git rm --cached` 가 필요하고 backend 까지 영향. 미결정
 - **`src/app/test/page.tsx`** — create-next-app 잔재. 라우트 충돌은 없으나 제거 여부 미정

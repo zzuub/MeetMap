@@ -108,6 +108,23 @@ describe("목 데이터 자체의 무결성", () => {
     expect([...consent.values()]).toContain(false);
   });
 
+  it("정렬 축에 동률이 없다", () => {
+    // 동률이 생기면 `Array.sort` 의 안정성만으로 정렬 테스트가 통과해버려
+    // 비교 함수의 버그를 못 잡는다. `sort=rating` 이 실제로 그랬다 —
+    // 같은 주최사 회차끼리 점수가 같아 2차 정렬 검증에 뒤집기가 필요했다.
+    // 여기가 깨지면 해당 정렬 테스트에도 뒤집기를 적용해야 한다.
+    const axes: Record<string, (string | number)[]> = {
+      createdAt: MOCK_EVENTS.map((e) => e.createdAt),
+      femalePrice: MOCK_EVENTS.flatMap((e) => e.femalePrice ?? []),
+      malePrice: MOCK_EVENTS.flatMap((e) => e.malePrice ?? []),
+      popularity: MOCK_EVENTS.map((e) => e.popularity),
+    };
+
+    for (const [axis, values] of Object.entries(axes)) {
+      expect(new Set(values).size, `${axis} 에 동률이 생겼다`).toBe(values.length);
+    }
+  });
+
   it("모집 중인 회차가 1건뿐인 주최사가 있다", () => {
     // 주최사 페이지(7.4)가 마감 회차를 거르는지 보려면 필요한 경계다
     const open = MOCK_EVENTS.filter((e) => e.status === "신청 가능");
@@ -261,6 +278,15 @@ describe("mockEventApi", () => {
     const second = await mockEventApi.getList({ limit: 3, cursor: first.nextCursor });
     const firstIds = first.items.map((e) => e.id);
     expect(second.items.filter((e) => firstIds.includes(e.id))).toEqual([]);
+  });
+
+  it("최신순은 등록 시각 내림차순이다", async () => {
+    // 개최일 임박순이 아니라 `createdAt` 기준이다 (5.3 '새로 등록된' 과 같은 축)
+    const { items } = await mockEventApi.getList({ sort: "latest", limit: 20 });
+    const created = items.map((e) => e.createdAt);
+
+    expect(created).toEqual([...created].sort().reverse());
+    expect(items).toHaveLength(MOCK_EVENTS.length);
   });
 
   it("가격 정렬은 성별 기준값을 쓰고 가격 미확인 건을 뒤로 보낸다", async () => {

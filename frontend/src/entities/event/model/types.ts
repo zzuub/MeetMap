@@ -30,17 +30,27 @@ export type SortOption =
   | "priceDesc";
 
 /**
- * 목록이 나르는 주최사 최소 형태. `entities/provider` 를 import 할 수 없어
- * 여기서 정의한다(FSD 동일 레이어 금지).
+ * **`EventSummary.provider` 의 타입.** 목록이 나르는 주최사 최소 형태다.
+ * `entities/provider` 를 import 할 수 없어 여기서 정의한다(FSD 동일 레이어 금지).
  *
  * ⚠️ 평점을 넣지 않는다 — 카드 5종 어디에도 주최사 평점을 그리지 않는다 (7.4).
+ * 그래서 `EventSummary` 만 받는 카드에서는 `.provider.rating` 이 **타입 에러**다.
+ *
+ * @see EventProviderDetail — `EventDetail` 쪽의 넓은 짝
  */
 export interface EventProviderRef {
   id: string;
   name: string;
 }
 
-/** 상세(7.1) 주최사 블록용. 왕복을 한 번 더 돌지 않으려고 상세 응답에 싣는다 */
+/**
+ * **`EventDetail.provider` 의 타입.** 상세(7.1) 주최사 블록이 한 줄 소개·평점까지
+ * 그리므로 넓다. 왕복을 한 번 더 돌지 않으려고 상세 응답에 싣는다.
+ *
+ * `Summary → Ref` / `Detail → Detail` 로 짝이 맞는다 — 목록은 적게, 상세는 많이.
+ *
+ * @see EventProviderRef — `EventSummary` 쪽의 좁은 짝
+ */
 export interface EventProviderDetail extends EventProviderRef {
   /** 한 줄 소개 */
   tagline: string;
