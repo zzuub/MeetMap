@@ -1,10 +1,10 @@
-/** 근거: docs/frontend-feature-spec.md 7.4 / 12장 */
+/** 근거: docs/spec/06-상세-주최사.md 7.4 · docs/spec/10-데이터모델.md */
 
 /**
  * 주최사 — 이 도메인의 **반복 주체**다.
  *
  * 회차는 1회성이라 후기·평점이 회차에 붙으면 소비 시점에 늘 비어 있다. 그래서
- * 후기는 회차에 대해 쓰되 주최사에 쌓는다 (`progress.md` 4.19).
+ * 후기는 회차에 대해 쓰되 주최사에 쌓는다 (`decisions.md` 4.19).
  */
 export interface ProviderSummary {
   id: string;

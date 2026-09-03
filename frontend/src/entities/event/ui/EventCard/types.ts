@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { EventSummary, ViewerGender } from "../../model/types";
 
-/** 카드 변형 5종 (14.1). 근거·표시 항목은 `progress.md` 4.16 */
+/** 카드 변형 5종 (14.1). 근거·표시 항목은 `decisions.md` 4.16 */
 export type EventCardVariant = "feature" | "ratio" | "compact" | "list" | "sheet";
 
 /**

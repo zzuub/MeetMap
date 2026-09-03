@@ -1,6 +1,6 @@
 import type { DistrictCode, ProvinceCode } from "@/shared/config";
 
-/** 근거: docs/frontend-feature-spec.md 12장 (2026-09-01 도메인 재정의 확정본) */
+/** 근거: docs/spec/10-데이터모델.md (12장) (2026-09-01 도메인 재정의 확정본) */
 
 /** 시간대. 경계는 **시작 시각** 기준이다 — 12:00 시작은 오후, 21:00 시작은 심야 (6.2) */
 export type TimeSlot = "MORNING" | "AFTERNOON" | "DINNER" | "LATE_NIGHT";
@@ -72,11 +72,11 @@ export interface EventSummary {
   title: string;
   /** 비교함 컬럼 헤더용 축약 제목 (8장) */
   shortTitle: string;
-  /** id 가 있어야 주최사 페이지 링크와 후기 귀속이 된다 (`progress.md` 4.19) */
+  /** id 가 있어야 주최사 페이지 링크와 후기 귀속이 된다 (`decisions.md` 4.19) */
   provider: EventProviderRef;
   /**
    * `null` = 이미지 사용 미동의. **없는 것이 정상 경로다** — 동의 범위가
-   * 정보/이미지/참석자 리스트로 나뉜다 (7.2 · `progress.md` 4.18).
+   * 정보/이미지/참석자 리스트로 나뉜다 (7.2 · `decisions.md` 4.18).
    */
   thumbnailUrl: string | null;
 
@@ -144,7 +144,7 @@ export interface EventSummary {
 
   /* ── 평판·정렬 ───────────────────────────────────────── */
 
-  /* rating·reviewCount 는 삭제됐다 — 평점은 주최사에 쌓인다 (`progress.md` 4.19) */
+  /* rating·reviewCount 는 삭제됐다 — 평점은 주최사에 쌓인다 (`decisions.md` 4.19) */
 
   /** 정렬용 서버 산출값. 산식은 미확정 (16장) */
   popularity: number;

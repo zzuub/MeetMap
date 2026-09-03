@@ -25,7 +25,7 @@ export const CARD_SHELL = "relative rounded-card border border-border bg-surface
  * 카드 전체로 늘어나는 제목 링크 (stretched link).
  *
  * `<a><button/></a>` 중첩과 `div + onClick` 을 둘 다 피한다. 액션 버튼은 `z-10` 으로
- * 이 위에 올라가므로 클릭이 겹치지 않는다 → `progress.md` 4.16
+ * 이 위에 올라가므로 클릭이 겹치지 않는다 → `decisions.md` 4.16
  */
 export function CardTitle({ href, children }: { href: string; children: ReactNode }) {
   return (

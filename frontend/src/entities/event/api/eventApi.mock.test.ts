@@ -312,7 +312,7 @@ describe("mockEventApi", () => {
     expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
     // 정렬 키가 주최사 값이라 같은 주최사는 반드시 연속으로 붙는다.
-    // (뭉침을 막는 상한은 아직 없다 — progress.md 4.20)
+    // (뭉침을 막는 상한은 아직 없다 — decisions.md 4.20)
     const runs = order.filter((id, i) => id !== order[i - 1]);
     expect(new Set(runs).size).toBe(runs.length);
   });

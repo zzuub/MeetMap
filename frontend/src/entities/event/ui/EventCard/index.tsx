@@ -29,7 +29,7 @@ const LAYOUTS: Record<EventCardVariant, ComponentType<EventCardLayoutProps>> = {
  * 변형에나 같은 것** 두 가지만 정한다 — 기본 링크 대상과 게스트 판정.
  *
  * 평점은 어느 변형에도 넣지 않는다. 회차 평점은 성립하지 않는 값이고 평점은
- * 주최사에 쌓인다 (`progress.md` 4.19).
+ * 주최사에 쌓인다 (`decisions.md` 4.19).
  */
 export function EventCard({
   event,

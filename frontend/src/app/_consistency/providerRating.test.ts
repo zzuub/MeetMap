@@ -8,7 +8,7 @@ import { providerApi } from "@/entities/provider";
  * `entities/event/mock/events.ts` 와 `entities/provider/mock/providers.ts` 가 같은
  * 주최사의 원본 평균·후기 수를 각자 들고 있다. entity 끼리 서로를 import 할 수
  * 없어서(FSD) 구조가 강제한 중복이고, 지금까지는 서로를 가리키는 주석으로만
- * 막아 뒀다 (`progress.md` 4.21). 어긋나면 **목록 정렬과 주최사 페이지의 평점이
+ * 막아 뒀다 (`decisions.md` 4.21). 어긋나면 **목록 정렬과 주최사 페이지의 평점이
  * 서로 다른 답을 낸다.**
  *
  * ## 이 파일이 `src/app/` 아래 있는 이유

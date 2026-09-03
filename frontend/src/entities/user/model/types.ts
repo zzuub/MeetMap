@@ -1,4 +1,4 @@
-/** 근거: docs/frontend-feature-spec.md 12장 */
+/** 근거: docs/spec/10-데이터모델.md (12장) */
 
 export interface UserProfile {
   id: string;
