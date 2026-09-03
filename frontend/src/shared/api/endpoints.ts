@@ -43,6 +43,18 @@ export const ENDPOINTS = {
     outboundClick: (id: string) => `/events/${id}/outbound-click`,
   },
 
+  /**
+   * 주최사 (7.4).
+   *
+   * 후기 목록이 `event` 가 아니라 여기 있는 것이 2026-09-02 재정의의 요점이다 —
+   * 후기는 회차에 대해 쓰지만(`event.reviews` 가 POST 대상) **주최사에 쌓인다.**
+   * 회차별 후기 목록 조회는 만들지 않는다.
+   */
+  provider: {
+    detail: (id: string) => `/providers/${id}`,
+    reviews: (id: string) => `/providers/${id}/reviews`,
+  },
+
   search: {
     trending: "/search/trending",
   },

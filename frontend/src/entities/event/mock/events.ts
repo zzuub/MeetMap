@@ -1,3 +1,4 @@
+import { applyDisplayThreshold, ratingScore } from "@/shared/lib";
 import type { EventDetail } from "../model/types";
 
 /**
@@ -13,8 +14,7 @@ import type { EventDetail } from "../model/types";
  * | 경계 | 건 |
  * | --- | --- |
  * | 가격 미확인(`null`) | evt-004 — 카드는 `링크 확인`, 비교함 `가성비` 후보 제외 |
- * | 이미지 미동의(`thumbnailUrl: null`) | evt-006 — 정보 등록만 동의한 주최사 (7.2) |
- * | 후기 0건(`rating: 0`) | evt-003 — 평점 자리가 비는 경우 |
+ * | 이미지 미동의(`thumbnailUrl: null`) | evt-006 · evt-008 — **prv-004 의 회차 전부** (7.2) |
  * | `status: '마감'` | evt-007 — 그것도 인기 상위라 홈 첫 화면에 뜬다 |
  * | `locationPrecision` 3종 | EXACT(001·004·007) / STATION(002·005·008) / DISTRICT(003·006) |
  * | `scale` 3종 | SMALL(004·008) / STANDARD(001·005·006·007) / LARGE(002·003) |
@@ -22,12 +22,103 @@ import type { EventDetail } from "../model/types";
  * | 일정 | 이번 주 5건(9/4~9/6) / 그 이후 3건 — `when` 필터가 양쪽 다 결과를 낸다 |
  * | 가격 | `PRICE_CAPS` 3종(3만/5만/7만)이 남·여 어느 기준으로도 서로 다른 건수를 낸다 |
  *
+ * ## 주최사는 4곳이고 **회차가 2건씩** 붙는다 (2026-09-02)
+ *
+ * | 주최사 | 회차 | 무엇을 검증하나 |
+ * | --- | --- | --- |
+ * | prv-001 로테이션서울 | 001 · 007 | **모집 중인 회차가 1건**이다 — 007 이 마감이라 주최사 페이지(7.4)가 마감 회차를 거르는지 |
+ * | prv-002 미팅라운지 | 002 · 003 | 평점 표시 주최사(후기 12건) |
+ * | prv-003 테이블포텐 | 004 · 005 | **표시 임계 미달**(후기 3건) — 평점 자리가 `후기 3건` 으로 떨어진다 |
+ * | prv-004 첫만남클럽 | 006 · 008 | **후기 0건 + 이미지 사용 미동의** |
+ *
+ * 회차마다 주최사가 다르면 주최사 단위 집계를 화면에서 검증할 수 없다 — 평점
+ * 요약도 `진행 중인 소개팅` 목록도 늘 1건짜리가 된다.
+ *
+ * ⚠️ **이미지 사용 동의는 회차가 아니라 주최사 단위다** (7.2 동의 범위). 그래서
+ * prv-004 의 회차는 **둘 다** `thumbnailUrl: null` 이다. 한쪽만 비우면 같은
+ * 주최사인데 어떤 회차는 사진이 있고 어떤 회차는 없는 모순이 된다.
+ *
+ * ⚠️ 주최사 이름을 여기 적어 두는 것은 중복이지만 **의도적**이다.
+ * `entities/event` 는 `entities/provider` 를 import 할 수 없고(FSD 동일 레이어
+ * 금지), 실제 서버도 목록 응답에 `{ id, name }` 을 embed 한다. 이름이 바뀌면
+ * `entities/provider/mock/providers.ts` 와 함께 고친다.
+ *
  * 기준일은 **2026-09-02(수)** 다. 이번 주는 8/31(월)~9/6(일).
  * 날짜가 과거로 밀리면 `when=THIS_WEEK` 가 0건이 되므로 그때 갱신한다.
  *
  * 정원은 전 건 남녀 모두 1 이상이다. 한쪽 정원이 0인 회차(추가 모집 등)는 실제로
  * 드물어 넣지 않았다 — `isEligible` 의 정원 검사는 유닛 테스트로 덮는다.
+ *
+ * **덮지 못한 경계 하나**: 모집 중인 회차가 0건인 주최사(전부 마감). 주최사
+ * 페이지의 빈 상태(7.4)를 목으로 볼 수 없다. 9번째 회차를 넣으면 위 일정·가격
+ * 건수가 흔들려서, P5-4 착수 때 같이 정한다.
  */
+
+/**
+ * 주최사 원본 수치.
+ *
+ * ⚠️ **`entities/provider/mock/providers.ts` 와 같은 값을 들고 있다. 함께 고친다.**
+ * `entities/event` 는 `entities/provider` 를 import 할 수 없으므로(FSD 동일 레이어
+ * 금지) 이 중복은 구조가 강제한 것이다. 실서버에서는 조인 한 번이면 될 일이다.
+ * 어긋나면 목록 정렬(`sort=rating`)과 주최사 페이지의 평점이 서로 다른 답을 낸다.
+ */
+const PROVIDER_RATING: Record<string, { average: number; count: number }> = {
+  "prv-001": { average: 4.6, count: 47 },
+  "prv-002": { average: 4.2, count: 12 },
+  // 평균 4.67 은 prv-001 보다 높지만 후기 3건이라 표시 임계에 미달한다
+  "prv-003": { average: 4.67, count: 3 },
+  "prv-004": { average: 0, count: 0 },
+};
+
+/**
+ * `sort=rating` 의 정렬 키 (6.2).
+ *
+ * 원본 평균이 아니라 **베이지안 보정값**이다. 산식은 `shared/lib/rating.ts` 한
+ * 곳에만 있고 주최사 슬라이스도 같은 함수를 쓴다 — 두 벌이면 목록과 주최사
+ * 페이지의 순위가 어긋난다.
+ */
+export function mockProviderRatingScore(providerId: string): number {
+  const found = PROVIDER_RATING[providerId];
+  if (!found) return ratingScore(0, 0);
+  return ratingScore(found.average * found.count, found.count);
+}
+
+/** 상세(7.1) 주최사 블록용. 목록에는 `{ id, name }` 만 실린다 */
+const PROVIDER_DETAIL = {
+  "prv-001": {
+    id: "prv-001",
+    name: "로테이션서울",
+    tagline: "성수·한남에서 여는 30분 로테이션 소개팅",
+    ...displayRating("prv-001"),
+  },
+  "prv-002": {
+    id: "prv-002",
+    name: "미팅라운지",
+    tagline: "강남·홍대 대형 로테이션. 90년대생 위주",
+    ...displayRating("prv-002"),
+  },
+  "prv-003": {
+    id: "prv-003",
+    name: "테이블포텐",
+    tagline: "10명 정원 다이닝 소개팅",
+    ...displayRating("prv-003"),
+  },
+  "prv-004": {
+    id: "prv-004",
+    name: "첫만남클럽",
+    tagline: "사회초년생을 위한 부담 없는 첫 소개팅",
+    ...displayRating("prv-004"),
+  },
+} as const;
+
+/** 표시 임계(5건)를 적용한 평점. 미달이면 `null` 이고 화면은 `후기 N건` 만 쓴다 */
+function displayRating(providerId: string): {
+  rating: number | null;
+  reviewCount: number;
+} {
+  const { average, count } = PROVIDER_RATING[providerId];
+  return { rating: applyDisplayThreshold(average, count), reviewCount: count };
+}
 
 const BASE = {
   province: "SEOUL",
@@ -41,7 +132,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-001",
     title: "성수 루프탑 로테이션 소개팅 7:7",
     shortTitle: "성수 루프탑",
-    provider: "로테이션서울",
+    provider: PROVIDER_DETAIL["prv-001"],
     thumbnailUrl: "/mock/event-seongsu.jpg",
     images: ["/mock/event-seongsu.jpg"],
     date: "2026-09-04T19:30:00+09:00",
@@ -64,8 +155,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: null,
     lat: 37.5445,
     lng: 127.0557,
-    rating: 4.6,
-    reviewCount: 38,
     popularity: 980,
     createdAt: "2026-08-21T10:00:00+09:00",
     isLiked: false,
@@ -81,7 +170,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-002",
     title: "강남 90년대생 로테이션 소개팅 15:15",
     shortTitle: "강남 90s",
-    provider: "미팅라운지",
+    provider: PROVIDER_DETAIL["prv-002"],
     thumbnailUrl: "/mock/event-gangnam.jpg",
     images: ["/mock/event-gangnam.jpg"],
     date: "2026-09-05T19:00:00+09:00",
@@ -104,8 +193,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: "강남역",
     lat: 37.4979,
     lng: 127.0276,
-    rating: 4.2,
-    reviewCount: 51,
     popularity: 1120,
     createdAt: "2026-08-18T14:00:00+09:00",
     isLiked: true,
@@ -121,7 +208,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-003",
     title: "홍대 심야 로테이션 소개팅",
     shortTitle: "홍대 심야",
-    provider: "나이트라운지",
+    provider: PROVIDER_DETAIL["prv-002"],
     thumbnailUrl: "/mock/event-hongdae.jpg",
     images: ["/mock/event-hongdae.jpg"],
     date: "2026-09-05T22:00:00+09:00",
@@ -144,9 +231,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: null,
     lat: 37.5563,
     lng: 126.9236,
-    // 이제 막 등록된 신생 주최사 — 후기 0건일 때 평점 자리를 어떻게 채우는지 봐야 한다
-    rating: 0,
-    reviewCount: 0,
     popularity: 640,
     createdAt: "2026-08-29T21:00:00+09:00",
     isLiked: false,
@@ -162,7 +246,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-004",
     title: "을지로 소수정예 5:5 다이닝 소개팅",
     shortTitle: "을지로 5:5",
-    provider: "테이블포텐",
+    provider: PROVIDER_DETAIL["prv-003"],
     thumbnailUrl: "/mock/event-euljiro.jpg",
     images: ["/mock/event-euljiro.jpg"],
     date: "2026-09-06T18:30:00+09:00",
@@ -186,8 +270,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: null,
     lat: 37.5663,
     lng: 126.9911,
-    rating: 4.4,
-    reviewCount: 9,
     popularity: 720,
     createdAt: "2026-08-27T09:30:00+09:00",
     isLiked: false,
@@ -203,7 +285,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-005",
     title: "잠실 브런치 로테이션 소개팅",
     shortTitle: "잠실 브런치",
-    provider: "선데이브런치",
+    provider: PROVIDER_DETAIL["prv-003"],
     thumbnailUrl: "/mock/event-jamsil.jpg",
     images: ["/mock/event-jamsil.jpg"],
     date: "2026-09-12T11:00:00+09:00",
@@ -226,8 +308,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: "잠실새내역",
     lat: 37.5111,
     lng: 127.0863,
-    rating: 4.8,
-    reviewCount: 23,
     popularity: 810,
     createdAt: "2026-08-31T11:20:00+09:00",
     isLiked: true,
@@ -243,7 +323,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-006",
     title: "여의도 오후 티타임 소개팅",
     shortTitle: "여의도 티타임",
-    provider: "애프터눈",
+    provider: PROVIDER_DETAIL["prv-004"],
     // 정보 등록에는 동의했지만 **이미지 사용 동의를 주지 않은** 주최사 (7.2).
     // 이미지가 없다고 소개팅을 숨기지 않는다 — 카드는 대체 표시로 떨어진다
     thumbnailUrl: null,
@@ -268,8 +348,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: null,
     lat: 37.5285,
     lng: 126.9327,
-    rating: 4.1,
-    reviewCount: 16,
     popularity: 560,
     createdAt: "2026-09-01T16:40:00+09:00",
     isLiked: false,
@@ -285,7 +363,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-007",
     title: "한남 로테이션 소개팅 9:9",
     shortTitle: "한남 9:9",
-    provider: "로테이션서울",
+    provider: PROVIDER_DETAIL["prv-001"],
     thumbnailUrl: "/mock/event-hannam.jpg",
     images: ["/mock/event-hannam.jpg"],
     date: "2026-09-04T20:00:00+09:00",
@@ -311,8 +389,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: null,
     lat: 37.5347,
     lng: 127.0016,
-    rating: 4.7,
-    reviewCount: 64,
     popularity: 1040,
     createdAt: "2026-08-14T13:00:00+09:00",
     isLiked: false,
@@ -329,9 +405,12 @@ export const MOCK_EVENTS: EventDetail[] = [
     id: "evt-008",
     title: "신촌 사회초년생 로테이션 소개팅 4:4",
     shortTitle: "신촌 4:4",
-    provider: "첫만남클럽",
-    thumbnailUrl: "/mock/event-sinchon.jpg",
-    images: ["/mock/event-sinchon.jpg"],
+    provider: PROVIDER_DETAIL["prv-004"],
+    // 이미지 사용 동의는 **주최사 단위**다. prv-004 는 정보 등록만 동의했으므로
+    // evt-006 과 마찬가지로 비어 있어야 한다 — 한쪽만 채우면 같은 주최사인데
+    // 회차마다 동의 범위가 다른 셈이 된다 (7.2)
+    thumbnailUrl: null,
+    images: [],
     date: "2026-09-19T19:30:00+09:00",
     dateLabel: "9/19(토)",
     timeLabel: "19:30",
@@ -352,8 +431,6 @@ export const MOCK_EVENTS: EventDetail[] = [
     stationName: "신촌역",
     lat: 37.5559,
     lng: 126.9368,
-    rating: 3.9,
-    reviewCount: 5,
     popularity: 430,
     createdAt: "2026-08-25T20:10:00+09:00",
     isLiked: false,

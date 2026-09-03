@@ -139,8 +139,9 @@ describe("locationLabel", () => {
 });
 
 describe("메타 줄", () => {
+  // provider 는 2026-09-02 부터 객체다 — id 가 없으면 주최사 페이지로 링크할 수 없다
   const event = {
-    provider: "로테이션서울",
+    provider: { id: "prv-001", name: "로테이션서울" },
     dateLabel: "9/4(금)",
     timeLabel: "19:30",
     timeSlot: "DINNER",

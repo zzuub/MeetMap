@@ -1,6 +1,6 @@
 import { ApiError, paginateArray } from "@/shared/api";
 import { MOCK_LATENCY_MS } from "@/shared/config";
-import { MOCK_EVENTS } from "../mock/events";
+import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
 import { isEligible, isThisWeek, priceFor } from "../model/derive";
 import type { EventApi } from "../model/ports";
@@ -89,7 +89,7 @@ export const mockEventApi: EventApi = {
 
     // 검색 대상: 소개팅명 + 지역 + 주최사 (11.1). 카테고리 축은 삭제됐다.
     return MOCK_EVENTS.filter((event) =>
-      [event.title, event.area, event.provider]
+      [event.title, event.area, event.provider.name]
         .join(" ")
         .toLowerCase()
         .includes(q),
@@ -113,6 +113,9 @@ export function applyFilters(
     }
 
     if (query.area && event.area !== query.area) return false;
+
+    // 주최사 소개 페이지(7.4)의 `진행 중인 소개팅` 블록이 쓴다
+    if (query.providerId && event.provider.id !== query.providerId) return false;
 
     if (query.when && query.when !== "ALL") {
       const thisWeek = isThisWeek(event.date);
@@ -149,7 +152,11 @@ export function applyFilters(
   });
 }
 
-function applySort(
+/**
+ * 테스트가 직접 부를 수 있게 내보낸다 — 목 데이터가 이미 개최일 순으로 적혀 있어서
+ * `getList` 를 거치면 안정 정렬이 2차 정렬 규칙을 가려버린다.
+ */
+export function applySort(
   events: EventSummary[],
   sort: EventListQuery["sort"],
 ): EventSummary[] {
@@ -159,6 +166,8 @@ function applySort(
     case "latest":
       // '최신순' 은 등록 시각 기준이다. 개최일 임박순이 아니다 (5.3 '새로 등록된'과 같은 축)
       return sorted.sort(byCreatedAtDesc);
+    case "rating":
+      return sorted.sort(byProviderRating);
     case "priceAsc":
       return sorted.sort(byPriceAsc);
     case "priceDesc":
@@ -175,6 +184,23 @@ function byPopularity(a: EventSummary, b: EventSummary): number {
 
 function byCreatedAtDesc(a: EventSummary, b: EventSummary): number {
   return b.createdAt.localeCompare(a.createdAt);
+}
+
+/**
+ * 평점 높은순 (6.2). **목록은 소개팅인데 정렬 키는 주최사의 값**이다.
+ *
+ * 원본 평균이 아니라 베이지안 보정값을 쓴다 — 표본이 적은 만점이 표본 많은
+ * 고득점을 이기면 안 된다. 후기 0건 주최사는 전체 평균을 받아 중간에 놓인다.
+ *
+ * **2차 정렬은 개최일 가까운 순**이다. 같은 주최사의 회차는 정렬 키가 같아
+ * 뭉쳐 나오는데, 그 안에서라도 임박한 것이 위로 와야 한다. 주최사당 연속 노출
+ * 상한은 아직 걸지 않는다 (`progress.md` 4.20).
+ */
+function byProviderRating(a: EventSummary, b: EventSummary): number {
+  const diff =
+    mockProviderRatingScore(b.provider.id) - mockProviderRatingScore(a.provider.id);
+  if (diff !== 0) return diff;
+  return a.date.localeCompare(b.date);
 }
 
 /**

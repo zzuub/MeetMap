@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { PRICE_CAPS } from "@/shared/config";
-import { MOCK_EVENTS } from "../mock/events";
+import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
 import { deriveScale, isThisWeek, priceFor } from "../model/derive";
 import type { EventListQuery } from "../model/types";
-import { applyFilters, mockEventApi } from "./eventApi.mock";
+import { applyFilters, applySort, mockEventApi } from "./eventApi.mock";
 
 /**
  * 목 필터는 **기능정의서 6.1/6.4 의 필터 의미**를 코드로 적어둔 자리다.
@@ -15,6 +15,25 @@ import { applyFilters, mockEventApi } from "./eventApi.mock";
  */
 const ids = (query: EventListQuery) =>
   applyFilters(MOCK_EVENTS, query).map((event) => event.id);
+
+/**
+ * 필터 결과를 **성질로** 단언한다.
+ *
+ * id 를 나열하면(`toEqual(["evt-003"])`) 목 데이터를 한 줄만 고쳐도 무관한
+ * 테스트가 깨진다. 여기서 확인할 것은 "어떤 건이 남았나"가 아니라 **규칙이
+ * 지켜졌나**다 — 남은 건이 전부 조건을 만족하고, 조건을 만족하는 건이 하나도
+ * 빠지지 않았는가.
+ */
+function expectFilterMatches(
+  query: EventListQuery,
+  predicate: (event: (typeof MOCK_EVENTS)[number]) => boolean,
+) {
+  const actual = applyFilters(MOCK_EVENTS, query);
+  const expected = MOCK_EVENTS.filter(predicate);
+
+  expect(expected.length, "이 조건을 만족하는 목 데이터가 없다").toBeGreaterThan(0);
+  expect(actual.map((e) => e.id).sort()).toEqual(expected.map((e) => e.id).sort());
+}
 
 describe("목 데이터 자체의 무결성", () => {
   it("8건이다", () => {
@@ -50,7 +69,7 @@ describe("목 데이터 자체의 무결성", () => {
 
   it("화면이 마주쳐야 할 경계값이 섞여 있다", () => {
     expect(MOCK_EVENTS.some((e) => e.malePrice === null && e.femalePrice === null)).toBe(true);
-    expect(MOCK_EVENTS.some((e) => e.reviewCount === 0)).toBe(true);
+    expect(MOCK_EVENTS.some((e) => e.thumbnailUrl === null)).toBe(true);
     expect(MOCK_EVENTS.some((e) => e.status === "마감")).toBe(true);
 
     const precisions = new Set(MOCK_EVENTS.map((e) => e.locationPrecision));
@@ -62,6 +81,60 @@ describe("목 데이터 자체의 무결성", () => {
     const scales = new Set(MOCK_EVENTS.map((e) => e.scale));
     expect(scales).toEqual(new Set(["SMALL", "STANDARD", "LARGE"]));
   });
+
+  it("주최사 4곳에 회차가 2건씩 붙는다", () => {
+    // 회차마다 주최사가 다르면 주최사 단위 집계를 화면에서 검증할 수 없다 —
+    // 평점 요약도 `진행 중인 소개팅` 목록도 늘 1건짜리가 된다 (7.4)
+    const byProvider = new Map<string, number>();
+    for (const event of MOCK_EVENTS) {
+      byProvider.set(event.provider.id, (byProvider.get(event.provider.id) ?? 0) + 1);
+    }
+
+    expect(byProvider.size).toBe(4);
+    for (const count of byProvider.values()) expect(count).toBe(2);
+  });
+
+  it("이미지 사용 동의는 회차가 아니라 주최사 단위다", () => {
+    // 같은 주최사인데 어떤 회차는 사진이 있고 어떤 회차는 없으면 모순이다 (7.2)
+    const consent = new Map<string, boolean>();
+    for (const event of MOCK_EVENTS) {
+      const has = event.thumbnailUrl !== null;
+      const seen = consent.get(event.provider.id);
+      if (seen === undefined) consent.set(event.provider.id, has);
+      else expect(has).toBe(seen);
+    }
+
+    // 동의하지 않은 주최사가 실제로 하나 있어야 대체 표시를 볼 수 있다
+    expect([...consent.values()]).toContain(false);
+  });
+
+  it("정렬 축에 동률이 없다", () => {
+    // 동률이 생기면 `Array.sort` 의 안정성만으로 정렬 테스트가 통과해버려
+    // 비교 함수의 버그를 못 잡는다. `sort=rating` 이 실제로 그랬다 —
+    // 같은 주최사 회차끼리 점수가 같아 2차 정렬 검증에 뒤집기가 필요했다.
+    // 여기가 깨지면 해당 정렬 테스트에도 뒤집기를 적용해야 한다.
+    const axes: Record<string, (string | number)[]> = {
+      createdAt: MOCK_EVENTS.map((e) => e.createdAt),
+      femalePrice: MOCK_EVENTS.flatMap((e) => e.femalePrice ?? []),
+      malePrice: MOCK_EVENTS.flatMap((e) => e.malePrice ?? []),
+      popularity: MOCK_EVENTS.map((e) => e.popularity),
+    };
+
+    for (const [axis, values] of Object.entries(axes)) {
+      expect(new Set(values).size, `${axis} 에 동률이 생겼다`).toBe(values.length);
+    }
+  });
+
+  it("모집 중인 회차가 1건뿐인 주최사가 있다", () => {
+    // 주최사 페이지(7.4)가 마감 회차를 거르는지 보려면 필요한 경계다
+    const open = MOCK_EVENTS.filter((e) => e.status === "신청 가능");
+    const counts = new Map<string, number>();
+    for (const event of open) {
+      counts.set(event.provider.id, (counts.get(event.provider.id) ?? 0) + 1);
+    }
+
+    expect([...counts.values()]).toContain(1);
+  });
 });
 
 describe("applyFilters", () => {
@@ -70,13 +143,13 @@ describe("applyFilters", () => {
   });
 
   it("district 는 구 단위로 거르고 ALL 은 전지역이다", () => {
-    expect(ids({ district: "MAPO" })).toEqual(["evt-003"]);
+    expectFilterMatches({ district: "MAPO" }, (e) => e.district === "MAPO");
     expect(ids({ district: "ALL" })).toHaveLength(MOCK_EVENTS.length);
   });
 
   it("slot 은 단일 시간대로 거른다", () => {
-    expect(ids({ slot: "MORNING" })).toEqual(["evt-005"]);
-    expect(ids({ slot: "LATE_NIGHT" })).toEqual(["evt-003"]);
+    expectFilterMatches({ slot: "MORNING" }, (e) => e.timeSlot === "MORNING");
+    expectFilterMatches({ slot: "LATE_NIGHT" }, (e) => e.timeSlot === "LATE_NIGHT");
     expect(ids({ slot: "ALL" })).toHaveLength(MOCK_EVENTS.length);
   });
 
@@ -95,14 +168,14 @@ describe("applyFilters", () => {
   });
 
   it("scale 은 규모로 거른다", () => {
-    expect(ids({ scale: "SMALL" })).toEqual(["evt-004", "evt-008"]);
-    expect(ids({ scale: "LARGE" })).toEqual(["evt-002", "evt-003"]);
+    expectFilterMatches({ scale: "SMALL" }, (e) => e.scale === "SMALL");
+    expectFilterMatches({ scale: "LARGE" }, (e) => e.scale === "LARGE");
   });
 
   it("status=OPEN 은 마감 건을 뺀다", () => {
-    const open = ids({ status: "OPEN" });
-    expect(open).not.toContain("evt-007");
-    expect(open).toHaveLength(MOCK_EVENTS.length - 1);
+    expectFilterMatches({ status: "OPEN" }, (e) => e.status === "신청 가능");
+    // 거르는 것이 실제로 있어야 이 테스트가 의미를 갖는다
+    expect(MOCK_EVENTS.some((e) => e.status === "마감")).toBe(true);
   });
 
   it("mood 다중 선택은 OR 조건이다", () => {
@@ -125,8 +198,16 @@ describe("applyFilters", () => {
       expect(event.femalePrice).not.toBeNull();
       expect(event.femalePrice!).toBeLessThanOrEqual(30000);
     }
-    // 남성 기준이었다면 통과했을 건이 걸러진다 (evt-006: 남 33,000 / 여 25,000)
-    expect(cheap.map((e) => e.id)).toContain("evt-006");
+    // 성별 축이 실제로 다른 답을 내는지 — 여성 기준으로만 통과하는 건이 있어야 한다
+    const onlyByFemalePrice = MOCK_EVENTS.filter((e) => {
+      const f = priceFor(e, "F");
+      const m = priceFor(e, "M");
+      return f !== null && f <= 30000 && (m === null || m > 30000);
+    });
+    expect(onlyByFemalePrice.length, "성별 축을 구분하는 목 데이터가 없다").toBeGreaterThan(0);
+    expect(cheap.map((e) => e.id)).toEqual(
+      expect.arrayContaining(onlyByFemalePrice.map((e) => e.id)),
+    );
   });
 
   it("가격 상한 칩 3종이 각각 다른 건수를 낸다", () => {
@@ -147,8 +228,16 @@ describe("applyFilters", () => {
   });
 
   it("가격 미확인 건은 maxPrice 필터에서 빠진다", () => {
-    expect(ids({ maxPrice: 70000 })).not.toContain("evt-004");
-    expect(ids({})).toContain("evt-004");
+    const unpriced = MOCK_EVENTS.filter((e) => priceFor(e, MOCK_VIEWER.gender) === null);
+    expect(unpriced.length, "가격 미확인 목 데이터가 없다").toBeGreaterThan(0);
+
+    // 상한을 아무리 높여도 들어오지 않는다. "3만원 이하"에 가격 모르는 건을
+    // 섞으면 필터가 거짓말이 된다
+    const withCap = ids({ maxPrice: Number.MAX_SAFE_INTEGER });
+    for (const event of unpriced) {
+      expect(withCap).not.toContain(event.id);
+      expect(ids({})).toContain(event.id);
+    }
   });
 
   it("eligibleOnly 는 출생연도 범위 밖 건을 뺀다", () => {
@@ -163,9 +252,14 @@ describe("applyFilters", () => {
   });
 
   it("조건을 겹쳐 걸면 AND 로 좁힌다", () => {
-    expect(ids({ when: "THIS_WEEK", status: "OPEN", scale: "SMALL" })).toEqual([
-      "evt-004",
-    ]);
+    expectFilterMatches(
+      { when: "THIS_WEEK", status: "OPEN", scale: "SMALL" },
+      (e) => isThisWeek(e.date) && e.status === "신청 가능" && e.scale === "SMALL",
+    );
+    // 한 축만 걸었을 때보다 실제로 좁아지는지 — AND 가 아니라 OR 였다면 넓어진다
+    expect(ids({ when: "THIS_WEEK", status: "OPEN", scale: "SMALL" }).length).toBeLessThan(
+      ids({ when: "THIS_WEEK" }).length,
+    );
   });
 });
 
@@ -177,10 +271,22 @@ describe("mockEventApi", () => {
     expect(first.totalCount).toBe(MOCK_EVENTS.length);
     expect(first.nextCursor).not.toBeNull();
     // 기본 정렬은 인기순이다
-    expect(first.items.map((e) => e.id)).toEqual(["evt-002", "evt-007", "evt-001"]);
+    const byPopularity = [...MOCK_EVENTS].sort((a, b) => b.popularity - a.popularity);
+    expect(first.items.map((e) => e.id)).toEqual(byPopularity.slice(0, 3).map((e) => e.id));
 
+    // 다음 페이지는 앞 페이지와 겹치지 않는다
     const second = await mockEventApi.getList({ limit: 3, cursor: first.nextCursor });
-    expect(second.items.map((e) => e.id)).not.toContain("evt-002");
+    const firstIds = first.items.map((e) => e.id);
+    expect(second.items.filter((e) => firstIds.includes(e.id))).toEqual([]);
+  });
+
+  it("최신순은 등록 시각 내림차순이다", async () => {
+    // 개최일 임박순이 아니라 `createdAt` 기준이다 (5.3 '새로 등록된' 과 같은 축)
+    const { items } = await mockEventApi.getList({ sort: "latest", limit: 20 });
+    const created = items.map((e) => e.createdAt);
+
+    expect(created).toEqual([...created].sort().reverse());
+    expect(items).toHaveLength(MOCK_EVENTS.length);
   });
 
   it("가격 정렬은 성별 기준값을 쓰고 가격 미확인 건을 뒤로 보낸다", async () => {
@@ -194,6 +300,64 @@ describe("mockEventApi", () => {
     const desc = await mockEventApi.getList({ sort: "priceDesc", limit: 20 });
     expect(desc.items.at(-1)?.femalePrice).toBeNull();
     expect(desc.items[0]?.femalePrice).toBe(55000);
+  });
+
+  it("평점 정렬은 주최사 기준이고 같은 주최사의 회차가 붙어 나온다", async () => {
+    const { items } = await mockEventApi.getList({ sort: "rating", limit: 20 });
+    const order = items.map((e) => e.provider.id);
+
+    // 보정값 내림차순이다. 어느 주최사가 1등인지는 목 데이터가 정할 일이고,
+    // 여기서 지킬 것은 **정렬 키가 ratingScore 라는 계약**이다
+    const scores = order.map(mockProviderRatingScore);
+    expect(scores).toEqual([...scores].sort((a, b) => b - a));
+
+    // 정렬 키가 주최사 값이라 같은 주최사는 반드시 연속으로 붙는다.
+    // (뭉침을 막는 상한은 아직 없다 — progress.md 4.20)
+    const runs = order.filter((id, i) => id !== order[i - 1]);
+    expect(new Set(runs).size).toBe(runs.length);
+  });
+
+  // 보정식 자체의 성질(표본 적은 만점이 지는 것, 후기 0건이 중간에 놓이는 것)은
+  // shared/lib/rating.test.ts 와 entities/provider 의 목 데이터 테스트가 덮는다.
+  // 여기서는 이벤트 목록이 그 값을 정렬 키로 쓰는지만 본다.
+
+  it("평점 정렬의 2차 정렬은 개최일 가까운 순이다", () => {
+    // 목 데이터는 이미 개최일 순으로 적혀 있어 그대로 넣으면 안정 정렬이 규칙을
+    // 가린다. 뒤집어 넣어야 2차 정렬이 실제로 도는지 알 수 있다.
+    const reversed = [...MOCK_EVENTS].reverse();
+    const sorted = applySort(reversed, "rating");
+
+    for (let i = 1; i < sorted.length; i += 1) {
+      if (sorted[i].provider.id !== sorted[i - 1].provider.id) continue;
+      expect(sorted[i - 1].date.localeCompare(sorted[i].date)).toBeLessThanOrEqual(0);
+    }
+
+    // 뒤집어 넣었는데도 주최사별 묶음이 개최일 오름차순으로 되돌아왔는지
+    const grouped = new Map<string, string[]>();
+    for (const event of sorted) {
+      grouped.set(event.provider.id, [...(grouped.get(event.provider.id) ?? []), event.date]);
+    }
+    for (const dates of grouped.values()) {
+      expect(dates).toEqual([...dates].sort());
+    }
+  });
+
+  it("providerId 로 주최사의 모집 중인 회차만 가져온다", async () => {
+    // 주최사 페이지(7.4)의 `진행 중인 소개팅` 블록이 쓰는 조합이다
+    // 마감 회차를 가진 주최사를 찾는다 — 상태 필터가 실제로 일하는지 보려면 필요하다
+    const providerId = MOCK_EVENTS.find((e) => e.status === "마감")!.provider.id;
+    const expectedOpen = MOCK_EVENTS.filter(
+      (e) => e.provider.id === providerId && e.status === "신청 가능",
+    );
+    const expectedAll = MOCK_EVENTS.filter((e) => e.provider.id === providerId);
+    expect(expectedAll.length).toBeGreaterThan(expectedOpen.length);
+
+    const { items } = await mockEventApi.getList({ providerId, status: "OPEN", limit: 20 });
+    expect(items.map((e) => e.id).sort()).toEqual(expectedOpen.map((e) => e.id).sort());
+
+    // 상태 필터를 빼면 마감 회차까지 온다 — 거른 것이 상태이지 주최사가 아니다
+    const all = await mockEventApi.getList({ providerId, limit: 20 });
+    expect(all.items).toHaveLength(expectedAll.length);
   });
 
   it("getHomeFeed 의 세 섹션이 각자의 규칙을 지킨다", async () => {
@@ -216,15 +380,26 @@ describe("mockEventApi", () => {
     expect(feed.newlyAdded).toHaveLength(4);
     const created = feed.newlyAdded.map((e) => e.createdAt);
     expect(created).toEqual([...created].sort().reverse());
-    expect(feed.newlyAdded[0].id).toBe("evt-006");
+    const latest = [...MOCK_EVENTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    expect(feed.newlyAdded[0].id).toBe(latest.id);
   });
 
   it("검색은 소개팅명·지역·주최사를 본다", async () => {
-    expect((await mockEventApi.search("성수")).map((e) => e.id)).toContain("evt-001");
-    expect((await mockEventApi.search("로테이션서울")).map((e) => e.id)).toEqual([
-      "evt-001",
-      "evt-007",
-    ]);
+    const keyword = "성수";
+    const hits = await mockEventApi.search(keyword);
+    const expected = MOCK_EVENTS.filter((e) =>
+      [e.title, e.area, e.provider.name].join(" ").includes(keyword),
+    );
+    expect(expected.length, `목 데이터에 '${keyword}' 가 없다`).toBeGreaterThan(0);
+    expect(hits.map((e) => e.id).sort()).toEqual(expected.map((e) => e.id).sort());
+    // 주최사명으로 검색하면 그 주최사의 회차가 전부 나온다
+    const provider = MOCK_EVENTS[0].provider;
+    const byProvider = await mockEventApi.search(provider.name);
+    expect(byProvider.map((e) => e.id).sort()).toEqual(
+      MOCK_EVENTS.filter((e) => e.provider.id === provider.id)
+        .map((e) => e.id)
+        .sort(),
+    );
     expect(await mockEventApi.search("   ")).toEqual([]);
   });
 
