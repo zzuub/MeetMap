@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { EventSummary, HomeFeed } from "@/entities/event";
-import { districtShortcuts, homeSections, type HomeSectionKey } from "./sections";
+import {
+  HOME_SECTION_KEYS,
+  type EventSummary,
+  type HomeFeed,
+  type HomeSectionKey,
+} from "@/entities/event";
+import { districtShortcuts, homeSections } from "./sections";
 
 type DistrictCode = EventSummary["district"];
 
@@ -66,6 +71,14 @@ describe("homeSections", () => {
       "myAgeGroup",
       "newlyAdded",
     ]);
+  });
+
+  it("`HomeFeed` 의 섹션을 하나도 빠뜨리지 않는다", () => {
+    // 섹션이 늘면 여기서 걸린다 — entities 의 키 목록이 원본이고, 표에 줄을
+    // 추가하지 않으면 새 섹션이 응답에만 있고 화면에는 없는 상태가 된다
+    const keys = homeSections(full, { showMyAgeGroup: true }).map((s) => s.key);
+
+    expect([...keys].sort()).toEqual([...HOME_SECTION_KEYS].sort());
   });
 
   it("게스트에게는 `내 나이대` 를 숨기고 `새로 등록된` 이 위로 올라온다", () => {

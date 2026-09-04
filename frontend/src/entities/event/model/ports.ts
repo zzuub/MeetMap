@@ -19,7 +19,13 @@ import type {
  * (`import type` 이라 런타임 순환은 아니지만 읽는 사람이 매번 확인해야 한다.)
  */
 export interface EventApi {
-  /** 홈 3개 섹션 일괄 조회 (5.3) */
+  /**
+   * 홈 3개 섹션 일괄 조회 (5.3).
+   *
+   * **세 섹션 모두 모집 중만 돌려준다.** 홈에는 상태 필터가 없어 마감 건을 걷어낼
+   * 수단이 없다 (`decisions.md` 4.23). 이 필터링은 **서버의 책임**이며, 클라이언트는
+   * 계약이 깨진 경우를 대비해 한 번 더 거른다(`api/eventApi.ts` 의 `openSectionsOnly`).
+   */
   getHomeFeed(params: { lat?: number; lng?: number }): Promise<HomeFeed>;
   /** 탐색 목록. 커서 페이지네이션 (6.1) */
   getList(query: EventListQuery): Promise<CursorPage<EventSummary>>;

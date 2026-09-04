@@ -1,4 +1,4 @@
-export { eventApi } from "./api/eventApi";
+export { eventApi, openSectionsOnly } from "./api/eventApi";
 export {
   currentTimeSlot,
   deriveScale,
@@ -22,6 +22,7 @@ export {
   type PriceDisplay,
 } from "./model/labels";
 export type { EventApi } from "./model/ports";
+export { HOME_SECTION_KEYS } from "./model/types";
 export type {
   EventDetail,
   EventListQuery,
@@ -31,6 +32,7 @@ export type {
   EventStatus,
   EventSummary,
   HomeFeed,
+  HomeSectionKey,
   LocationPrecision,
   ScaleFilter,
   SortOption,

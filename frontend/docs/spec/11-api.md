@@ -12,7 +12,7 @@
 | 로그인 | `POST` | `/auth/oauth/{provider}` | 응답에 `isNewUser` |
 | 약관 | `POST` | `/users/me/terms` | |
 | 프로필 설정 | `PUT` | `/users/me/profile` | |
-| 홈 | `GET` | `/events/home?lat&lng` | 3개 섹션 일괄 조회 |
+| 홈 | `GET` | `/events/home?lat&lng` | 3개 섹션 일괄 조회. **세 섹션 모두 모집 중(`신청 가능`)만 내려준다** — 홈에는 상태 필터가 없어 마감 건을 걷어낼 수단이 없다 (5.3) |
 | 탐색 목록 | `GET` | `/events?when&slot&scale&status&maxPrice&eligibleOnly&sort&mood&area&district&cursor` | 커서 페이지네이션. `maxPrice`·`eligibleOnly`는 서버가 인증 주체의 성별·출생연도로 해석한다. `sort=rating`은 주최사 `ratingScore` 기준(6.2) |
 | 지도 마커 | `GET` | `/events/map?bbox&{필터}` | 뷰포트 기준 |
 | 소개팅 상세 | `GET` | `/events/{id}` | 응답의 `provider`가 `ProviderSummary`(평점 포함) |

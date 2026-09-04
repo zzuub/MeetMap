@@ -1,4 +1,9 @@
-import type { EventCardVariant, EventSummary, HomeFeed } from "@/entities/event";
+import type {
+  EventCardVariant,
+  EventSummary,
+  HomeFeed,
+  HomeSectionKey,
+} from "@/entities/event";
 import { DISTRICT_LABEL } from "@/shared/config";
 
 /**
@@ -6,7 +11,7 @@ import { DISTRICT_LABEL } from "@/shared/config";
  * 렌더링과 떼어 둔 것은 섹션을 넣고 빼는 규칙을 DOM 없이 테스트하기 위해서다.
  */
 
-export type HomeSectionKey = "weeklyPopular" | "myAgeGroup" | "newlyAdded";
+/** 키는 `entities/event` 가 원본이다 — 여기서 다시 세면 섹션이 늘 때 두 벌이 된다 */
 export type HomeSectionLayout = "carousel" | "list";
 
 export interface HomeSection {
