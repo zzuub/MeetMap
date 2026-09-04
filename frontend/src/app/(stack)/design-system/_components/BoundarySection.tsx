@@ -22,11 +22,12 @@ export function BoundarySection({ card, pick }: CardShowcaseContext) {
       이름을 숨기고 마크만 남긴다. 이미지가 없다고 소개팅을 숨기지 않는다.
     </li>
     <li>
-      <b className="text-text">마감</b> — 상태 배지가 있는 건{" "}
-      <code>feature</code>·<code>list</code>·<code>sheet</code> 뿐이다.
-      <code>ratio</code>·<code>compact</code> 는 5.3 표시 항목에 모집 상태가
-      없어서 <b className="text-warning">마감된 소개팅이 신청 가능해 보인다.</b>{" "}
-      표시 항목을 늘릴지는 미결 — 기능정의서를 고쳐야 하는 사안이다.
+      <b className="text-text">마감</b> — 상태 배지는 <code>list</code>·
+      <code>sheet</code> 에만 있다. <b className="text-text">홈은 마감을 아예 받지
+      않으므로</b>(5.3 · <code>getHomeFeed</code> 세 섹션 전부 모집 중) 홈에 쓰는
+      세 변형에는 배지를 두지 않는다 — 같은 값만 찍히는 배지는 정보가 아니다 → 4.23.
+      <code>compact</code> 는 <b className="text-text">찜 목록과 공용</b>이라 거기서는
+      배지가 필요하다(9장). P2-8 에서 넣는다.
     </li>
     <li>
       <b className="text-text">평점</b> — 5종 어디에도 없다. 2026-09-02 재정의로{" "}

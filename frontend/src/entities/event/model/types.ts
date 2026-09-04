@@ -196,8 +196,25 @@ export interface EventListQuery {
   limit?: number;
 }
 
-/** 홈 3개 섹션 일괄 조회 응답 (5.3) */
-export interface HomeFeed {
+/**
+ * 홈 섹션 키. `HomeFeed` 의 배열 필드와 1:1 이고 **섹션이 늘면 여기부터 늘린다** —
+ * 모집 중 필터(4.23)가 새 섹션에도 걸리려면 목록이 한곳에 있어야 한다.
+ */
+export const HOME_SECTION_KEYS = ["weeklyPopular", "myAgeGroup", "newlyAdded"] as const;
+
+export type HomeSectionKey = (typeof HOME_SECTION_KEYS)[number];
+
+/**
+ * 홈 3개 섹션 일괄 조회 응답 (5.3).
+ *
+ * ⚠️ **세 섹션 모두 모집 중(`status: '신청 가능'`)만 담긴다.** 홈에는 상태 필터도
+ * 상태 배지도 없어서(`decisions.md` 4.23) 마감 건이 섞이면 사용자가 알아챌
+ * 방법이 없다. **거르는 것은 서버의 책임**이고 `EventApi.getHomeFeed` 의 계약이다.
+ *
+ * `HomeSectionKey` 를 확장하면 이 인터페이스가 새 필드를 요구한다 — 섹션이
+ * 늘었는데 필터에서 빠지는 일이 타입에서 걸리게 하려는 것이다.
+ */
+export interface HomeFeed extends Record<HomeSectionKey, EventSummary[]> {
   /** 이번 주 인기 소개팅 — 이번 주 개최 + popularity 내림차순, 최대 6건 */
   weeklyPopular: EventSummary[];
   /** 내 나이대 — 게스트·출생연도 미입력이면 **화면이** 섹션을 숨긴다 (5.3) */

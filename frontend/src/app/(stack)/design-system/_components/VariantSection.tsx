@@ -7,7 +7,7 @@ export function VariantSection({ events, card, sample }: CardShowcaseContext) {
     <>
   <VariantBlock
     name="feature"
-    spec="홈 가로 스크롤 · 196px / 썸네일 118px (5.3 섹션 A)"
+    spec="홈 가로 스크롤 · 196px / 썸네일 118px (5.3 섹션 A) — 상태 배지 없음(4.23)"
   >
     {/* 가로 스크롤은 홈 카드 캐러셀만 허용된 예외다 (6.2) */}
     <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1">

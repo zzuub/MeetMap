@@ -34,9 +34,10 @@ app/
                                                 # entity 를 함께 볼 수 있는 유일한 자리다
 
 widgets/
-  app-header/            AppHeader (로고·검색·알림 / 뒤로가기·타이틀·액션)
+  app-header/            HomeHeader (홈: 로고·검색·알림) / AppHeader (스택: 뒤로가기·타이틀·액션)
   bottom-nav/            BottomNav
   home-feed/             HomeFeed (헤드라인 + 지도카드 + 3개 섹션 조립. 퀵 필터 칩 바 없음 — 5.4)
+                         HomeHero · MapPromoCard · EventSection + model/sections(섹션 표·지역 바로가기)
   explore-board/         ExploreBoard (컨트롤바 + 리스트/지도 스위칭)
   event-detail/          EventDetailView (히어로 + 정보카드 + 주최사 블록 + 고정 CTA)
   provider-profile/      ProviderProfileView (프로필 + 평점 요약 + 모집 중인 회차
@@ -72,7 +73,8 @@ entities/
     ui/                  EventStatusBadge(2종), TimeSlotBadge(4종), CapacityText(`남 N · 여 N`),
                          PriceText(성별 기준값), BirthYearRangeText,
                          EventThumbnail(이미지 미동의·로드실패 대체 표시)
-    model/               types, derive(deriveScale·isEligible·priceFor·isThisWeek),
+    model/               types, derive(deriveScale·isEligible·priceFor·isThisWeek·isOpen·
+                         currentTimeSlot),
                          labels(표기 규칙), ports
     api/ · mock/         eventApi(목/실 분기), 목 8건 + MOCK_VIEWER
                          ⚠️ FemaleRatioBar 는 만들지 않는다 — 정원이 남녀 동수라 성비가 항상 50%다

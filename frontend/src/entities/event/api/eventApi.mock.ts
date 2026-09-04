@@ -2,7 +2,7 @@ import { ApiError, paginateArray } from "@/shared/api";
 import { MOCK_LATENCY_MS } from "@/shared/config";
 import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
-import { isEligible, isThisWeek, priceFor } from "../model/derive";
+import { isEligible, isOpen, isThisWeek, priceFor } from "../model/derive";
 import type { EventApi } from "../model/ports";
 import type {
   EventDetail,
@@ -30,18 +30,24 @@ export const mockEventApi: EventApi = {
   async getHomeFeed() {
     await delay();
 
+    // 홈은 세 섹션 모두 모집 중인 회차만 내린다 (5.3). 홈에는 상태 필터가 없어서
+    // 마감 건이 섞이면 사용자가 그것을 걷어낼 수단이 없다.
+    const open = MOCK_EVENTS.filter(isOpen);
+
     return {
       // 이번 주 개최 + popularity 내림차순 (5.3)
-      weeklyPopular: MOCK_EVENTS.filter((event) => isThisWeek(event.date))
+      weeklyPopular: open
+        .filter((event) => isThisWeek(event.date))
         .sort(byPopularity)
         .slice(0, HOME_CAROUSEL_SIZE),
 
       // 프로필 출생연도로 걸러 최신순. 게스트 처리는 화면이 세션으로 판단한다
-      myAgeGroup: MOCK_EVENTS.filter((event) => isEligible(event, MOCK_VIEWER))
+      myAgeGroup: open
+        .filter((event) => isEligible(event, MOCK_VIEWER))
         .sort(byCreatedAtDesc)
         .slice(0, HOME_CAROUSEL_SIZE),
 
-      newlyAdded: [...MOCK_EVENTS].sort(byCreatedAtDesc).slice(0, HOME_LIST_SIZE),
+      newlyAdded: [...open].sort(byCreatedAtDesc).slice(0, HOME_LIST_SIZE),
 
       baseAreaLabel: "성수동",
     } satisfies HomeFeed;
@@ -131,7 +137,7 @@ export function applyFilters(
       return false;
     }
 
-    if (query.status === "OPEN" && event.status !== "신청 가능") return false;
+    if (query.status === "OPEN" && !isOpen(event)) return false;
 
     if (query.mood?.length) {
       // 다중 선택은 OR 조건이다 (6.4)

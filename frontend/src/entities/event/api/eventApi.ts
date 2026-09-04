@@ -1,11 +1,13 @@
 import { ENDPOINTS, fetchClient, type CursorPage } from "@/shared/api";
 import { USE_MOCK } from "@/shared/config";
+import { isOpen } from "../model/derive";
 import type { EventApi } from "../model/ports";
-import type {
-  EventDetail,
-  EventListQuery,
-  EventSummary,
-  HomeFeed,
+import {
+  HOME_SECTION_KEYS,
+  type EventDetail,
+  type EventListQuery,
+  type EventSummary,
+  type HomeFeed,
 } from "../model/types";
 import { mockEventApi } from "./eventApi.mock";
 
@@ -16,8 +18,10 @@ import { mockEventApi } from "./eventApi.mock";
  * `NEXT_PUBLIC_USE_MOCK=false` 로 내리는 것으로 전환이 끝난다.
  */
 const httpEventApi: EventApi = {
-  getHomeFeed: ({ lat, lng }) =>
-    fetchClient<HomeFeed>(ENDPOINTS.event.home, { query: { lat, lng } }),
+  getHomeFeed: async ({ lat, lng }) =>
+    openSectionsOnly(
+      await fetchClient<HomeFeed>(ENDPOINTS.event.home, { query: { lat, lng } }),
+    ),
 
   getList: (query) =>
     fetchClient<CursorPage<EventSummary>>(ENDPOINTS.event.list, {
@@ -44,6 +48,22 @@ const httpEventApi: EventApi = {
     }
   },
 };
+
+/**
+ * 홈 세 섹션에서 마감 건을 걷어낸다.
+ *
+ * **거르는 것은 서버의 책임이다**(`ports.ts` 계약). 여기서 한 번 더 거르는 것은
+ * 방어선이다 — 홈에는 상태 필터도 상태 배지도 없어서(4.23) 계약이 깨지면 사용자가
+ * 알아챌 방법이 없다. 잘못 보여주는 것보다 덜 보여주는 쪽을 고른다.
+ *
+ * 목 구현은 이 함수를 쓰지 않는다. 거기서는 **자르기 전에** 걸러야 섹션이 6건을
+ * 채운다 — 서버가 해야 할 일과 같다.
+ */
+export function openSectionsOnly(feed: HomeFeed): HomeFeed {
+  const filtered = { ...feed };
+  for (const key of HOME_SECTION_KEYS) filtered[key] = filtered[key].filter(isOpen);
+  return filtered;
+}
 
 /**
  * 배열·불리언을 쿼리스트링 형태로 눌러 담는다 (6.1 URL 설계와 동일 형식).
