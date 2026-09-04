@@ -111,6 +111,16 @@ export const TIME_SLOTS = [
   { code: "LATE_NIGHT", label: "심야" },
 ] as const;
 
+/**
+ * 시간대 경계 — **KST 시(hour)** 다. 각 값은 그 슬롯이 시작되는 시각이고,
+ * `오전` 은 첫 경계 이전 전부다. 판정은 `entities/event` 의 `currentTimeSlot` 이 한다.
+ */
+export const TIME_SLOT_START_HOUR = {
+  AFTERNOON: 12,
+  DINNER: 17,
+  LATE_NIGHT: 21,
+} as const;
+
 /* ── 정렬 (6.2) ─────────────────────────────────────────── */
 
 /**

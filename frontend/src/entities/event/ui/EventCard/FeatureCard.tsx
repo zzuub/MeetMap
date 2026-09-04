@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/lib";
 import type { EventSummary } from "../../model/types";
-import { EventStatusBadge } from "../EventStatusBadge";
 import { EventThumbnail } from "../EventThumbnail";
 import { TimeSlotBadge } from "../TimeSlotBadge";
 import { CARD_SHELL, CardPrice, CardTitle } from "./parts";
@@ -9,7 +8,10 @@ import type { EventCardLayoutProps } from "./types";
 
 /**
  * `feature` — 홈 가로 스크롤 섹션. 196px 폭 / 썸네일 118px (5.3 섹션 A).
- * 표시 항목: 썸네일 + 찜, 상태·시간대 배지, 제목 2줄, 일시, 가격.
+ * 표시 항목: 썸네일 + 찜, 시간대 배지, 제목 2줄, 일시, 가격.
+ *
+ * **상태 배지가 없다.** 홈은 세 섹션 모두 모집 중인 회차만 받으므로 전부 같은
+ * 값이 되고, 같은 값만 찍히는 배지는 정보가 아니라 자리만 차지한다 (5.3).
  */
 export function FeatureCard({ event, viewer, action, href, className }: EventCardLayoutProps) {
   return (
@@ -17,12 +19,7 @@ export function FeatureCard({ event, viewer, action, href, className }: EventCar
       event={event}
       action={action}
       className={className}
-      badges={
-        <>
-          <EventStatusBadge status={event.status} />
-          <TimeSlotBadge slot={event.timeSlot} />
-        </>
-      }
+      badges={<TimeSlotBadge slot={event.timeSlot} />}
       href={href}
       price={<CardPrice event={event} viewer={viewer} className="text-[13px]" />}
     />

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { deriveScale, isEligible, isThisWeek, priceFor, weekRangeKst } from "./derive";
+import {
+  currentTimeSlot,
+  deriveScale,
+  isEligible,
+  isOpen,
+  isThisWeek,
+  priceFor,
+  weekRangeKst,
+} from "./derive";
 
 describe("deriveScale", () => {
   // 남녀 동수가 원칙이다. 6.4 의 `5:5` / `6:6~9:9` / `10:10` 경계를 그대로 본다.
@@ -127,5 +135,34 @@ describe("isEligible", () => {
     expect(isEligible(maleOnly, { birthYear: 1993, gender: "F" })).toBe(false);
     // 상대 성별 정원이 0인 것은 내 자격과 무관하다
     expect(isEligible(maleOnly, { birthYear: 1993, gender: "M" })).toBe(true);
+  });
+});
+
+describe("currentTimeSlot", () => {
+  // 경계는 시작 시각 기준이다 — 12:00 은 오후, 21:00 은 심야 (6.2)
+  it("경계 시각은 다음 슬롯에 속한다", () => {
+    expect(currentTimeSlot(new Date("2026-09-02T11:59:59+09:00"))).toBe("MORNING");
+    expect(currentTimeSlot(new Date("2026-09-02T12:00:00+09:00"))).toBe("AFTERNOON");
+    expect(currentTimeSlot(new Date("2026-09-02T16:59:59+09:00"))).toBe("AFTERNOON");
+    expect(currentTimeSlot(new Date("2026-09-02T17:00:00+09:00"))).toBe("DINNER");
+    expect(currentTimeSlot(new Date("2026-09-02T20:59:59+09:00"))).toBe("DINNER");
+    expect(currentTimeSlot(new Date("2026-09-02T21:00:00+09:00"))).toBe("LATE_NIGHT");
+  });
+
+  it("자정을 넘기면 오전으로 돌아온다", () => {
+    expect(currentTimeSlot(new Date("2026-09-02T23:59:59+09:00"))).toBe("LATE_NIGHT");
+    expect(currentTimeSlot(new Date("2026-09-03T00:00:00+09:00"))).toBe("MORNING");
+  });
+
+  it("실행 환경 타임존이 아니라 KST 시각으로 판정한다", () => {
+    // UTC 로는 10:00(오전)이지만 KST 로는 19:00 — 디너다
+    expect(currentTimeSlot(new Date("2026-09-02T10:00:00Z"))).toBe("DINNER");
+  });
+});
+
+describe("isOpen", () => {
+  it("`신청 가능` 만 모집 중이다", () => {
+    expect(isOpen({ status: "신청 가능" })).toBe(true);
+    expect(isOpen({ status: "마감" })).toBe(false);
   });
 });

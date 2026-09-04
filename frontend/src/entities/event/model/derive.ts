@@ -1,5 +1,9 @@
-import { SCALE_LARGE_MIN_PER_SIDE, SCALE_SMALL_MAX_PER_SIDE } from "@/shared/config";
-import type { EventScale, EventSummary, ViewerGender } from "./types";
+import {
+  SCALE_LARGE_MIN_PER_SIDE,
+  SCALE_SMALL_MAX_PER_SIDE,
+  TIME_SLOT_START_HOUR,
+} from "@/shared/config";
+import type { EventScale, EventSummary, TimeSlot, ViewerGender } from "./types";
 
 /**
  * 순수 파생 규칙.
@@ -56,6 +60,32 @@ export function isThisWeek(iso: string, now: Date = new Date()): boolean {
   const at = new Date(iso).getTime();
   const { start, end } = weekRangeKst(now);
   return at >= start && at <= end;
+}
+
+/**
+ * 현재 시간대 (5-5 홈 추천 기준 문구).
+ *
+ * 경계는 **시작 시각** 기준이라 12:00 은 `오후`, 21:00 은 `심야`다 (6.2).
+ * `weekRangeKst` 와 같은 이유로 실행 환경의 타임존에 기대지 않는다 — 서버에서
+ * 그려도 사용자가 보는 시각(KST)과 같은 답이 나와야 한다.
+ */
+export function currentTimeSlot(now: Date = new Date()): TimeSlot {
+  const hour = new Date(now.getTime() + KST_OFFSET_MS).getUTCHours();
+
+  if (hour < TIME_SLOT_START_HOUR.AFTERNOON) return "MORNING";
+  if (hour < TIME_SLOT_START_HOUR.DINNER) return "AFTERNOON";
+  if (hour < TIME_SLOT_START_HOUR.LATE_NIGHT) return "DINNER";
+  return "LATE_NIGHT";
+}
+
+/**
+ * 모집 중 판정 (6.4 `status=OPEN` / 5.3 홈).
+ *
+ * 상태는 2종뿐이라 조건 자체는 한 줄이지만, 탐색 필터와 홈 피드가 **같은 함수**를
+ * 봐야 한다 — 두 벌이 되면 한쪽만 고쳐졌을 때 홈에 마감 건이 되살아난다.
+ */
+export function isOpen(event: Pick<EventSummary, "status">): boolean {
+  return event.status === "신청 가능";
 }
 
 /** 사용자 성별 기준 참가비. 미확인 건은 `null` (12장) */

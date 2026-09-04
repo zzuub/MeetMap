@@ -1,7 +1,9 @@
 export { eventApi } from "./api/eventApi";
 export {
+  currentTimeSlot,
   deriveScale,
   isEligible,
+  isOpen,
   isThisWeek,
   priceFor,
   weekRangeKst,

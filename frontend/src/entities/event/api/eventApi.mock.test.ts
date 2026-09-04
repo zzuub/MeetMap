@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PRICE_CAPS } from "@/shared/config";
 import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
-import { deriveScale, isThisWeek, priceFor } from "../model/derive";
+import { deriveScale, isEligible, isOpen, isThisWeek, priceFor } from "../model/derive";
 import type { EventListQuery } from "../model/types";
 import { applyFilters, applySort, mockEventApi } from "./eventApi.mock";
 
@@ -380,8 +380,31 @@ describe("mockEventApi", () => {
     expect(feed.newlyAdded).toHaveLength(4);
     const created = feed.newlyAdded.map((e) => e.createdAt);
     expect(created).toEqual([...created].sort().reverse());
-    const latest = [...MOCK_EVENTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-    expect(feed.newlyAdded[0].id).toBe(latest.id);
+    const openLatest = MOCK_EVENTS.filter(isOpen).sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    )[0];
+    expect(feed.newlyAdded[0].id).toBe(openLatest.id);
+  });
+
+  it("getHomeFeed 는 세 섹션 모두 마감 건을 뺀다", async () => {
+    // 홈에는 상태 필터가 없다. 마감 건이 섞이면 걷어낼 수단이 없으므로 아예
+    // 내리지 않는다 (5.3). `feature` 카드에서 상태 배지를 뺀 근거이기도 하다.
+    const feed = await mockEventApi.getHomeFeed({});
+
+    for (const section of [feed.weeklyPopular, feed.myAgeGroup, feed.newlyAdded]) {
+      expect(section.every(isOpen)).toBe(true);
+    }
+
+    // 거를 것이 실제로 있어야 이 테스트가 의미를 갖는다 — 마감 건 중 적어도
+    // 하나는 걸러내지 않았다면 어느 한 섹션에 떴을 조건을 갖추고 있어야 한다.
+    const closed = MOCK_EVENTS.filter((event) => !isOpen(event));
+    expect(closed.length).toBeGreaterThan(0);
+    expect(
+      closed.some(
+        (event) => isThisWeek(event.date) || isEligible(event, MOCK_VIEWER),
+      ),
+      "마감 건이 어느 섹션 조건에도 맞지 않아 필터가 일하는지 알 수 없다",
+    ).toBe(true);
   });
 
   it("검색은 소개팅명·지역·주최사를 본다", async () => {

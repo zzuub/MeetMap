@@ -37,7 +37,11 @@ export const BOUNDARY_CASES = [
     label: "이미지 미동의",
     note: "thumbnailUrl 이 null — 주최사 단위 동의라 prv-004 회차는 둘 다 비어 있다 (7.2)",
   },
-  { id: "evt-007", label: "마감", note: "인기 상위인데 마감된 건" },
+  {
+    id: "evt-007",
+    label: "마감",
+    note: "인기 상위인데 마감된 건 — 홈은 이 건을 받지 않는다 (5.3)",
+  },
 ];
 
 export const ALL_VARIANTS: EventCardVariant[] = ["feature", "ratio", "compact", "list", "sheet"];
