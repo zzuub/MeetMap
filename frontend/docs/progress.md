@@ -94,6 +94,16 @@ Phase 2~7 은 `docs/dev-plan.md` 참조.
 ## 3. 작업 이력
 
 ### 2026-09-05 · [#20](https://github.com/zzuub/MeetMap/issues/20) · [PR #25](https://github.com/zzuub/MeetMap/pull/25)
+**3차 코드리뷰 반영 — 로그의 축 이름을 코드 식별자로**
+
+리뷰는 세 질문에 전부 "지금 구조가 맞다"로 답했다. `resultCount == districtCounts[선택된 구]` 등식은 **지역 조건이 다른 필터와 교차항 없는 AND 라 집합론적으로 항상 성립**하고, `RegionSheet` 가 `resultCount` 를 받는 것도 `FilterSheet` 가 이미 쓰던 것과 같은 종류의 집계 의존이라 6.3 경계를 흐리지 않는다. 남은 권고 하나와 전제 하나를 반영했다.
+
+- **축 이름을 영문 식별자로** — `scan("시간대")` → `scan("slot")` + `AXIS_LABEL` 매핑. 이 로그는 서버 패싯 전환 시점을 알려주는 유일한 신호라 언젠가 수집·알림 도구가 문자열을 패턴 매칭할 대상이 된다. 그때 키가 한글이면 `grep`·알림 규칙이 한글을 대상으로 해야 하고 `ExploreFacets` 필드명과도 어휘가 갈린다. **타입을 `keyof ExploreFacets` 에서 파생**시켜, 축이 늘면 `AXIS_LABEL` 이 컴파일 에러로 새 항목을 요구한다 — 리뷰가 "매핑이 코드 어디에도 강제되지 않는다"고 한 부분을 타입으로 막았다
+- **등식의 전제를 적었다** — 두 조회가 **같은 스냅샷을 본다**는 전제에 기댄 등식이다. 목 데이터는 불변이라 항상 성립하지만 실 API 에서는 두 병렬 요청 사이에 회차가 마감·취소될 수 있어 근사치로 격하된다. 4.28 의 마이그레이션 항목에 함께 적어 뒀다
+
+검증: `tsc`·`eslint`·`vitest 215건`·`next build` 통과. 타입 강제는 **`ExploreFacets` 에 세 번째 축을 임시로 넣어** 확인했다 — `AXIS_LABEL` 과 반환값 둘 다 컴파일 에러가 났다.
+
+### 2026-09-05 · [#20](https://github.com/zzuub/MeetMap/issues/20) · [PR #25](https://github.com/zzuub/MeetMap/pull/25)
 **2차 코드리뷰 반영 — 안전장치가 하필 필요한 순간에 꺼져 있었다**
 
 리뷰는 `console.warn` 의 자리·서버 전용·프로덕션 잔존을 "전부 의도한 대로"로 봤고(`removeConsole` 설정이 없어 스트립되지 않는 것까지 확인해 줬다), `aria-current` 생략도 명세상 안전하다고 답했다. 짚은 것은 둘이다.

@@ -27,6 +27,25 @@ export interface ExploreFacets {
 }
 
 /**
+ * 집계하는 축. **`ExploreFacets` 의 키에서 파생한다** — 축이 늘면 아래 `AXIS_LABEL`
+ * 이 컴파일 에러로 새 항목을 요구하므로, 어휘가 갈리지 않는다.
+ */
+type FacetAxis = keyof ExploreFacets;
+
+/**
+ * 로그에 쓰는 사람이 읽을 이름.
+ *
+ * 축 자체는 **영문 식별자**로 다룬다 — 이 로그는 서버 패싯 전환 시점을 알려주는
+ * 유일한 신호라 언젠가 수집·알림 도구가 문자열을 패턴 매칭할 대상이 된다. 그때
+ * 키가 한글이면 `grep`·알림 규칙이 한글을 대상으로 해야 하고, `ExploreFacets` 의
+ * 필드명과도 어휘가 갈린다. 사람이 읽는 부분만 여기서 한글로 바꾼다 (PR #25 3차 리뷰).
+ */
+const AXIS_LABEL: Record<FacetAxis, string> = {
+  slot: "시간대",
+  district: "지역",
+};
+
+/**
  * 한 번에 긁어오는 상한.
  *
  * 넘으면 **버킷이 조용히 실제보다 작아진다** — 있는 구가 목록에서 빠지고 `N곳` 이
@@ -42,8 +61,8 @@ export async function exploreFacets(query: EventListQuery): Promise<ExploreFacet
   const { slot, district } = facetQueries(query);
 
   const [slotItems, districtItems] = await Promise.all([
-    scan("시간대", slot),
-    scan("지역", district),
+    scan("slot", slot),
+    scan("district", district),
   ]);
 
   return {
@@ -110,7 +129,7 @@ const SLOTS = TIME_SLOTS.map((slot) => slot.code).filter(
  * 넘긴다(자기 축을 지운 쿼리로 세므로). 축을 안 적으면 로그를 보는 사람이 "지역
  * 건수가 죽었다"와 "시간대 건수가 죽었다"를 구분할 수 없다 (PR #25 2차 리뷰).
  */
-async function scan(axis: "시간대" | "지역", query: EventListQuery) {
+async function scan(axis: FacetAxis, query: EventListQuery) {
   const page = await eventApi.getList({ ...query, cursor: null, limit: SCAN_LIMIT });
   const items = itemsOrNull(page);
 
@@ -119,7 +138,7 @@ async function scan(axis: "시간대" | "지역", query: EventListQuery) {
   // 고장 나지 않고 "전부 노출 + 건수 없음"으로 굳을 뿐이라 눈에 띄지 않는다.
   if (items === null) {
     console.warn(
-      `[explore] ${axis} 패싯 스캔이 상한을 넘겨 건수를 표시하지 않습니다 — ` +
+      `[explore] ${AXIS_LABEL[axis]} 패싯 스캔이 상한을 넘겨 건수를 표시하지 않습니다 — ` +
         `${page.totalCount}건 / 상한 ${SCAN_LIMIT}. 서버 패싯 전환 시점입니다.`,
     );
   }
