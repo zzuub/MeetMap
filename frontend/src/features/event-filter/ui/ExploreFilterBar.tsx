@@ -3,10 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { TimeSlot, TimeSlotFilter } from "@/entities/event";
-import { TIME_SLOTS } from "@/shared/config";
+import {
+  ALL_DISTRICTS,
+  DISTRICT_LABEL,
+  TIME_SLOTS,
+  type DistrictCode,
+} from "@/shared/config";
 import { cn } from "@/shared/lib";
 import { Chip } from "@/shared/ui";
-import type { SlotCounts } from "../api/slotCounts";
+import type { ExploreFacets } from "../api/exploreFacets";
 import { exploreHref, type ExploreParams } from "../model/exploreParams";
 import {
   appliedFilterChips,
@@ -15,9 +20,10 @@ import {
 } from "../model/filterChips";
 import { AppliedFilterChips } from "./AppliedFilterChips";
 import { FilterSheet } from "./FilterSheet";
+import { RegionSheet } from "./RegionSheet";
 
 /**
- * 탐색 상단 컨트롤 (6.2) — 시간대 칩 · 필터 버튼 · 적용 필터 칩 줄.
+ * 탐색 상단 컨트롤 (6.2) — 지역 버튼 · 시간대 칩 · 필터 버튼 · 적용 필터 칩 줄.
  *
  * **URL 을 쓰는 유일한 클라이언트 자리다.** 조건을 걸 때도 풀 때도 `exploreHref` 를
  * 거친다 — 여기서 쿼리스트링을 손으로 이어 붙이는 순간 `eligibleOnly` 를 지워
@@ -33,16 +39,18 @@ interface ExploreFilterBarProps {
   params: ExploreParams;
   /** 현재 조건의 결과 수. 시트의 `N개 결과 보기` 가 이 값을 쓴다 */
   resultCount: number;
-  slotCounts: SlotCounts;
+  /** 시간대 칩·지역 시트가 0건 항목을 감추는 데 쓴다 (6.2 / 6.3) */
+  facets: ExploreFacets;
 }
 
 export function ExploreFilterBar({
   params,
   resultCount,
-  slotCounts,
+  facets,
 }: ExploreFilterBarProps) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [regionOpen, setRegionOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [lastSlot, setLastSlot] = useState<TimeSlotFilter | null>(null);
 
@@ -63,11 +71,17 @@ export function ExploreFilterBar({
 
   return (
     <div className="flex flex-col gap-2.5">
+      <RegionButton
+        district={params.query.district ?? ALL_DISTRICTS}
+        expanded={regionOpen}
+        onClick={() => setRegionOpen(true)}
+      />
+
       {/* 칩과 필터 버튼이 한 줄에서 `flex-wrap` 된다 — 가로 스크롤을 만들지 않는다 (6.2) */}
       <div className="flex flex-wrap items-center gap-2">
         <TimeSlotChips
           value={params.query.slot ?? "ALL"}
-          counts={slotCounts}
+          counts={facets.slot}
           pendingSlot={pending ? lastSlot : null}
           onChange={goSlot}
         />
@@ -85,6 +99,15 @@ export function ExploreFilterBar({
       </div>
 
       <AppliedFilterChips chips={chips} clearHref={exploreHref(clearAppliedFilters(params))} />
+
+      <RegionSheet
+        open={regionOpen}
+        onClose={() => setRegionOpen(false)}
+        params={params}
+        districtCounts={facets.district}
+        resultCount={resultCount}
+        onChange={go}
+      />
 
       <FilterSheet
         open={sheetOpen}
@@ -111,14 +134,18 @@ function TimeSlotChips({
   onChange,
 }: {
   value: TimeSlotFilter;
-  counts: SlotCounts;
+  /** `null` 이면 세지 못한 것이라 전부 노출한다 (`exploreFacets`) */
+  counts: ExploreFacets["slot"];
   /** 눌렀지만 아직 결과가 안 온 칩. 없으면 `null` */
   pendingSlot: TimeSlotFilter | null;
   onChange: (slot: TimeSlotFilter) => void;
 }) {
   const visible = TIME_SLOTS.filter(
     (slot) =>
-      slot.code === "ALL" || slot.code === value || counts[slot.code as TimeSlot] > 0,
+      counts === null ||
+      slot.code === "ALL" ||
+      slot.code === value ||
+      counts[slot.code as TimeSlot] > 0,
   );
 
   return (
@@ -139,6 +166,62 @@ function TimeSlotChips({
         );
       })}
     </div>
+  );
+}
+
+/**
+ * 지역 선택 버튼 (6.2) — `📍 서울 전지역 ▾` 또는 `서울 {구}`.
+ *
+ * 지역이 적용 필터 칩 줄에서 빠지는 근거가 이 버튼이다. 라벨이 곧 현재 조건이므로
+ * 칩으로 한 번 더 보여주면 같은 정보가 두 군데 뜬다 (6.2 표시 제외).
+ */
+function RegionButton({
+  district,
+  expanded,
+  onClick,
+}: {
+  district: DistrictCode | typeof ALL_DISTRICTS;
+  expanded: boolean;
+  onClick: () => void;
+}) {
+  const label =
+    district === ALL_DISTRICTS ? "서울 전지역" : `서울 ${DISTRICT_LABEL[district]}`;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-haspopup="dialog"
+      aria-expanded={expanded}
+      className="inline-flex min-h-[40px] w-fit items-center gap-1 rounded-chip px-1 text-[15px] font-bold text-text"
+    >
+      <PinIcon />
+      {label}
+      <svg viewBox="0 0 24 24" className="size-4 text-text-sub" aria-hidden>
+        <path
+          d="M6 9l6 6 6-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px] text-primary" aria-hidden>
+      <path
+        d="M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="10" r="2.4" fill="currentColor" />
+    </svg>
   );
 }
 

@@ -1,7 +1,7 @@
 import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
 import {
-  countBySlot,
+  exploreFacets,
   parseExploreParams,
   type RawSearchParams,
 } from "@/features/event-filter";
@@ -27,15 +27,15 @@ export default async function ExplorePage({
     return <PhasePlaceholder title="지도 뷰" phase="Phase 3 · P3-1" spec="6.6" />;
   }
 
-  // 시간대 칩은 건수 0인 슬롯을 감춰야 해서 목록과 함께 슬롯별 건수를 받는다 (6.2)
-  const [page, slotCounts] = await Promise.all([
+  // 시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 목록과 함께 받는다
+  const [page, facets] = await Promise.all([
     eventApi.getList({ ...params.query, limit: PAGE_SIZE }),
-    countBySlot(params.query),
+    exploreFacets(params.query),
   ]);
 
   // viewer 는 프로필에서 온다. 목 세션에 출생연도·성별이 없어 P2-4 까지 null 이다
   return (
-    <ExploreBoard page={page} params={params} slotCounts={slotCounts} viewer={null} />
+    <ExploreBoard page={page} params={params} facets={facets} viewer={null} />
   );
 }
 
