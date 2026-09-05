@@ -5,6 +5,7 @@ import {
   isEligible,
   isOpen,
   isThisWeek,
+  marksIneligible,
   priceFor,
   weekRangeKst,
 } from "./derive";
@@ -135,6 +136,52 @@ describe("isEligible", () => {
     expect(isEligible(maleOnly, { birthYear: 1993, gender: "F" })).toBe(false);
     // 상대 성별 정원이 0인 것은 내 자격과 무관하다
     expect(isEligible(maleOnly, { birthYear: 1993, gender: "M" })).toBe(true);
+  });
+});
+
+/**
+ * `내 나이대 아님` 표시 규칙 (6.4 / 6.5).
+ *
+ * 화면에서는 아직 확인되지 않는다 — `viewer` 가 P2-4 까지 `null` 이라 배지가 뜨는
+ * 경로를 브라우저로 밟을 수 없다. 그래서 여기서 규칙만 못 박아 둔다.
+ */
+describe("marksIneligible", () => {
+  const event = {
+    birthYearFrom: 1990,
+    birthYearTo: 1996,
+    maleCapacity: 7,
+    femaleCapacity: 7,
+  };
+  const inRange = { birthYear: 1993, gender: "F" } as const;
+  const outOfRange = { birthYear: 1999, gender: "F" } as const;
+
+  it("자격 필터를 끈 상태에서 자격 밖이면 표시한다", () => {
+    expect(marksIneligible(event, outOfRange, false)).toBe(true);
+  });
+
+  it("자격이 있으면 표시하지 않는다", () => {
+    expect(marksIneligible(event, inRange, false)).toBe(false);
+  });
+
+  it("자격 필터가 켜져 있으면 표시하지 않는다", () => {
+    // 남은 건이 전부 자격을 만족해 늘 같은 값이 된다 (`decisions.md` 4.23 과 같은 이유)
+    expect(marksIneligible(event, outOfRange, true)).toBe(false);
+  });
+
+  it("게스트에게는 표시하지 않는다 — 자격을 판정할 근거가 없다", () => {
+    expect(marksIneligible(event, null, false)).toBe(false);
+    // 게스트는 축 자체가 없어 `undefined` 로 온다 (6.1)
+    expect(marksIneligible(event, null, undefined)).toBe(false);
+  });
+
+  it("축이 없으면(`undefined`) 표시하지 않는다", () => {
+    expect(marksIneligible(event, outOfRange, undefined)).toBe(false);
+  });
+
+  it("정원이 0이라 못 가는 경우도 같은 표시를 받는다", () => {
+    // `참가 불가` 를 쓰지 않는 이유다 — 나이가 맞아도 자리가 없을 수 있다 (6.4)
+    const maleOnly = { ...event, femaleCapacity: 0 };
+    expect(marksIneligible(maleOnly, inRange, false)).toBe(true);
   });
 });
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/shared/lib";
-import { isEligible } from "../../model/derive";
+import { isEligible, marksIneligible } from "../../model/derive";
 import { birthYearLabel, birthYearRangeLabel } from "../../model/labels";
 import type { EventSummary } from "../../model/types";
 import { BADGE_BASE } from "../badgeBase";
@@ -76,4 +76,29 @@ export function EligibilityBadge({
       : birthYearRangeLabel(event.birthYearFrom, event.birthYearTo);
 
   return <span className={cn(BADGE_BASE, "bg-active text-text")}>{label} 참가 가능</span>;
+}
+
+/**
+ * `내 나이대 아님` (6.4 / 6.5).
+ *
+ * **`참가 불가` 를 쓰지 않는다.** 정원이 안 맞아 못 가는 경우도 같은 표시를 받는데
+ * "불가"는 거절로 읽힌다. 표시가 **왜** 떴는지는 메타 줄의 `N~N년생` 이 답한다.
+ *
+ * 그릴지 말지는 `marksIneligible` 한 곳이 정한다 — 자격 필터가 켜져 있거나
+ * 게스트면 아무것도 그리지 않는다.
+ */
+export function IneligibleBadge({
+  event,
+  viewer,
+  eligibleOnly,
+}: {
+  event: EventSummary;
+  viewer: EventCardViewer | null;
+  eligibleOnly: boolean | undefined;
+}) {
+  if (!marksIneligible(event, viewer, eligibleOnly)) return null;
+
+  return (
+    <span className={cn(BADGE_BASE, "bg-disabled-bg text-text-sub")}>내 나이대 아님</span>
+  );
 }

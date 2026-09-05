@@ -97,6 +97,34 @@ export function priceFor(
 }
 
 /**
+ * `내 나이대 아님` 표시 여부 (6.4 / 6.5).
+ *
+ * 세 조건이 **모두** 참일 때만 그린다.
+ *
+ * 1. **자격 필터가 꺼져 있다.** 켜져 있으면 남은 건이 전부 자격을 만족해 표시가 늘
+ *    같은 값이 된다 — 같은 값만 찍히는 배지는 정보가 아니다 (`decisions.md` 4.23).
+ *    게스트는 이 축 자체가 없어(`undefined`) 여기서 걸린다.
+ * 2. **판정 주체가 있다.** 출생연도·성별을 모르면 자격을 말할 수 없다.
+ * 3. 실제로 자격 밖이다.
+ *
+ * 상단 칩 줄은 필터가 **켜져 있을 때** `내 나이대` 칩으로 고지한다. 끄면 그 칩이
+ * 사라지므로, 이 표시가 없으면 자격 밖 회차가 아무 고지 없이 섞인다.
+ */
+export function marksIneligible(
+  event: Pick<
+    EventSummary,
+    "birthYearFrom" | "birthYearTo" | "maleCapacity" | "femaleCapacity"
+  >,
+  viewer: { birthYear: number; gender: ViewerGender } | null,
+  /** 목록에 걸린 `eligibleOnly`. 게스트는 축 자체가 없어 `undefined` 다 (6.1) */
+  eligibleOnly: boolean | undefined,
+): boolean {
+  if (eligibleOnly !== false) return false;
+  if (viewer === null) return false;
+  return !isEligible(event, viewer);
+}
+
+/**
  * 자격 판정 (6.4 1층 / 6.1 `eligibleOnly`).
  *
  * 출생연도가 모집 범위에 들고, **내 성별 정원이 0이 아니어야** 한다.
