@@ -93,9 +93,11 @@ const TABS: TabItem[] = [
     ),
   },
   {
-    href: "/explore?view=map",
+    // 지도는 목적지가 아니라 탐색의 뷰 하나다 (6.2 뷰 토글). 탭이 `지도` 였을 때는
+    // 홈의 `전체보기 >` 로 리스트에 도착해도 탭은 지도가 켜졌다 → 5.5
+    href: "/explore?view=list",
     match: "/explore",
-    label: "지도",
+    label: "탐색",
     icon: (
       <svg viewBox="0 0 24 24" className="size-[22px]" aria-hidden>
         <path
