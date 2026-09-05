@@ -37,6 +37,7 @@ export function EventCard({
   viewer = null,
   action,
   href,
+  eligibleOnly,
   className,
 }: EventCardProps) {
   const Layout = LAYOUTS[variant];
@@ -47,6 +48,7 @@ export function EventCard({
       viewer={viewer}
       action={action}
       href={href ?? `/events/${event.id}`}
+      eligibleOnly={eligibleOnly}
       className={className}
     />
   );

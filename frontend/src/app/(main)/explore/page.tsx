@@ -1,6 +1,10 @@
 import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
-import { parseExploreParams, type RawSearchParams } from "@/features/event-filter";
+import {
+  countBySlot,
+  parseExploreParams,
+  type RawSearchParams,
+} from "@/features/event-filter";
 import { ExploreBoard } from "@/widgets/explore-board";
 import { PhasePlaceholder } from "../../_components/PhasePlaceholder";
 
@@ -17,16 +21,22 @@ export default async function ExplorePage({
   searchParams: Promise<RawSearchParams>;
 }) {
   const [session, raw] = await Promise.all([getServerSession(), searchParams]);
-  const { view, query } = parseExploreParams(raw, { isGuest: session === null });
+  const params = parseExploreParams(raw, { isGuest: session === null });
 
-  if (view === "map") {
+  if (params.view === "map") {
     return <PhasePlaceholder title="지도 뷰" phase="Phase 3 · P3-1" spec="6.6" />;
   }
 
-  const page = await eventApi.getList({ ...query, limit: PAGE_SIZE });
+  // 시간대 칩은 건수 0인 슬롯을 감춰야 해서 목록과 함께 슬롯별 건수를 받는다 (6.2)
+  const [page, slotCounts] = await Promise.all([
+    eventApi.getList({ ...params.query, limit: PAGE_SIZE }),
+    countBySlot(params.query),
+  ]);
 
   // viewer 는 프로필에서 온다. 목 세션에 출생연도·성별이 없어 P2-4 까지 null 이다
-  return <ExploreBoard page={page} query={query} viewer={null} />;
+  return (
+    <ExploreBoard page={page} params={params} slotCounts={slotCounts} viewer={null} />
+  );
 }
 
 /**

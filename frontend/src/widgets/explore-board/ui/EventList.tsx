@@ -51,7 +51,13 @@ export function EventList({ initial, query, viewer }: EventListProps) {
       <ul className="flex flex-col gap-2">
         {items.map((event) => (
           <li key={event.id}>
-            <EventCard event={event} variant="list" viewer={viewer} />
+            {/* 자격 필터를 끈 목록에서만 `내 나이대 아님` 이 붙는다 (6.4·6.5) */}
+            <EventCard
+              event={event}
+              variant="list"
+              viewer={viewer}
+              eligibleOnly={query.eligibleOnly}
+            />
           </li>
         ))}
       </ul>

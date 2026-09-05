@@ -87,6 +87,20 @@ export function serializeExploreParams({ view, query }: ExploreParams): string {
   return search.toString();
 }
 
+/**
+ * 탐색 화면의 주소. **링크·라우팅은 전부 이 함수를 거친다** (6.1).
+ *
+ * `serializeExploreParams` 만 내보내면 호출부마다 `/explore?` 를 손으로 붙이게 되고,
+ * 그러다 보면 `URLSearchParams` 를 직접 만지는 자리가 생긴다 — `eligibleOnly` 를
+ * 지워 기본값(ON)으로 되살리는 경로가 바로 거기서 열린다 (`decisions.md` 4.25).
+ */
+export function exploreHref(params: ExploreParams): string {
+  const search = serializeExploreParams(params);
+  return search ? `${EXPLORE_PATH}?${search}` : EXPLORE_PATH;
+}
+
+export const EXPLORE_PATH = "/explore";
+
 /* ── 내부 ───────────────────────────────────────────────── */
 
 /** 같은 키가 두 번 오면(`?slot=a&slot=b`) 첫 값만 쓴다 */

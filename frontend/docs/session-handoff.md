@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-05 (**P1-4 탐색 리스트 완료**)
+> 마지막 갱신: 2026-09-05 (**P1-5 · P1-5c 필터 시트·칩 줄 완료**)
 
 ## 어디에 무엇이 있나
 
@@ -79,14 +79,14 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
-| `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) |
+| `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 적용 필터 칩 줄 · 상단 컨트롤** |
 | `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + 나머지는 자리표시자 페이지 |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + 나머지는 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
-`features/` 는 P1-4 에서 열렸다. `event-filter` 에 **URL 파싱만** 있고 시트·칩·훅은 P1-5 부터다.
+`features/` 슬라이스는 `event-filter` 하나다. 탐색의 필터 관련은 **전부 여기** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
 
-> `entities/event/model/derive.ts` 에 파생 규칙이 모여 있다 — `deriveScale` `isThisWeek` `priceFor` `isEligible` `isOpen` `currentTimeSlot`. 자격·가격 판정을 화면에서 다시 구현하지 않는다. 목 모드의 "인증 주체"(출생연도·성별)는 `entities/event/mock/viewer.ts` 의 `MOCK_VIEWER` 다.
+> `entities/event/model/derive.ts` 에 파생 규칙이 모여 있다 — `deriveScale` `isThisWeek` `priceFor` `isEligible` `marksIneligible` `isOpen` `currentTimeSlot`. 자격·가격 판정을 화면에서 다시 구현하지 않는다. 목 모드의 "인증 주체"(출생연도·성별)는 `entities/event/mock/viewer.ts` 의 `MOCK_VIEWER` 다.
 
 ### 목업 — 리포지토리에 없다
 
@@ -142,12 +142,14 @@ const feed = await eventApi.getHomeFeed({});
 ### 이 제품에서 굳은 UI 패턴 — 어기면 일관성이 깨진다
 
 - **비활성 버튼의 라벨이 미충족 사유를 말한다.** (`필수 약관에 동의해주세요`) 별도 에러 토스트를 띄우지 않는다
-- **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1)
+- **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1). **주소를 손으로 조립하지 않는다** — 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 (4.24)
 - **하단 탭 두 번째는 `탐색`(리스트 기본)이다.** 지도는 목적지가 아니라 탐색의 뷰다 — 2026-09-05 개편 (5.5)
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
-- **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다
+- **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다. **`초기화` 는 둘이고 지우는 대상이 다르다** — 칩 줄 쪽은 자격까지 끄고 시간대를 남기고, 시트 쪽은 자격을 남기고 시간대를 되돌린다 (4.26)
 - **연령은 필터가 아니라 자격이다.** 프로필 출생연도로 처음부터 걸러 보여주고(`eligibleOnly`), 넓히고 싶을 때 끄게 한다. **게스트·출생연도 미입력자는 전건**을 본다(판정 근거가 없다), 자격 토글을 **끄면** 자격 밖 카드에 `내 나이대 아님` 을 붙인다 (6.4)
+  - ⚠️ **끄기는 파라미터 삭제가 아니라 `eligibleOnly=0` 이다.** 기본이 ON 이라 지우면 되살아난다 (4.25)
+  - ⚠️ **게스트 판정을 화면에서 다시 하지 않는다.** 파싱이 게스트에게 `eligibleOnly`·`maxPrice` 키를 안 만들므로 그 유무를 읽는다(`hasViewerAxes`) (4.27)
 - **가격은 사용자 성별 기준값만 노출한다.** 상세에서는 남·여 양쪽 표기, 게스트는 병기
 - **가격·평점·카운터 숫자는 세리프.** `shared/ui/Numeric` 으로만 통과시킨다
 - **칩·필터를 가로 스크롤로 만들지 않는다.** `flex-wrap` 을 쓴다. 홈의 카드 캐러셀만 예외

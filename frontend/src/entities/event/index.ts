@@ -5,6 +5,7 @@ export {
   isEligible,
   isOpen,
   isThisWeek,
+  marksIneligible,
   priceFor,
   weekRangeKst,
 } from "./model/derive";

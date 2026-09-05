@@ -1,25 +1,39 @@
-import type { EventCardViewer, EventListQuery, EventSummary } from "@/entities/event";
-import { serializeExploreParams } from "@/features/event-filter";
+import type { EventCardViewer, EventSummary } from "@/entities/event";
+import {
+  ExploreFilterBar,
+  serializeExploreParams,
+  type ExploreParams,
+  type SlotCounts,
+} from "@/features/event-filter";
 import type { CursorPage } from "@/shared/api";
 import { EmptyState, Numeric } from "@/shared/ui";
 import { EventList } from "./EventList";
 
 interface ExploreBoardProps {
   page: CursorPage<EventSummary>;
-  query: EventListQuery;
+  params: ExploreParams;
+  slotCounts: SlotCounts;
   viewer: EventCardViewer | null;
 }
 
 /**
- * 탐색 리스트 뷰 (6.2 결과 수 + 6.5 리스트).
+ * 탐색 리스트 뷰 — 상단 컨트롤(6.2) + 결과 수 + 리스트(6.5).
  *
- * 상단 컨트롤(지역 버튼·시간대 칩·필터·정렬·뷰 토글)은 아직 없다 — P1-5·P1-5b·P1-6
- * 이 각각 붙는 자리다. 지금 자리표시자를 그려두지 않는 것은 누르면 아무 일도 안
- * 일어나는 컨트롤이 홈의 옛 퀵 필터 칩과 같은 실수이기 때문이다 (5.4).
+ * 아직 없는 것: 지역 선택 버튼(P1-5b), 정렬 `select`·뷰 토글(P1-6). 자리표시자를
+ * 그려두지 않는다 — 누르면 아무 일도 안 일어나는 컨트롤은 홈의 옛 퀵 필터 칩과 같은
+ * 실수다 (5.4).
  */
-export function ExploreBoard({ page, query, viewer }: ExploreBoardProps) {
+export function ExploreBoard({ page, params, slotCounts, viewer }: ExploreBoardProps) {
+  const { query } = params;
+
   return (
     <div className="flex flex-col gap-3 px-5 py-4">
+      <ExploreFilterBar
+        params={params}
+        resultCount={page.totalCount}
+        slotCounts={slotCounts}
+      />
+
       <p className="text-[13px] text-text-sub">
         총 <Numeric className="font-bold text-text">{page.totalCount}</Numeric>개 소개팅
       </p>
@@ -33,7 +47,7 @@ export function ExploreBoard({ page, query, viewer }: ExploreBoardProps) {
       ) : (
         <EventList
           // 조건이 바뀌면 누적분을 버린다 — 이전 조건의 카드가 섞이면 안 된다
-          key={serializeExploreParams({ view: "list", query })}
+          key={serializeExploreParams(params)}
           initial={page}
           query={query}
           viewer={viewer}

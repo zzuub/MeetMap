@@ -29,6 +29,15 @@ export interface EventCardProps {
   action?: ReactNode;
   /** 기본값 `/events/{id}` */
   href?: string;
+  /**
+   * **이 목록에 걸려 있는 자격 필터.** 카드가 `내 나이대 아님` 을 붙일지 정하는
+   * 데만 쓴다 (6.4 · `marksIneligible`).
+   *
+   * 값이 셋인 이유는 URL 계약과 같다 — `undefined`(축 없음·게스트) / `true`(켜짐,
+   * 남은 건이 전부 자격을 만족하므로 표시하지 않는다) / `false`(꺼짐, 자격 밖이
+   * 섞여 있으므로 표시한다).
+   */
+  eligibleOnly?: boolean;
   className?: string;
 }
 
@@ -38,5 +47,6 @@ export interface EventCardLayoutProps {
   viewer: EventCardViewer | null;
   action?: ReactNode;
   href: string;
+  eligibleOnly?: boolean;
   className?: string;
 }

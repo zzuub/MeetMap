@@ -4,14 +4,22 @@ import { CapacityText } from "../CapacityText";
 import { EventStatusBadge } from "../EventStatusBadge";
 import { EventThumbnail } from "../EventThumbnail";
 import { TimeSlotBadge } from "../TimeSlotBadge";
-import { CARD_SHELL, CardPrice, CardTitle } from "./parts";
+import { CARD_SHELL, CardPrice, CardTitle, IneligibleBadge } from "./parts";
 import type { EventCardLayoutProps } from "./types";
 
 /**
  * `list` — 탐색 리스트 · 검색 결과. 썸네일 92px 가로형 (6.5).
- * 표시 항목: 상태·시간대 배지, 제목, `주최사 · 날짜 시각 · N~N년생`, 정원, 가격, 찜.
+ * 표시 항목: 상태·시간대·`내 나이대 아님` 배지, 제목, `주최사 · 날짜 시각 ·
+ * N~N년생`, 정원, 가격, 찜.
  */
-export function ListCard({ event, viewer, action, href, className }: EventCardLayoutProps) {
+export function ListCard({
+  event,
+  viewer,
+  action,
+  href,
+  eligibleOnly,
+  className,
+}: EventCardLayoutProps) {
   return (
     <article className={cn(CARD_SHELL, "flex gap-3 p-3", className)}>
       <EventThumbnail
@@ -25,6 +33,7 @@ export function ListCard({ event, viewer, action, href, className }: EventCardLa
         <div className="flex flex-wrap gap-1">
           <EventStatusBadge status={event.status} />
           <TimeSlotBadge slot={event.timeSlot} />
+          <IneligibleBadge event={event} viewer={viewer} eligibleOnly={eligibleOnly} />
         </div>
 
         <h3 className="line-clamp-2 text-[14px] leading-snug font-bold text-text">
