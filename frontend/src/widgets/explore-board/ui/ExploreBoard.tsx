@@ -3,7 +3,7 @@ import {
   ExploreFilterBar,
   serializeExploreParams,
   type ExploreParams,
-  type SlotCounts,
+  type ExploreFacets,
 } from "@/features/event-filter";
 import type { CursorPage } from "@/shared/api";
 import { EmptyState, Numeric } from "@/shared/ui";
@@ -12,18 +12,18 @@ import { EventList } from "./EventList";
 interface ExploreBoardProps {
   page: CursorPage<EventSummary>;
   params: ExploreParams;
-  slotCounts: SlotCounts;
+  facets: ExploreFacets;
   viewer: EventCardViewer | null;
 }
 
 /**
  * 탐색 리스트 뷰 — 상단 컨트롤(6.2) + 결과 수 + 리스트(6.5).
  *
- * 아직 없는 것: 지역 선택 버튼(P1-5b), 정렬 `select`·뷰 토글(P1-6). 자리표시자를
+ * 아직 없는 것: 정렬 `select`·뷰 토글(P1-6). 자리표시자를
  * 그려두지 않는다 — 누르면 아무 일도 안 일어나는 컨트롤은 홈의 옛 퀵 필터 칩과 같은
  * 실수다 (5.4).
  */
-export function ExploreBoard({ page, params, slotCounts, viewer }: ExploreBoardProps) {
+export function ExploreBoard({ page, params, facets, viewer }: ExploreBoardProps) {
   const { query } = params;
 
   return (
@@ -31,7 +31,7 @@ export function ExploreBoard({ page, params, slotCounts, viewer }: ExploreBoardP
       <ExploreFilterBar
         params={params}
         resultCount={page.totalCount}
-        slotCounts={slotCounts}
+        facets={facets}
       />
 
       <p className="text-[13px] text-text-sub">

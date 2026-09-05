@@ -1,4 +1,4 @@
-export { countBySlot, type SlotCounts } from "./api/slotCounts";
+export { exploreFacets, type ExploreFacets } from "./api/exploreFacets";
 export {
   ELIGIBILITY_CHIP_LABEL,
   activeFilterCount,
