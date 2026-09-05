@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { TimeSlot, TimeSlotFilter } from "@/entities/event";
 import { TIME_SLOTS } from "@/shared/config";
+import { cn } from "@/shared/lib";
 import { Chip } from "@/shared/ui";
 import type { SlotCounts } from "../api/slotCounts";
 import { exploreHref, type ExploreParams } from "../model/exploreParams";
@@ -24,8 +25,9 @@ import { FilterSheet } from "./FilterSheet";
  *
  * **전환 표시는 사용자가 보고 있는 자리에 붙인다.** `/explore` 는 동적 라우트인데
  * `loading.tsx` 가 아직 없어서(P1-9) 조건을 바꾼 뒤 응답까지 화면이 그대로 서 있는다.
- * 시트가 열려 있는 동안 바는 시트에 가려 보이지 않으므로, 이 컴포넌트의 전환 상태는
- * 시트의 `N개 결과 보기` 로 넘긴다. 칩 줄은 자기 링크의 `useLinkStatus` 를 쓴다.
+ * 조작하는 자리가 셋이라 표시도 셋이다 — 시간대 칩은 **누른 칩**이, 적용 필터 칩 줄은
+ * 자기 링크의 `useLinkStatus` 가, 시트는 `N개 결과 보기` 가 흐려진다(시트가 열려 있는
+ * 동안 바는 가려 보이지 않는다).
  */
 interface ExploreFilterBarProps {
   params: ExploreParams;
@@ -42,9 +44,19 @@ export function ExploreFilterBar({
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [lastSlot, setLastSlot] = useState<TimeSlotFilter | null>(null);
 
   function go(next: ExploreParams) {
     startTransition(() => router.replace(exploreHref(next), { scroll: false }));
+  }
+
+  /**
+   * 어느 칩을 눌렀는지 기억한다. 전환이 끝나면 `pending` 이 내려가면서 표시도 함께
+   * 사라지므로 되돌리는 코드가 따로 필요 없다.
+   */
+  function goSlot(slot: TimeSlotFilter) {
+    setLastSlot(slot);
+    go({ ...params, query: { ...params.query, slot } });
   }
 
   const chips = appliedFilterChips(params);
@@ -56,7 +68,8 @@ export function ExploreFilterBar({
         <TimeSlotChips
           value={params.query.slot ?? "ALL"}
           counts={slotCounts}
-          onChange={(slot) => go({ ...params, query: { ...params.query, slot } })}
+          pendingSlot={pending ? lastSlot : null}
+          onChange={goSlot}
         />
 
         <button
@@ -94,10 +107,13 @@ export function ExploreFilterBar({
 function TimeSlotChips({
   value,
   counts,
+  pendingSlot,
   onChange,
 }: {
   value: TimeSlotFilter;
   counts: SlotCounts;
+  /** 눌렀지만 아직 결과가 안 온 칩. 없으면 `null` */
+  pendingSlot: TimeSlotFilter | null;
   onChange: (slot: TimeSlotFilter) => void;
 }) {
   const visible = TIME_SLOTS.filter(
@@ -107,11 +123,21 @@ function TimeSlotChips({
 
   return (
     <div role="group" aria-label="시간대" className="flex flex-wrap gap-2">
-      {visible.map((slot) => (
-        <Chip key={slot.code} selected={slot.code === value} onClick={() => onChange(slot.code)}>
-          {slot.label}
-        </Chip>
-      ))}
+      {visible.map((slot) => {
+        const busy = slot.code === pendingSlot;
+        return (
+          <Chip
+            key={slot.code}
+            selected={slot.code === value}
+            aria-busy={busy}
+            // 적용 필터 칩과 같은 표시다 — 누른 것만 흐려진다
+            className={cn("transition-opacity", busy && "opacity-40")}
+            onClick={() => onChange(slot.code)}
+          >
+            {slot.label}
+          </Chip>
+        );
+      })}
     </div>
   );
 }
