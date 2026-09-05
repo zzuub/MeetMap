@@ -43,7 +43,12 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 
 **P1-5 요점**: 필터 시트는 3층이다 — 상단 `내가 신청 가능한 것만` 토글(칩 아님) / 일정·시간대 / 규모·분위기·가격·모집 상태. 초기화는 2·3층만 대상이고 자격 토글은 건드리지 않는다.
 
-**P1-5 착수 시 이미 있는 것**: URL 변환은 P1-4 에서 끝났다(`features/event-filter` 의 `parseExploreParams`/`serializeExploreParams`). 시트는 **상태를 들지 말고** 그 직렬화 결과로 `router.replace` 만 하면 된다. 자격 토글 OFF 는 파라미터를 지우는 게 아니라 `eligibleOnly=0` 이다(6.1). 그리고 **토글을 껐을 때 자격 밖 카드에 `내 나이대 아님` 을 붙이는 것**(6.4·6.5)이 P1-5 범위인데, `viewer` 가 아직 `null` 이라 화면에서 확인되지 않는다 — P2-4 전까지는 순수 함수 수준에서만 검증된다.
+**P1-5 착수 시 이미 있는 것**: URL 변환은 P1-4 에서 끝났다(`features/event-filter` 의 `parseExploreParams`/`serializeExploreParams`). 시트는 **상태를 들지 말고** 그 직렬화 결과로 `router.replace` 만 하면 된다. 그리고 **토글을 껐을 때 자격 밖 카드에 `내 나이대 아님` 을 붙이는 것**(6.4·6.5)이 P1-5 범위인데, `viewer` 가 아직 `null` 이라 화면에서 확인되지 않는다 — P2-4 전까지는 순수 함수 수준에서만 검증된다.
+
+> **P1-5 에서 밟기 쉬운 함정 3가지** (2026-09-05 코드리뷰가 짚은 것).
+> - **URL 을 손으로 조립하지 않는다.** 칩 ✕ 해제를 `URLSearchParams.delete("eligibleOnly")` 로 짜면 파라미터가 사라져 **기본값(ON)으로 되살아난다.** 반드시 `eligibleOnly: false` 를 세팅해 `serializeExploreParams` 를 거친다 — 계약에 `=0` 으로 남기는 경로가 이미 뚫려 있다.
+> - **게스트 게이트는 파싱 시점 한 곳뿐이다.** 시트가 URL 을 직접 만들면 `isGuest` 분기를 우회해 게스트 요청에 `eligibleOnly`·`maxPrice` 가 실릴 수 있다. 타입은 이걸 막아주지 않는다(둘 다 optional).
+> - **필터 적용 순간의 로딩 상태.** `/explore` 에 `loading.tsx` 가 없다. `router.replace` 는 서버 재렌더를 트리거하고 `EventList` 는 `key` 로 재마운트되는데(그 경로는 검증됨), 그 사이 화면이 어떻게 보이는지는 P1-5 에서 눈으로 확인한다. `loading.tsx` 배치 자체는 P1-9 다.
 
 **Phase 1 DoD**: 로그인 없이 홈 → 탐색 → 상세 → 외부 이동까지 목 데이터로 끊김 없이 진행된다.
 

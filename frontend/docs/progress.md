@@ -41,7 +41,7 @@
 | --- | --- |
 | 진행 단계 | **Phase 1 진행 중.** P1-0~P1-4 완료. **다음은 P1-5(필터 시트)** |
 | 소스 파일 | 110개 (테스트 제외) / 약 6,740줄 |
-| 테스트 | 165개 (12파일), `npm test` |
+| 테스트 | 166개 (12파일), `npm test` |
 | 스택 | Next.js 16.3.3 · React 19.2.4 · TypeScript 5 · Tailwind CSS v4 · Vitest 4 |
 | 백엔드 | Spring Boot 스켈레톤. **실 API 없음** → 목 데이터로 개발 중 |
 | CI | `lint` → `test` → `build` (frontend) / `gradlew build -x test` (backend) |
@@ -92,7 +92,23 @@ Phase 2~7 은 `docs/dev-plan.md` 참조.
 
 ## 3. 작업 이력
 
-### 2026-09-05 · 이슈 번호 미정
+### 2026-09-05 · [#18](https://github.com/zzuub/MeetMap/issues/18) · [PR #21](https://github.com/zzuub/MeetMap/pull/21)
+**코드리뷰 반영 — `area` 만 마스터 검증을 안 받고 있었다**
+
+같은 PR 에서 6.1 에 "알 수 없는 값은 기본값으로 떨어뜨린다"를 적어 놓고, **`area` 축만 그 규칙에서 빠져 있었다.** `district`·`when`·`slot`·`scale`·`mood`·`maxPrice` 는 전부 `shared/config` 마스터를 거치는데 `area` 만 원문이 그대로 통과했다.
+
+목 API 의 지역 필터가 `event.area !== query.area` 로 **정확히 일치**를 보기 때문에, `?area=오타` 하나로 전건이 걸러져 **조용한 빈 화면**이 된다. 6.1 이 금지한 바로 그 상황이고, `EventListQuery.area` 가 `string` 이라 타입도 잡아주지 않는다.
+
+- `parseArea` 추가 — `AREAS` 에 있는 동만 통과. `parseDistrict` 와 같은 `find` 방식이라 타입 단언도 없다
+- 테스트 2건 추가. 기존 테스트의 지역 리터럴(`"성수·건대"`)도 `AREAS[n]` 으로 바꿨다 — 마스터가 바뀌면 테스트가 같이 따라와야 한다
+
+**리뷰가 확인해 준 것 둘.** ① `eligibleOnly` 3상태와 칩 ✕ 함정은 계약이 이미 막고 있다 — `serializeExploreParams` 가 `false` 일 때만 `=0` 을 쓰므로 P1-5c 가 그 경로를 타면 되살아나지 않는다. ② 게스트 게이트는 새는 곳이 없다 — `isGuest` 는 서버에서만 계산되고 호출부가 한 곳이며, 키 자체를 안 만들어서 `{ ...query }` 스프레드에도 실리지 않는다. ③ `더 보기` 의 `key` 전략은 `router.replace` 로 쿼리만 바뀌어도 유효하다(서버 재렌더 → key 갱신 → 재마운트).
+
+세 가지 다 **P1-5 에서 우회하면 그대로 깨지는 것**이라 `phase1-notes` 의 P1-5 요점에 함정으로 적어뒀다.
+
+검증: `tsc`·`eslint`·`vitest 166건`(신규 1건, 기존 보강 4곳)·`next build` 통과. `area` 검증을 리뷰 이전 상태로 되돌리는 변이로 테스트 2건이 실패하는 것을 확인했다.
+
+### 2026-09-05 · [#18](https://github.com/zzuub/MeetMap/issues/18) · [PR #21](https://github.com/zzuub/MeetMap/pull/21)
 **P1-4 — 탐색 리스트 `/explore` · 하단 탭 `지도` → `탐색`**
 
 **하단 탭부터 고쳤다.** 홈의 `전체보기 >` 3개가 전부 `view=list` 로 보내는데 도착하면 `지도` 탭이 켜졌다 — 사용자가 지도를 누른 적도 없는데. 지도는 목적지가 아니라 **탐색을 보는 렌즈**이고 리스트/지도 전환은 이미 뷰 토글(6.2)의 몫이라, 탭을 `탐색`(`?view=list`)으로 바꾸고 아이콘(핀)은 남겼다. 지도 진입은 홈 프로모 카드와 뷰 토글 둘로 유지된다 → 기능정의서 5.5·1장.

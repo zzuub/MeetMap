@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MOOD_TAGS, PRICE_CAPS } from "@/shared/config";
+import { AREAS, MOOD_TAGS, PRICE_CAPS } from "@/shared/config";
 import {
   parseExploreParams,
   serializeExploreParams,
@@ -37,6 +37,7 @@ describe("parseExploreParams", () => {
       scale: "HUGE",
       sort: "cheap",
       status: "SOLD_OUT",
+      area: "없는동",
     });
 
     expect(view).toBe("list");
@@ -46,6 +47,15 @@ describe("parseExploreParams", () => {
     expect(query.scale).toBe("ALL");
     expect(query.sort).toBe("popular");
     expect(query.status).toBe("ALL");
+    expect(query.area).toBeUndefined();
+  });
+
+  it("area 는 마스터에 있는 동만 받는다", () => {
+    // 목록 필터가 정확히 일치를 보므로 마스터에 없는 값을 흘리면 전건이
+    // 걸러져 조용한 빈 화면이 된다 (6.1)
+    expect(asUser({ area: AREAS[0] }).query.area).toBe(AREAS[0]);
+    expect(asUser({ area: `${AREAS[0]} ` }).query.area).toBeUndefined();
+    expect(asUser({ area: "" }).query.area).toBeUndefined();
   });
 
   it("마스터에 있는 값은 그대로 통과시킨다", () => {
@@ -57,7 +67,7 @@ describe("parseExploreParams", () => {
       scale: "SMALL",
       sort: "rating",
       status: "OPEN",
-      area: "성수·건대",
+      area: AREAS[0],
     });
 
     expect(view).toBe("map");
@@ -67,7 +77,7 @@ describe("parseExploreParams", () => {
     expect(query.scale).toBe("SMALL");
     expect(query.sort).toBe("rating");
     expect(query.status).toBe("OPEN");
-    expect(query.area).toBe("성수·건대");
+    expect(query.area).toBe(AREAS[0]);
   });
 
   it("mood 는 콤마로 나누고 마스터에 없는 태그는 버린다", () => {
@@ -138,7 +148,7 @@ describe("serializeExploreParams", () => {
       status: "OPEN",
       sort: "priceAsc",
       mood: MOOD_TAGS[1],
-      area: "잠실·송파",
+      area: AREAS[5],
       maxPrice: String(PRICE_CAPS[2].value),
       eligibleOnly: "0",
     };

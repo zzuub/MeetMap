@@ -1,5 +1,6 @@
 import type { EventListQuery } from "@/entities/event";
 import {
+  AREAS,
   DEFAULT_PROVINCE,
   DEFAULT_SORT,
   MOOD_TAGS,
@@ -51,7 +52,7 @@ export function parseExploreParams(
     status: first(params.status) === "OPEN" ? "OPEN" : "ALL",
     sort: pick(first(params.sort), SORT_OPTIONS, DEFAULT_SORT),
     mood: parseMood(first(params.mood)),
-    area: first(params.area),
+    area: parseArea(first(params.area)),
   };
 
   if (!isGuest) {
@@ -106,6 +107,17 @@ function pick<T extends string>(
 function parseDistrict(value: string | undefined): DistrictCode | "ALL" {
   const found = SEOUL_DISTRICTS.find((district) => district.code === value);
   return found ? found.code : "ALL";
+}
+
+/**
+ * 동 단위 지역 (프로필 선호 지역 축). **마스터에 있는 값만 통과시킨다.**
+ *
+ * 목록 필터가 `event.area !== query.area` 로 정확히 일치를 보므로, 마스터에 없는
+ * 값을 그대로 흘리면 전건이 걸러져 **조용한 빈 화면**이 된다 — 6.1 이 금지하는 것이다.
+ * `EventListQuery.area` 가 `string` 이라 타입도 이걸 잡아주지 않는다.
+ */
+function parseArea(value: string | undefined): string | undefined {
+  return AREAS.find((area) => area === value);
 }
 
 /** 다중 선택은 콤마 구분이다. 마스터에 없는 태그는 버린다 */
