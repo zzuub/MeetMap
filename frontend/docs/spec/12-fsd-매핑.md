@@ -48,14 +48,15 @@ widgets/
   review-board/          ReviewBoard (평점 요약 + 필터 + 후기 리스트)
 
 features/
-  event-filter/          **exploreParams(URL ↔ EventListQuery 변환 — 6.1 계약. P1-4 구현)**
   auth-social-login/     SocialLoginButtons, useSocialLogin
   terms-agreement/       TermsAgreementForm, useTermsAgreement
   profile-setup/         ProfileSetupForm, useProfileSetup
   location-permission/   LocationPermissionGate, useGeolocation, AreaSelector
-  event-filter/          TimeSlotChipBar(6.2 상단 시간대 칩), AppliedFilterChips(6.2 적용 필터
+  event-filter/          **exploreParams(URL ↔ EventListQuery 변환 — 6.1 계약. P1-4 구현)**,
+                         TimeSlotChipBar(6.2 상단 시간대 칩), AppliedFilterChips(6.2 적용 필터
                          칩 줄 — 조건 0개면 미렌더), FilterSheet(6.4 3층), DistrictSheet(6.3),
                          useEventFilter (URL 동기화)
+                         ⚠️ URL 을 손으로 조립하지 않는다. 해제도 serialize 를 거친다 (4.25)
   event-sort/            SortSelect, ViewToggle
   event-like/            LikeButton, useLikeEvent, likeEventApi
   event-compare/         CompareBar, CompareTable, useCompareStore (localStorage)
