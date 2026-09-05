@@ -69,6 +69,12 @@ export function RegionSheet({
 /**
  * 1단 · 시/도. **서울만 선택 가능**하고 나머지는 눌러도 무반응이다.
  * `disabled` 로 두어 스크린리더·키보드에서도 순회 대상에서 빠진다.
+ *
+ * ⚠️ **선택 표시가 `aria-current` 인 것은 의도다.** 이 목록의 항목은 상태를 토글하는
+ * 것이 아니라 **누르면 조건을 바꾸고 시트를 닫는 탐색형 액션**이라, 같은 이유로
+ * `aria-current` 를 쓰는 `widgets/bottom-nav` 와 같은 패턴이다.
+ * `Chip`(`aria-pressed`)·`SegmentedControl`(`radiogroup`)로 맞추지 않는다 —
+ * 특히 `radiogroup` 은 화살표 키 로빙을 요구하는데 여기는 Tab 으로만 순회한다.
  */
 function ProvinceRail({ selected }: { selected: ProvinceCode }) {
   return (
@@ -78,7 +84,7 @@ function ProvinceRail({ selected }: { selected: ProvinceCode }) {
           <button
             type="button"
             disabled={!province.enabled}
-            aria-current={province.code === selected}
+            aria-current={province.code === selected ? "true" : undefined}
             className={cn(
               "flex min-h-[44px] w-full flex-col justify-center rounded-[10px] px-2.5 text-left",
               "text-[14px] transition-colors",
@@ -156,7 +162,7 @@ function DistrictRow({
   return (
     <button
       type="button"
-      aria-current={selected}
+      aria-current={selected ? "true" : undefined}
       onClick={onSelect}
       className={cn(
         "flex min-h-[46px] w-full items-center justify-between gap-2 rounded-[10px] px-3",

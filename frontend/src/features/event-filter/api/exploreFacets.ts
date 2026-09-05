@@ -100,7 +100,18 @@ const SLOTS = TIME_SLOTS.map((slot) => slot.code).filter(
 );
 
 async function scan(query: EventListQuery) {
-  return itemsOrNull(
-    await eventApi.getList({ ...query, cursor: null, limit: SCAN_LIMIT }),
-  );
+  const page = await eventApi.getList({ ...query, cursor: null, limit: SCAN_LIMIT });
+  const items = itemsOrNull(page);
+
+  // 상한을 넘긴 것이 **서버 패싯으로 갈아탈 시점을 알려주는 유일한 신호**다 (4.28).
+  // 남기지 않으면 건수가 조용히 사라진 것을 사용자 문의로 알게 된다 — 화면은
+  // 고장 나지 않고 "전부 노출 + 건수 없음"으로 굳을 뿐이라 눈에 띄지 않는다.
+  if (items === null) {
+    console.warn(
+      `[explore] 패싯 스캔이 상한을 넘겨 건수를 표시하지 않습니다 — ` +
+        `${page.totalCount}건 / 상한 ${SCAN_LIMIT}. 서버 패싯 전환 시점입니다.`,
+    );
+  }
+
+  return items;
 }
