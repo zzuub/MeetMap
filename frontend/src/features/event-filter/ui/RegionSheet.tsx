@@ -35,6 +35,12 @@ interface RegionSheetProps {
    * `null` 이면 세지 못한 것이라 전 구를 노출하고 건수를 감춘다.
    */
   districtCounts: Partial<Record<DistrictCode, number>> | null;
+  /**
+   * 현재 화면의 결과 수. **선택된 구의 건수는 이 값이다** — 목록이 이미 그 구로
+   * 걸러져 있으므로 `districtCounts[선택된 구]` 와 같은 값이고, 스캔이 상한을
+   * 넘겨 건수를 잃어도 이것만은 정확히 안다.
+   */
+  resultCount: number;
   onChange: (next: ExploreParams) => void;
 }
 
@@ -43,6 +49,7 @@ export function RegionSheet({
   onClose,
   params,
   districtCounts,
+  resultCount,
   onChange,
 }: RegionSheetProps) {
   const selected = params.query.district ?? ALL_DISTRICTS;
@@ -59,6 +66,7 @@ export function RegionSheet({
         <DistrictList
           selected={selected}
           counts={districtCounts}
+          selectedCount={resultCount}
           onSelect={select}
         />
       </div>
@@ -108,6 +116,8 @@ function ProvinceRail({ selected }: { selected: ProvinceCode }) {
 interface DistrictListProps {
   selected: DistrictCode | typeof ALL_DISTRICTS;
   counts: Partial<Record<DistrictCode, number>> | null;
+  /** 선택된 구의 건수 = 화면 결과 수 */
+  selectedCount: number;
   onSelect: (district: DistrictCode | typeof ALL_DISTRICTS) => void;
 }
 
@@ -116,8 +126,13 @@ interface DistrictListProps {
  *
  * 지금 선택된 구는 건수가 0이어도 남긴다 — 다른 조건을 좁혀 0건이 됐을 때 항목이
  * 사라지면 걸려 있는 지역을 풀 수 없다(시간대 칩과 같은 이유).
+ *
+ * **선택된 구의 건수만은 스캔이 죽어도 그린다.** 스캔이 상한을 넘기면 나머지 구는
+ * 건수를 잃지만(`counts === null`), 선택된 구의 건수는 화면 결과 수로 정확히 안다.
+ * 그러지 않으면 `0곳` 이 **가장 필요한 순간에**(왜 비었는지 설명해야 할 때) 사라진다
+ * (PR #25 2차 리뷰).
  */
-function DistrictList({ selected, counts, onSelect }: DistrictListProps) {
+function DistrictList({ selected, counts, selectedCount, onSelect }: DistrictListProps) {
   const districts = SEOUL_DISTRICTS.filter(
     (district) =>
       counts === null || district.code === selected || (counts[district.code] ?? 0) > 0,
@@ -138,7 +153,13 @@ function DistrictList({ selected, counts, onSelect }: DistrictListProps) {
           <DistrictRow
             label={district.label}
             // 셌으면 0 도 그린다 — 선택된 구가 0건일 때 `0곳` 이 빈 결과의 이유를 말한다
-            count={counts === null ? undefined : (counts[district.code] ?? 0)}
+            count={
+              district.code === selected
+                ? selectedCount
+                : counts === null
+                  ? undefined
+                  : (counts[district.code] ?? 0)
+            }
             selected={selected === district.code}
             onSelect={() => onSelect(district.code)}
           />

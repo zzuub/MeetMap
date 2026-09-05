@@ -13,7 +13,13 @@ import { TIME_SLOTS, type DistrictCode } from "@/shared/config";
  * 호출부는 `exploreFacets` 하나만 본다 (`progress.md` 5장).
  */
 
-/** 세지 못했으면 `null` — 화면은 전부 노출하고 건수를 감춘다 (`SCAN_LIMIT` 참조) */
+/**
+ * 세지 못했으면 `null` — 화면은 전부 노출하고 건수를 감춘다 (`SCAN_LIMIT` 참조).
+ *
+ * ⚠️ **두 축은 따로 죽는다.** 각 축의 스캔 크기는 *자기 축만 지운* 조건의 건수라,
+ * 구를 좁혀도 지역 스캔은 좁아지지 않는다 — 카탈로그가 커지면 **지역이 먼저**
+ * `null` 이 된다(시간대를 고른 상태라면 반대). 한쪽만 `null` 인 상태가 정상이다.
+ */
 export interface ExploreFacets {
   slot: Record<TimeSlot, number> | null;
   /** 건수 0인 구는 키가 없다 — 읽는 쪽이 `?? 0` 으로 받는다 */
@@ -36,8 +42,8 @@ export async function exploreFacets(query: EventListQuery): Promise<ExploreFacet
   const { slot, district } = facetQueries(query);
 
   const [slotItems, districtItems] = await Promise.all([
-    scan(slot),
-    scan(district),
+    scan("시간대", slot),
+    scan("지역", district),
   ]);
 
   return {
@@ -99,7 +105,12 @@ const SLOTS = TIME_SLOTS.map((slot) => slot.code).filter(
   (code): code is TimeSlot => code !== "ALL",
 );
 
-async function scan(query: EventListQuery) {
+/**
+ * **축 이름을 받는 이유**: 두 축은 서로 다른 조건에서 **서로 다른 시점에** 상한을
+ * 넘긴다(자기 축을 지운 쿼리로 세므로). 축을 안 적으면 로그를 보는 사람이 "지역
+ * 건수가 죽었다"와 "시간대 건수가 죽었다"를 구분할 수 없다 (PR #25 2차 리뷰).
+ */
+async function scan(axis: "시간대" | "지역", query: EventListQuery) {
   const page = await eventApi.getList({ ...query, cursor: null, limit: SCAN_LIMIT });
   const items = itemsOrNull(page);
 
@@ -108,7 +119,7 @@ async function scan(query: EventListQuery) {
   // 고장 나지 않고 "전부 노출 + 건수 없음"으로 굳을 뿐이라 눈에 띄지 않는다.
   if (items === null) {
     console.warn(
-      `[explore] 패싯 스캔이 상한을 넘겨 건수를 표시하지 않습니다 — ` +
+      `[explore] ${axis} 패싯 스캔이 상한을 넘겨 건수를 표시하지 않습니다 — ` +
         `${page.totalCount}건 / 상한 ${SCAN_LIMIT}. 서버 패싯 전환 시점입니다.`,
     );
   }

@@ -105,6 +105,7 @@ export function ExploreFilterBar({
         onClose={() => setRegionOpen(false)}
         params={params}
         districtCounts={facets.district}
+        resultCount={resultCount}
         onChange={go}
       />
 
