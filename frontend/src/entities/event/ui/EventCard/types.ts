@@ -7,6 +7,11 @@ export type EventCardVariant = "feature" | "ratio" | "compact" | "list" | "sheet
 /**
  * 가격·자격의 기준이 되는 주체. 게스트는 `null` 이다.
  * `entities/user` 를 참조하지 않으려고 필요한 두 값만 받는다 (FSD 동일 레이어 금지).
+ *
+ * ⚠️ **P2-4(프로필 설정) 전까지 모든 화면이 `null` 을 넘긴다** — 목 세션에 출생연도·
+ * 성별이 없어서다. 그래서 로그인 상태에서도 가격이 남·여 병기로 나온다. 프로필이
+ * 생기면 `UserProfile` 을 **그대로** 넘기면 된다(구조적으로 이 타입을 만족한다).
+ * 고칠 자리는 `viewer={null}` 로 전부 찾을 수 있다.
  */
 export interface EventCardViewer {
   gender: ViewerGender;

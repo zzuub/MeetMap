@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-04 (**P1-3 홈 완료**)
+> 마지막 갱신: 2026-09-05 (**P1-4 탐색 리스트 완료**)
 
 ## 어디에 무엇이 있나
 
@@ -79,11 +79,12 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
-| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** |
+| `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) |
+| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + 나머지는 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
-`features/` 는 **비어 있다.** Phase 1 에서 처음 채운다.
+`features/` 는 P1-4 에서 열렸다. `event-filter` 에 **URL 파싱만** 있고 시트·칩·훅은 P1-5 부터다.
 
 > `entities/event/model/derive.ts` 에 파생 규칙이 모여 있다 — `deriveScale` `isThisWeek` `priceFor` `isEligible` `isOpen` `currentTimeSlot`. 자격·가격 판정을 화면에서 다시 구현하지 않는다. 목 모드의 "인증 주체"(출생연도·성별)는 `entities/event/mock/viewer.ts` 의 `MOCK_VIEWER` 다.
 
@@ -141,7 +142,8 @@ const feed = await eventApi.getHomeFeed({});
 ### 이 제품에서 굳은 UI 패턴 — 어기면 일관성이 깨진다
 
 - **비활성 버튼의 라벨이 미충족 사유를 말한다.** (`필수 약관에 동의해주세요`) 별도 에러 토스트를 띄우지 않는다
-- **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다
+- **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1)
+- **하단 탭 두 번째는 `탐색`(리스트 기본)이다.** 지도는 목적지가 아니라 탐색의 뷰다 — 2026-09-05 개편 (5.5)
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
 - **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다

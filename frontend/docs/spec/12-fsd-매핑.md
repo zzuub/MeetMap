@@ -38,7 +38,8 @@ widgets/
   bottom-nav/            BottomNav
   home-feed/             HomeFeed (헤드라인 + 지도카드 + 3개 섹션 조립. 퀵 필터 칩 바 없음 — 5.4)
                          HomeHero · MapPromoCard · EventSection + model/sections(섹션 표·지역 바로가기)
-  explore-board/         ExploreBoard (컨트롤바 + 리스트/지도 스위칭)
+  explore-board/         ExploreBoard (결과 수 + 리스트) · EventList(`더 보기` — 첫 페이지는
+                         서버, 이어붙이기는 클라이언트). 컨트롤바는 P1-5·P1-6 이 붙는다
   event-detail/          EventDetailView (히어로 + 정보카드 + 주최사 블록 + 고정 CTA)
   provider-profile/      ProviderProfileView (프로필 + 평점 요약 + 모집 중인 회차
                          + 최근 후기 3건. 7.4)
@@ -47,6 +48,7 @@ widgets/
   review-board/          ReviewBoard (평점 요약 + 필터 + 후기 리스트)
 
 features/
+  event-filter/          **exploreParams(URL ↔ EventListQuery 변환 — 6.1 계약. P1-4 구현)**
   auth-social-login/     SocialLoginButtons, useSocialLogin
   terms-agreement/       TermsAgreementForm, useTermsAgreement
   profile-setup/         ProfileSetupForm, useProfileSetup
