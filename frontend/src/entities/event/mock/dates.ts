@@ -1,3 +1,4 @@
+import { formatEventDate, formatEventTime } from "@/shared/lib";
 import { weekRangeKst } from "../model/derive";
 
 /**
@@ -47,4 +48,30 @@ export function kstFromThisMonday(days: number, time: string): string {
 
 function pad(value: number): string {
   return String(value).padStart(2, "0");
+}
+
+/**
+ * 한 회차의 **일정 3필드를 함께** 만든다 — `date` 와 표시 문자열이 갈라지지 않게.
+ *
+ * `date` 만 상대값으로 바꾸고 `dateLabel` 을 리터럴로 두었다가 PR #27 리뷰에
+ * 걸렸다. 계산된 날짜는 매주 움직이는데 라벨은 `"9/4(금)"` 에 박혀 있어 **바꾼 그
+ * 주부터 이미 일주일씩 어긋나 있었다** — 카드가 `9/5(토)` 를 그리는 동안 `date` 는
+ * 9/12 였다. 요일 글자만 우연히 맞아(월+4 는 언제나 금요일) 눈에 안 띄었다.
+ *
+ * 그래서 셋을 **한 함수가 같은 순간에서 만든다.** 리터럴을 다시 적을 자리가 없으면
+ * 어긋날 수도 없다 (`decisions.md` 4.31).
+ *
+ * ⚠️ **`timeSlot` 은 일부러 여기서 안 만든다.** 그것까지 파생시키면 불변식 테스트
+ * (`timeSlot 이 개최 시각과 어긋나지 않는다`)가 자기가 만든 값을 자기가 검사하는
+ * 순환이 된다 — 같은 이유로 이 함수가 만드는 라벨에는 대응하는 테스트를 두지
+ * 않는다. 검사할 독립적인 값이 없다.
+ */
+export function schedule(days: number, time: string): {
+  date: string;
+  dateLabel: string;
+  timeLabel: string;
+} {
+  const date = kstFromThisMonday(days, time);
+
+  return { date, dateLabel: formatEventDate(date), timeLabel: formatEventTime(date) };
 }

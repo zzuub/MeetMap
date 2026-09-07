@@ -187,16 +187,17 @@ describe("applyFilters", () => {
     const thisWeek = ids({ when: "THIS_WEEK" });
     const later = ids({ when: "LATER" });
 
+    // 여기가 이 테스트의 값이다 — 전건이 정확히 한쪽에만 속한다(`LATER` 가
+    // `!THIS_WEEK` 로 정의됐는가). 어느 건도 양쪽 다이거나 양쪽 다 아니면 걸린다
     expect(thisWeek.length + later.length).toBe(MOCK_EVENTS.length);
     expect(thisWeek.filter((id) => later.includes(id))).toEqual([]);
-    // 목 날짜가 `isThisWeek` 와 **같은 기준**(이번 주 월요일)의 상대값이라 이 5:3
-    // 배치는 언제 돌려도 같다 (`decisions.md` 4.31). 절대 날짜였을 때는 주가
-    // 넘어가면 집합이 갈아엎어졌다
+
+    // 5:3 은 **회귀 감지용 스냅샷**이다. 목 날짜가 `isThisWeek` 와 같은 앵커를 쓰므로
+    // 언제 돌려도 같지만, 그건 자기 일관성이지 경계가 옳다는 증명이 아니다 —
+    // 월 00:00~일 23:59:59.999 의 정확성은 `derive.test.ts` 가 고정된 `now` 와
+    // 절대 ISO 로 따로 본다 (PR #27 리뷰)
     expect(thisWeek).toHaveLength(5);
     expect(later).toHaveLength(3);
-    for (const id of thisWeek) {
-      expect(isThisWeek(MOCK_EVENTS.find((e) => e.id === id)!.date)).toBe(true);
-    }
   });
 
   it("scale 은 규모로 거른다", () => {
