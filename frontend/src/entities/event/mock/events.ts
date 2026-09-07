@@ -1,5 +1,6 @@
 import { applyDisplayThreshold, ratingScore } from "@/shared/lib";
 import type { EventDetail } from "../model/types";
+import { kstFromThisMonday } from "./dates";
 
 /**
  * 목 소개팅 데이터 — **로테이션 소개팅** 8건.
@@ -19,7 +20,7 @@ import type { EventDetail } from "../model/types";
  * | `locationPrecision` 3종 | EXACT(001·004·007) / STATION(002·005·008) / DISTRICT(003·006) |
  * | `scale` 3종 | SMALL(004·008) / STANDARD(001·005·006·007) / LARGE(002·003) |
  * | `timeSlot` 4종 | MORNING(005) / AFTERNOON(006) / DINNER(5건) / LATE_NIGHT(003) |
- * | 일정 | 이번 주 5건(9/4~9/6) / 그 이후 3건 — `when` 필터가 양쪽 다 결과를 낸다 |
+ * | 일정 | 이번 주 5건(월+4~월+6) / 그 이후 3건 — `when` 필터가 양쪽 다 결과를 낸다 |
  * | 가격 | `PRICE_CAPS` 3종(3만/5만/7만)이 남·여 어느 기준으로도 서로 다른 건수를 낸다 |
  *
  * ## 주최사는 4곳이고 **회차가 2건씩** 붙는다 (2026-09-02)
@@ -43,8 +44,18 @@ import type { EventDetail } from "../model/types";
  * 금지), 실제 서버도 목록 응답에 `{ id, name }` 을 embed 한다. 이름이 바뀌면
  * `entities/provider/mock/providers.ts` 와 함께 고친다.
  *
- * 기준일은 **2026-09-02(수)** 다. 이번 주는 8/31(월)~9/6(일).
- * 날짜가 과거로 밀리면 `when=THIS_WEEK` 가 0건이 되므로 그때 갱신한다.
+ * ## 날짜는 절대값이 아니라 **이번 주 월요일 기준 상대값**이다 (2026-09-07)
+ *
+ * 개최일은 `kstFromThisMonday(일수, 시각)` 이고 기준은 `isThisWeek` 가 보는 것과
+ * **같은 `weekRangeKst`** 다. 그래서 위 표의 `이번 주 5건 / 그 이후 3건` 은 우연이
+ * 아니라 구조로 보장된다 — 날짜를 손으로 갱신할 일이 없다.
+ *
+ * 전에는 절대 날짜에 "과거로 밀리면 갱신한다"는 메모가 붙어 있었고, 갱신하는
+ * 사람이 없어 2026-09-07 에 실제로 목 API 테스트가 깨졌다 (`decisions.md` 4.31).
+ *
+ * ⚠️ **등록일(`createdAt`)의 일수는 전부 음수여야 한다.** 이번 주 월요일 이전이라야
+ * 어느 요일에 돌려도 미래가 되지 않는다. 값끼리의 순서는 `sort=latest` 와
+ * `정렬 축에 동률이 없다` 불변식이 지킨다.
  *
  * 정원은 전 건 남녀 모두 1 이상이다. 한쪽 정원이 0인 회차(추가 모집 등)는 실제로
  * 드물어 넣지 않았다 — `isEligible` 의 정원 검사는 유닛 테스트로 덮는다.
@@ -135,7 +146,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-001"],
     thumbnailUrl: "/mock/event-seongsu.jpg",
     images: ["/mock/event-seongsu.jpg"],
-    date: "2026-09-04T19:30:00+09:00",
+    date: kstFromThisMonday(4, "19:30"),
     dateLabel: "9/4(금)",
     timeLabel: "19:30",
     timeSlot: "DINNER",
@@ -156,7 +167,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5445,
     lng: 127.0557,
     popularity: 980,
-    createdAt: "2026-08-21T10:00:00+09:00",
+    createdAt: kstFromThisMonday(-13, "10:00"),
     isLiked: false,
     description:
       "30분마다 자리를 바꾸는 로테이션 방식으로 참가자 전원과 대화합니다. 웰컴 드링크 1잔이 포함되어 있고, 마지막 라운드 후 자유 시간이 있습니다.",
@@ -173,7 +184,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-002"],
     thumbnailUrl: "/mock/event-gangnam.jpg",
     images: ["/mock/event-gangnam.jpg"],
-    date: "2026-09-05T19:00:00+09:00",
+    date: kstFromThisMonday(5, "19:00"),
     dateLabel: "9/5(토)",
     timeLabel: "19:00",
     timeSlot: "DINNER",
@@ -194,7 +205,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.4979,
     lng: 127.0276,
     popularity: 1120,
-    createdAt: "2026-08-18T14:00:00+09:00",
+    createdAt: kstFromThisMonday(-16, "14:00"),
     isLiked: true,
     description:
       "30명 규모의 대형 로테이션 소개팅입니다. 4인 테이블을 20분마다 재편성하며, 중간에 자유 네트워킹 라운드가 두 번 있습니다.",
@@ -211,7 +222,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-002"],
     thumbnailUrl: "/mock/event-hongdae.jpg",
     images: ["/mock/event-hongdae.jpg"],
-    date: "2026-09-05T22:00:00+09:00",
+    date: kstFromThisMonday(5, "22:00"),
     dateLabel: "9/5(토)",
     timeLabel: "22:00",
     timeSlot: "LATE_NIGHT",
@@ -232,7 +243,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5563,
     lng: 126.9236,
     popularity: 640,
-    createdAt: "2026-08-29T21:00:00+09:00",
+    createdAt: kstFromThisMonday(-5, "21:00"),
     isLiked: false,
     description:
       "심야 시간대 로테이션 소개팅입니다. 정확한 장소는 신청 확정 후 개별 안내됩니다.",
@@ -249,7 +260,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-003"],
     thumbnailUrl: "/mock/event-euljiro.jpg",
     images: ["/mock/event-euljiro.jpg"],
-    date: "2026-09-06T18:30:00+09:00",
+    date: kstFromThisMonday(6, "18:30"),
     dateLabel: "9/6(일)",
     timeLabel: "18:30",
     timeSlot: "DINNER",
@@ -271,7 +282,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5663,
     lng: 126.9911,
     popularity: 720,
-    createdAt: "2026-08-27T09:30:00+09:00",
+    createdAt: kstFromThisMonday(-7, "09:30"),
     isLiked: false,
     description:
       "10인 정원의 코스 다이닝 소개팅입니다. 한 테이블에서 코스마다 자리를 바꿉니다. 참가비는 주최사 신청 페이지에서 확인해주세요.",
@@ -288,7 +299,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-003"],
     thumbnailUrl: "/mock/event-jamsil.jpg",
     images: ["/mock/event-jamsil.jpg"],
-    date: "2026-09-12T11:00:00+09:00",
+    date: kstFromThisMonday(12, "11:00"),
     dateLabel: "9/12(토)",
     timeLabel: "11:00",
     timeSlot: "MORNING",
@@ -309,7 +320,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5111,
     lng: 127.0863,
     popularity: 810,
-    createdAt: "2026-08-31T11:20:00+09:00",
+    createdAt: kstFromThisMonday(-3, "11:20"),
     isLiked: true,
     description:
       "낮 시간대 브런치 로테이션입니다. 술 없이 진행되고, 코스별로 자리를 두 번 바꿉니다.",
@@ -328,7 +339,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     // 이미지가 없다고 소개팅을 숨기지 않는다 — 카드는 대체 표시로 떨어진다
     thumbnailUrl: null,
     images: [],
-    date: "2026-09-13T14:00:00+09:00",
+    date: kstFromThisMonday(13, "14:00"),
     dateLabel: "9/13(일)",
     timeLabel: "14:00",
     timeSlot: "AFTERNOON",
@@ -349,7 +360,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5285,
     lng: 126.9327,
     popularity: 560,
-    createdAt: "2026-09-01T16:40:00+09:00",
+    createdAt: kstFromThisMonday(-2, "16:40"),
     isLiked: false,
     description:
       "디저트 카페를 대관해 진행하는 오후 로테이션 소개팅입니다. 20분씩 5라운드로 진행됩니다.",
@@ -366,7 +377,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     provider: PROVIDER_DETAIL["prv-001"],
     thumbnailUrl: "/mock/event-hannam.jpg",
     images: ["/mock/event-hannam.jpg"],
-    date: "2026-09-04T20:00:00+09:00",
+    date: kstFromThisMonday(4, "20:00"),
     dateLabel: "9/4(금)",
     timeLabel: "20:00",
     timeSlot: "DINNER",
@@ -390,7 +401,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5347,
     lng: 127.0016,
     popularity: 1040,
-    createdAt: "2026-08-14T13:00:00+09:00",
+    createdAt: kstFromThisMonday(-20, "13:00"),
     isLiked: false,
     description:
       "라운지를 통째로 대관해 진행합니다. 라운드마다 좌석이 재배치되고, 마지막에 자유 대화 시간이 있습니다.",
@@ -411,7 +422,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     // 회차마다 동의 범위가 다른 셈이 된다 (7.2)
     thumbnailUrl: null,
     images: [],
-    date: "2026-09-19T19:30:00+09:00",
+    date: kstFromThisMonday(19, "19:30"),
     dateLabel: "9/19(토)",
     timeLabel: "19:30",
     timeSlot: "DINNER",
@@ -432,7 +443,7 @@ export const MOCK_EVENTS: EventDetail[] = [
     lat: 37.5559,
     lng: 126.9368,
     popularity: 430,
-    createdAt: "2026-08-25T20:10:00+09:00",
+    createdAt: kstFromThisMonday(-9, "20:10"),
     isLiked: false,
     description:
       "8인 소규모 로테이션입니다. 사회초년생 위주로 모집하며, 음료 1잔이 포함됩니다.",

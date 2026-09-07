@@ -1,9 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-07 (**P1-6 정렬 완료** — 뷰 토글은 P3-1 로 이월)
->
-> ⚠️ **`npm test` 가 1건 실패한 상태다.** 목 데이터의 날짜가 절대값이라 주가 넘어가며 `THIS_WEEK` 집합이 바뀐 것이고, 어떤 작업과도 무관하다. 고치는 방향이 둘이라 사용자 결정 대기 중 → `progress.md` 5장.
+> 마지막 갱신: 2026-09-07 (**P1-6 정렬 완료** — 뷰 토글은 P3-1 로 이월 / 목 날짜를 상대값으로)
 
 ## 어디에 무엇이 있나
 
@@ -121,6 +119,7 @@ const feed = await eventApi.getHomeFeed({});
 - `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
+- ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `kstFromThisMonday(일수, 시각)` 을 쓴다 — 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 실제로 CI 가 깨졌다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---

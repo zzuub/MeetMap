@@ -17,7 +17,7 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 | `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체. `stationName` 을 하나 추가했다 — 6.6 마커 시트가 `{stationName} 인근` 을 그려야 하는데 `venueName` 은 `EventDetail` 의 `EXACT` 전용이라 자리가 없었다. **12장에도 반영해 뒀다** (`decisions.md` 4.13) |
 | `entities/event/model/derive.ts` 🆕 | `deriveScale` `isThisWeek`/`weekRangeKst` `priceFor` `isEligible`. **자격·가격 판정을 화면에서 다시 짜지 않는다** |
 | `shared/config/constants.ts` | `CATEGORIES`·`GENDER_FILTERS`·`ONLY_20S_MAX_AGE`·`DEADLINE_ALERT_SEAT_THRESHOLD` 삭제. `TIME_SLOTS` 4종, `WHEN_OPTIONS`·`SCALE_OPTIONS`·`PRICE_CAPS`·`JOB_GROUPS` 신설 |
-| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 / `PRICE_CAPS` 3종(3만·5만·7만)이 남·여 어느 기준으로도 서로 다른 건수 |
+| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 / `PRICE_CAPS` 3종(3만·5만·7만)이 남·여 어느 기준으로도 서로 다른 건수.<br>**날짜는 2026-09-07 부터 상대값이다** — `mock/dates.ts` 의 `kstFromThisMonday`, 앵커는 `isThisWeek` 와 같은 `weekRangeKst` (4.31). `이번 주 5건` 이 주석의 약속이 아니라 구조로 보장된다 |
 | `entities/event/mock/viewer.ts` 🆕 | `MOCK_VIEWER`(1996년생·여). `eligibleOnly`·`maxPrice`·가격 정렬은 쿼리에 성별·출생연도를 싣지 않으므로(13장) 목에서 인증 주체를 대신한다 |
 | `entities/event/api/eventApi.mock.ts` | 필터를 `when`·`scale`·`status`·`maxPrice`·`eligibleOnly` 로, 홈 3섹션을 `weeklyPopular`/`myAgeGroup`/`newlyAdded` 로 |
 | `entities/user` · `entities/notification` | `interestCategories` / `NotificationSettings.deadlineAlert` / `urgent` kind 삭제 |
@@ -68,7 +68,6 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 | 항목 | 막는 것 |
 | --- | --- |
 | 서버 상태 라이브러리(TanStack Query) 미도입 | **P1-4 는 해소** — `더 보기` 버튼으로 커서를 이어붙인다. 남은 것은 **P2-7 찜 낙관적 업데이트**이고, 도입 판단도 그때 한다 (2026-09-05) |
-| ⚠️ **목 데이터 날짜가 늙어 `npm test` 1건이 깨져 있다** | **지금 당장, 모든 작업.** `THIS_WEEK` 집합이 2026-09-07 로 주가 넘어가며 갈아엎어져 `조건을 겹쳐 걸면 AND 로 좁힌다` 가 실패한다. P1-6 과 무관하고 `main` 에서도 재현된다. 목 날짜를 미느냐(①) 상대값으로 바꾸느냐(②)는 **사용자 결정** → `progress.md` 5장 |
 | **`compact` 카드의 모집 상태 표시** | **P2-8 찜 목록.** 홈 쪽은 해소됐다(아래) — 남은 것은 찜 목록이다. 찜한 소개팅은 마감돼도 목록에서 사라지지 않으므로 9장 표시 항목대로 상태 배지가 필요하다. `compact` 는 홈과 공용이라 배지를 넣을 때 홈에서 어떻게 보일지 함께 본다 |
 | **홈 `신규 입점 주최사` 섹션** | 이제 아무것도 막지 않는다 — 홈(P1-3)은 이 섹션 없이 나갔다. 평점순이 기존 주최사에 유리하니 균형추를 달자는 제안이었고 **보류** 상태다 — 섹션 C 와 겹치고, 주최사 4곳인 지금은 "신규"가 전체이며, 주최사 카드라는 새 변형이 필요하다 (`progress.md` 5장) |
 
