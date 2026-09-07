@@ -119,10 +119,7 @@ const feed = await eventApi.getHomeFeed({});
 - `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
-- ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `schedule(일수, 시각)` 을 쓴다 — `date`·`dateLabel`·`timeLabel` 을 한 순간에서 함께 만들고, 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 CI 가 깨졌고, 라벨만 리터럴로 뒀을 때는 8건 전부 일주일씩 어긋났다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
-- ⚠️ **목 회차는 `MOCK_EVENTS` 상수가 아니라 `getMockEvents()` 로 가져온다.** 주를 키로 캐시해서 주가 바뀌면 다시 만든다 — 상수로 굳히면 서버를 켜둔 채 주가 넘어갔을 때 `THIS_WEEK` 가 **빈 화면이 아니라 조용히 틀린 건수**(5건 → 2건)가 된다 (4.31). 반환은 `readonly` 다(제자리 정렬 금지)
-- ⚠️ **목을 무는 페이지를 정적 프리렌더로 두지 않는다.** 프리렌더되면 빌드한 주의 날짜가 HTML 에 굳는다. `/` 와 `/explore` 는 `cookies()`·`searchParams` 로 이미 동적이고, `/design-system` 은 그 둘을 안 읽어 `force-dynamic` 을 명시했다 (4.31). **CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사한다** — `src/app` 안의 `.ts(x)` 를 전부 훑어 `eventApi` 를 무는 라우트를 찾으므로 `_components/` 하위도 잡힌다. `widgets`·`features` 까지는 안 따라간다
-- ⚠️ **목 API 가 회차를 돌려줄 때는 `detached` 를 거친다.** 필터·정렬·페이지네이션은 배열만 새로 만들고 **원소는 캐시 인스턴스 그대로** 통과시켜서, 화면이 `event.isLiked = true` 한 줄만 써도 같은 주 전체가 오염된다. `isLiked` 는 `EventSummary` 에 있어 상세뿐 아니라 **목록 카드**도 그 경로다 (4.31). 회차를 돌려주는 메서드를 추가하면 `events.test.ts` 의 커버리지 표에도 줄을 더한다
+- ⚠️ **목 회차는 `getMockEvents()` 로 가져온다** — `MOCK_EVENTS` 상수를 직접 쓰지 않는다. 날짜는 `mock/dates.ts` 의 `schedule(일수, 시각)` 로 만들고 **절대값을 넣지 않는다**(등록일 일수는 전부 음수). 반환은 `readonly` 라 제자리 정렬 금지, 회차를 돌려주는 목 메서드는 `detached` 를 거친다. 목을 무는 페이지는 **정적 프리렌더로 두지 않는다** — CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사한다. 넷 다 어기면 화면이 빈 게 아니라 **조용히 틀린 건수**가 된다. 경위·근거는 `decisions.md` 4.31
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---
@@ -180,4 +177,10 @@ const feed = await eventApi.getHomeFeed({});
 ## 5. 이 문서의 갱신
 
 Phase 가 끝날 때, 또는 위 규칙·전제·함정이 바뀔 때만 갱신한다.
-**진행 현황·작업 이력·기술 결정·화면 사양은 여기 적지 않는다** — 각각 `progress.md` · `decisions.md` · `spec/` 이 원본이다. 이 문서가 다시 20KB 가 되면 세션마다 그 값을 치른다.
+**진행 현황·작업 이력·기술 결정·화면 사양은 여기 적지 않는다** — 각각 `progress.md` · `decisions.md` · `spec/` 이 원본이다.
+
+이 문서는 `CLAUDE.md` 가 **자동으로 읽는다.** 한 줄 늘리면 앞으로의 모든 세션이 그 값을 낸다.
+
+- **200줄을 넘기지 않는다.** 넘으면 늘린 만큼 다른 데서 덜어낸다
+- **여기에는 규칙만 쓰고 근거는 쓰지 않는다.** "왜 그렇게 정했나"는 `decisions.md` 에 있고 여기서는 번호로 가리킨다. 근거를 여기 옮겨 적으면 두 곳이 어긋나고, 비용은 매 세션 낸다
+- 한 결정에 경고가 세 줄 이상 붙었으면 압축 신호다 — 4.31 이 실제로 네 줄까지 갔다
