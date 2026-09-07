@@ -68,6 +68,14 @@ export const mockEventApi: EventApi = {
   async getDetail(id) {
     await delay();
 
+    /*
+      **복사해서 돌려준다.** 목록 경로와 달리 여기는 캐시가 들고 있는 객체 하나를
+      화면에 그대로 넘기는 자리라, 화면이 `event.isLiked = true` 한 줄만 써도
+      같은 주의 모든 요청이 그 값을 본다(P2-7 찜 토글이 그 코드를 만든다).
+      실 HTTP API 는 응답마다 새 객체를 주므로 이쪽이 오히려 실서버에 가깝다.
+      ⚠️ 얕은 복사다 — `jobGroups` 같은 배열 필드는 여전히 공유한다
+      (`decisions.md` 4.31).
+    */
     const found = getMockEvents().find((event) => event.id === id);
     if (!found) {
       // 실제 404와 같은 형태로 던져야 `not-found.tsx` 경로를 개발 중에 검증할 수 있다.
@@ -78,7 +86,7 @@ export const mockEventApi: EventApi = {
         message: "요청한 소개팅을 찾을 수 없습니다.",
       });
     }
-    return found;
+    return { ...found };
   },
 
   async getMapMarkers(query) {

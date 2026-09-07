@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { applyFilters } from "../api/eventApi.mock";
+import { applyFilters, mockEventApi } from "../api/eventApi.mock";
 import { getMockEvents } from "./events";
 
 /**
@@ -55,5 +55,26 @@ describe("getMockEvents", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("캐시 오염 방지", () => {
+  /**
+   * `getDetail` 은 캐시가 들고 있는 객체 하나를 화면에 넘기는 유일한 자리다.
+   * 그대로 넘기면 화면의 필드 대입 한 줄이 같은 주의 모든 요청에 남는다 —
+   * 타입(`Readonly<EventDetail>`)은 목 내부만 막고 포트 밖에서는 지워진다
+   * (`decisions.md` 4.31 / PR #27 4차 리뷰).
+   */
+  it("getDetail 이 돌려준 것을 고쳐도 캐시가 안 바뀐다", async () => {
+    const id = getMockEvents()[0].id;
+
+    const detail = await mockEventApi.getDetail(id);
+    detail.isLiked = !detail.isLiked;
+    detail.popularity = -1;
+
+    const cached = getMockEvents().find((event) => event.id === id);
+
+    expect(cached?.isLiked).not.toBe(detail.isLiked);
+    expect(cached?.popularity).not.toBe(-1);
   });
 });

@@ -467,7 +467,7 @@ function buildMockEvents(): EventDetail[] {
  * 3. **이 함수를 무는 라우트가 정적 프리렌더되지 않는다** — 프리렌더되면 빌드
  *    시점의 주가 HTML 에 굳어 영원히 안 바뀐다
  */
-export function getMockEvents(): readonly EventDetail[] {
+export function getMockEvents(): readonly Readonly<EventDetail>[] {
   const weekStart = weekRangeKst(new Date()).start;
 
   if (cache === null || cache.weekStart !== weekStart) {
@@ -477,4 +477,4 @@ export function getMockEvents(): readonly EventDetail[] {
   return cache.events;
 }
 
-let cache: { weekStart: number; events: readonly EventDetail[] } | null = null;
+let cache: { weekStart: number; events: readonly Readonly<EventDetail>[] } | null = null;

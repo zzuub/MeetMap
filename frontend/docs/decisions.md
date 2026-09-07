@@ -522,9 +522,14 @@ P1-6 은 이름이 `정렬 / 뷰 토글` 인데 **정렬만 붙였다.** 6.2 의
 
 | 전제 | 지금 무엇이 지키나 |
 | --- | --- |
-| 아무도 배열을 제자리에서 바꾸지 않는다 | **타입**. `getMockEvents(): readonly EventDetail[]` 이라 `.sort()` 가 컴파일 에러다 — `applyFilters`·`paginateArray` 는 이미 `readonly` 를 받고 `applySort` 는 `[...]` 로 복사한다. 관행으로 두면 `getMockEvents().sort()` 한 줄에 캐시가 뒤집혀 다음 주까지 모든 요청이 그 순서를 본다 |
+| 아무도 배열을 제자리에서 바꾸지 않는다 | **타입**. `getMockEvents(): readonly Readonly<EventDetail>[]` 이라 `.sort()` 도 `event.isLiked = true` 도 컴파일 에러다 |
+| 캐시 인스턴스를 화면에 그대로 넘기지 않는다 | **`getDetail` 의 얕은 복사**. 아래 참조 |
 | 검사와 대입 사이에 `await` 가 없다 | **동기 블록**. Node 가 싱글 스레드라 요청이 몰려도 끼어들 수 없다. 이 함수에 비동기를 들이는 리팩터가 유일한 파괴 경로다 |
 | 이 함수를 무는 라우트가 정적 프리렌더되지 않는다 | **`force-dynamic` 과 동적 API**. 아래 참조 |
+
+⚠️ **`readonly` 는 배열만 막고, 필드 변형이 더 위험하다** (PR #27 4차 리뷰). 개별 `EventDetail` 은 `applyFilters`·`applySort`·`paginateArray` 어디서도 복사되지 않아 **캐시가 들고 있는 그 인스턴스**가 그대로 흘러간다. 배열 재정렬은 순서만 틀어지지만 필드 대입은 데이터 자체가 틀어진다. `Readonly<EventDetail>[]` 로 올려 최상위 필드 대입을 컴파일 타임에 막았지만 이건 **얕고**(`event.mood.push(...)` 는 여전히 통과) **컴파일 타임뿐이며**(캐스트 하나면 뚫린다), 무엇보다 **포트 밖에서는 지워진다** — `EventApi.getDetail` 이 `EventDetail` 을 약속하므로 화면은 변형 가능한 타입으로 받는다.
+
+그래서 `getDetail` 은 **얕은 복사를 돌려준다.** 캐시 객체 하나를 화면에 넘기는 유일한 자리이고, P2-7 찜 토글이 바로 그 객체에 `isLiked = true` 를 쓸 코드를 만든다. 실 HTTP API 는 응답마다 새 객체를 주므로 이쪽이 오히려 실서버에 가깝다. 목록 경로는 원소 참조를 계속 공유하므로, **진짜 안전장치는 쓰기 경로를 불변 갱신으로 설계하는 것**이고 그건 타입이 강제할 수 없다 — 리뷰가 잡아야 한다.
 
 ⚠️ **`/design-system` 이 실제로 이 전제를 깨고 있었다.** 리뷰는 "나중에 정적 페이지가 붙으면 위험하다"고 미래형으로 짚었지만, 확인해 보니 그 페이지가 이미 `○ (Static)` 으로 프리렌더되면서 `eventApi.getList` 를 부르고 있었다 — **빌드한 주의 날짜가 HTML 에 굳어** `/explore` 와 다른 날짜를 그린다. 카드 경계값을 눈으로 확인하는 기준 페이지가 그러면 기준이 못 된다. `export const dynamic = "force-dynamic"` 을 붙였다. `/` 와 `/explore` 는 각각 `cookies()`·`searchParams` 를 읽어 이미 동적이라 손댈 것이 없다.
 
@@ -548,6 +553,15 @@ P1-6 은 이름이 `정렬 / 뷰 토글` 인데 **정렬만 붙였다.** 6.2 의
 
 **`when` 테스트에서 순환 단언 하나를 지웠다** (PR #27 리뷰). `applyFilters` 의 `THIS_WEEK` 분기가 이미 `isThisWeek` 로 멤버십을 정하는데 그 결과에 같은 함수를 다시 걸고 있어, 필터가 무엇을 하든 항상 참이었다. 남긴 것은 **전건이 정확히 한쪽에만 속하는가**(합계·교집합)와 5:3 스냅샷이다. 경계 자체의 정확성은 `derive.test.ts` 가 고정 `now` + 절대 ISO 로 목을 거치지 않고 따로 본다 — **5:3 을 "필터가 옳다"의 근거로 인용하지 않는다.**
 
-**번복 조건**: 실 API 가 붙어 `MOCK_EVENTS` 가 개발 경로에서 빠지면 이 항목은 소멸한다. 그 전에 목이 **여러 주에 걸친 시나리오**(예: 지난 회차의 후기)를 표현해야 하면 앵커를 하나 더 두게 되는데, 그때도 절대 날짜로 되돌리지 않는다 — 되돌리는 순간 갱신 책임이 다시 사람에게 온다.
+**전제를 사람이 지키지 않게 CI 가 본다.** `next build` 의 라우트 표(`○` 정적 / `ƒ` 동적)를 버리지 않고 `scripts/assert-dynamic-routes.mjs` 가 검사한다 — `eventApi` 를 import 하는 `page.tsx` 가 전부 `ƒ` 인지 본다. `/design-system` 이 프리렌더된 것을 그 표가 내내 말하고 있었는데 사람이 안 봐서 놓쳤으니, 눈으로 하던 확인을 그대로 자동화한 것이다. `force-dynamic` 을 떼고 빌드해 실제로 실패하는 것을 확인했다.
+
+⚠️ **`shell: bash` 를 명시해야 한다.** GitHub Actions 기본 셸(`bash -e`)에는 `pipefail` 이 없어서, `npm run build | tee build.log` 로 쓰면 `tee` 의 종료 코드가 이겨 **빌드 실패가 통과로 보인다.**
+
+**번복 조건**: 실 API 가 붙어 `MOCK_EVENTS` 가 개발 경로에서 빠지면 이 항목은 소멸한다.
+
+> 그때 **함께 걷어낼 것 셋**을 여기 적어 둔다 — 흩어져 있어 체크리스트 없이는 놓친다.
+> ① `/design-system` 의 `export const dynamic = "force-dynamic"` — 목 날짜 때문에 붙인 것이라 실 API 에서는 이유가 사라진다. Next 의 route segment config 는 **정적 리터럴이어야 해서**(`USE_MOCK ? … : …` 는 `can't recognize the exported dynamic field` 로 빌드가 깨진다 — 실제로 확인했다) 스위치에 매달 수 없고, 그래서 이 문장이 유일한 신호다.
+> ② `scripts/assert-dynamic-routes.mjs` 와 CI 스텝 — 실 API 응답은 빌드 시점에 굳지 않으므로 검사할 이유가 없어진다.
+> ③ `getDetail` 의 얕은 복사 — HTTP 응답은 애초에 새 객체다. 그 전에 목이 **여러 주에 걸친 시나리오**(예: 지난 회차의 후기)를 표현해야 하면 앵커를 하나 더 두게 되는데, 그때도 절대 날짜로 되돌리지 않는다 — 되돌리는 순간 갱신 책임이 다시 사람에게 온다.
 
 ---

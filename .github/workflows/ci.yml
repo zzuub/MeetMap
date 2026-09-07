@@ -53,8 +53,18 @@ jobs:
             echo "::endgroup::"
           done
 
+      # 빌드 stdout 의 라우트 표(`○` 정적 / `ƒ` 동적)를 버리지 않고 검사한다.
+      # 목 회차의 날짜가 이번 주 기준 상대값이라(`decisions.md` 4.31) `eventApi` 를
+      # 무는 페이지가 프리렌더되면 **빌드한 주의 날짜가 HTML 에 굳는다.**
+      # `/design-system` 이 실제로 그랬고, 이 표가 내내 말하고 있었는데 아무도 안 봤다.
+      # `shell: bash` 를 명시하는 것이 `pipefail` 을 켜는 방법이다. 기본 셸(`bash -e`)
+      # 에는 없어서, 파이프를 쓰면 `tee` 의 종료 코드가 이겨 **빌드 실패가 통과로 보인다.**
       - name: Build frontend
-        run: npm run build
+        shell: bash
+        run: npm run build | tee build.log
+
+      - name: Assert eventApi routes are not prerendered
+        run: node scripts/assert-dynamic-routes.mjs build.log
 
   backend-build:
     name: Backend Build
