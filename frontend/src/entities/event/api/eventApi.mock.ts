@@ -1,6 +1,6 @@
 import { ApiError, paginateArray } from "@/shared/api";
 import { MOCK_LATENCY_MS } from "@/shared/config";
-import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
+import { getMockEvents, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
 import { isEligible, isOpen, isThisWeek, priceFor } from "../model/derive";
 import type { EventApi } from "../model/ports";
@@ -32,7 +32,7 @@ export const mockEventApi: EventApi = {
 
     // 홈은 세 섹션 모두 모집 중인 회차만 내린다 (5.3). 홈에는 상태 필터가 없어서
     // 마감 건이 섞이면 사용자가 그것을 걷어낼 수단이 없다.
-    const open = MOCK_EVENTS.filter(isOpen);
+    const open = getMockEvents().filter(isOpen);
 
     return {
       // 이번 주 개최 + popularity 내림차순 (5.3)
@@ -56,7 +56,7 @@ export const mockEventApi: EventApi = {
   async getList(query) {
     await delay();
 
-    const filtered = applyFilters(MOCK_EVENTS, query);
+    const filtered = applyFilters(getMockEvents(), query);
     const sorted = applySort(filtered, query.sort);
     return paginateArray(
       sorted,
@@ -68,7 +68,7 @@ export const mockEventApi: EventApi = {
   async getDetail(id) {
     await delay();
 
-    const found = MOCK_EVENTS.find((event) => event.id === id);
+    const found = getMockEvents().find((event) => event.id === id);
     if (!found) {
       // 실제 404와 같은 형태로 던져야 `not-found.tsx` 경로를 개발 중에 검증할 수 있다.
       throw new ApiError({
@@ -84,7 +84,7 @@ export const mockEventApi: EventApi = {
   async getMapMarkers(query) {
     await delay();
     // bbox 는 목에서 무시한다. 필터 결과와 마커 소스가 같아야 한다는 규칙(6.6)만 지킨다.
-    return applyFilters(MOCK_EVENTS, query);
+    return applyFilters(getMockEvents(), query);
   },
 
   async search(keyword) {
@@ -94,7 +94,7 @@ export const mockEventApi: EventApi = {
     if (!q) return [];
 
     // 검색 대상: 소개팅명 + 지역 + 주최사 (11.1). 카테고리 축은 삭제됐다.
-    return MOCK_EVENTS.filter((event) =>
+    return getMockEvents().filter((event) =>
       [event.title, event.area, event.provider.name]
         .join(" ")
         .toLowerCase()

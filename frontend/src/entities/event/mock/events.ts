@@ -1,5 +1,6 @@
 import { applyDisplayThreshold, ratingScore } from "@/shared/lib";
 import type { EventDetail } from "../model/types";
+import { weekRangeKst } from "../model/derive";
 import { kstFromThisMonday, schedule } from "./dates";
 
 /**
@@ -137,7 +138,8 @@ const BASE = {
   distanceKm: null,
 } as const;
 
-export const MOCK_EVENTS: EventDetail[] = [
+function buildMockEvents(): EventDetail[] {
+  return [
   {
     ...BASE,
     id: "evt-001",
@@ -436,4 +438,33 @@ export const MOCK_EVENTS: EventDetail[] = [
     externalApplyUrl: "https://example.com/apply/evt-008",
     attendeeListUrl: null,
   },
-];
+  ];
+}
+
+/**
+ * 목 회차 8건. **주가 바뀌면 다시 만든다.**
+ *
+ * 날짜가 이번 주 월요일 기준 상대값이 되면서(4.31) 새 실패 모드가 하나 생겼었다 —
+ * 개발 서버를 켜둔 채 주가 넘어가면 모듈 로드 때 굳은 날짜가 새 주 범위에 하나도
+ * 안 들어가 `when=THIS_WEEK` 와 홈 `이번 주 인기` 가 **재시작 전까지** 0건이었다.
+ * 월요일 아침마다 밟는 자리다.
+ *
+ * 그래서 **주를 키로 캐시한다.** 같은 주 안에서는 매번 같은 배열 참조를 돌려주므로
+ * 목록 조회와 패싯 스캔이 같은 스냅샷을 본다는 4.28 전제는 그대로고, 주가 바뀌는
+ * 순간에만 새로 만들어 저절로 복구된다. 요청마다 재계산하는 형태였다면 그 전제가
+ * 깨졌을 것이다 (PR #27 2차 리뷰).
+ *
+ * ⚠️ **`MOCK_EVENTS` 상수를 되살리지 않는다.** 모듈 로드 시점에 한 번 굳는 값이
+ * 바로 위 문제의 원인이었다.
+ */
+export function getMockEvents(): EventDetail[] {
+  const weekStart = weekRangeKst(new Date()).start;
+
+  if (cache === null || cache.weekStart !== weekStart) {
+    cache = { weekStart, events: buildMockEvents() };
+  }
+
+  return cache.events;
+}
+
+let cache: { weekStart: number; events: EventDetail[] } | null = null;

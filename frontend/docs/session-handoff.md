@@ -119,7 +119,8 @@ const feed = await eventApi.getHomeFeed({});
 - `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
-- ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `kstFromThisMonday(일수, 시각)` 을 쓴다 — 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 실제로 CI 가 깨졌다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
+- ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `schedule(일수, 시각)` 을 쓴다 — `date`·`dateLabel`·`timeLabel` 을 한 순간에서 함께 만들고, 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 CI 가 깨졌고, 라벨만 리터럴로 뒀을 때는 8건 전부 일주일씩 어긋났다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
+- ⚠️ **목 회차는 `MOCK_EVENTS` 상수가 아니라 `getMockEvents()` 로 가져온다.** 주를 키로 캐시해서 주가 바뀌면 다시 만든다 — 상수로 굳히면 서버를 켜둔 채 주가 넘어갔을 때 `THIS_WEEK` 가 **빈 화면이 아니라 조용히 틀린 건수**(5건 → 2건)가 된다 (4.31)
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---

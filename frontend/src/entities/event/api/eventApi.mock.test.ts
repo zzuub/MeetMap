@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PRICE_CAPS } from "@/shared/config";
-import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
+import { getMockEvents, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
 import {
   currentTimeSlot,
@@ -12,6 +12,9 @@ import {
 } from "../model/derive";
 import type { EventListQuery } from "../model/types";
 import { applyFilters, applySort, mockEventApi } from "./eventApi.mock";
+
+// 테스트 한 번 도는 동안 주가 바뀌지 않으므로 목 API 가 보는 것과 같은 배열이다
+const MOCK_EVENTS = getMockEvents();
 
 /**
  * 목 필터는 **기능정의서 6.1/6.4 의 필터 의미**를 코드로 적어둔 자리다.
