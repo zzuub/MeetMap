@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { applyFilters, mockEventApi } from "../api/eventApi.mock";
+import type { EventApi } from "../model/ports";
 import type { EventSummary } from "../model/types";
 import { getMockEvents } from "./events";
 
@@ -69,10 +70,27 @@ describe("getMockEvents", () => {
  *
  * **메서드를 하나씩 지목하지 않고 전부 훑는다.** 처음에는 `getDetail` 만 고치고
  * "유일한 자리"라고 단언했는데 넷이 새고 있었다 (PR #27 5차 리뷰). 새 메서드가
- * 생기면 이 표에 줄을 더하는 것이 규칙이다.
+ * 생기면 `METHOD_KINDS` 가 **컴파일 에러**로 표 갱신을 요구한다.
  */
 describe("캐시 오염 방지", () => {
   const cachedIds = () => getMockEvents().map((event) => event.id);
+
+  /**
+   * `EventApi` **전 메서드**를 회차를 돌려주는지로 분류한다.
+   *
+   * `Record<keyof EventApi, …>` 라 포트에 메서드가 늘면 **테스트 실패가 아니라
+   * 컴파일 에러**가 난다 — 이 표를 채우기 전에는 타입 검사를 통과할 수 없다.
+   * 문자열 배열로 적어 두면 포트와 아무 연결이 없어, 새 메서드가 아래 `paths` 와
+   * 여기 양쪽에서 동시에 빠질 때 커버리지 단언이 조용히 통과한다.
+   */
+  const METHOD_KINDS: Record<keyof EventApi, "회차" | "그 외"> = {
+    getHomeFeed: "회차",
+    getList: "회차",
+    getDetail: "회차",
+    getMapMarkers: "회차",
+    search: "회차",
+    logOutboundClick: "그 외",
+  };
 
   /** 응답에서 회차를 꺼내는 방법. 회차를 돌려주는 메서드는 전부 여기 있어야 한다 */
   const paths: [name: string, take: () => Promise<EventSummary[]>][] = [
@@ -88,7 +106,9 @@ describe("캐시 오염 방지", () => {
   it("회차를 돌려주는 메서드를 다 덮는다", () => {
     // 이 단언이 깨지면 위 표에 빠진 메서드가 있다는 뜻이다
     const covered = new Set(paths.map(([name]) => name.split(" · ")[0]));
-    const returnsEvents = ["getHomeFeed", "getList", "getDetail", "getMapMarkers", "search"];
+    const returnsEvents = Object.keys(METHOD_KINDS).filter(
+      (name) => METHOD_KINDS[name as keyof EventApi] === "회차",
+    );
 
     expect([...covered].sort()).toEqual([...returnsEvents].sort());
   });

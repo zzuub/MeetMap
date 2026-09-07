@@ -47,9 +47,16 @@ export function AppHeader({ title, action, backHref, className }: AppHeaderProps
         </svg>
       </IconButton>
 
-      <h1 className="min-w-0 flex-1 truncate text-center text-[16px] font-bold text-primary">
-        {title}
-      </h1>
+      {/* 타이틀 없는 화면이 있다 — 소개팅 상세는 헤더에 `공유` 만 두고 제목은 히어로가
+          `h1` 으로 갖는다 (7.1). 빈 `h1` 을 남기면 문서에 제목 없는 헤딩이 하나 생기고,
+          히어로의 `h1` 과 합쳐 `h1` 이 둘이 된다. */}
+      {title ? (
+        <h1 className="min-w-0 flex-1 truncate text-center text-[16px] font-bold text-primary">
+          {title}
+        </h1>
+      ) : (
+        <div className="min-w-0 flex-1" />
+      )}
 
       {/* 타이틀을 가운데 정렬로 유지하기 위해 액션이 없어도 자리를 비워둔다 */}
       <div className="flex min-w-11 justify-end">{action}</div>
