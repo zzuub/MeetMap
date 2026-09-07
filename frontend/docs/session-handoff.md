@@ -121,7 +121,8 @@ const feed = await eventApi.getHomeFeed({});
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
 - ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `schedule(일수, 시각)` 을 쓴다 — `date`·`dateLabel`·`timeLabel` 을 한 순간에서 함께 만들고, 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 CI 가 깨졌고, 라벨만 리터럴로 뒀을 때는 8건 전부 일주일씩 어긋났다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
 - ⚠️ **목 회차는 `MOCK_EVENTS` 상수가 아니라 `getMockEvents()` 로 가져온다.** 주를 키로 캐시해서 주가 바뀌면 다시 만든다 — 상수로 굳히면 서버를 켜둔 채 주가 넘어갔을 때 `THIS_WEEK` 가 **빈 화면이 아니라 조용히 틀린 건수**(5건 → 2건)가 된다 (4.31). 반환은 `readonly` 다(제자리 정렬 금지)
-- ⚠️ **목을 무는 페이지를 정적 프리렌더로 두지 않는다.** 프리렌더되면 빌드한 주의 날짜가 HTML 에 굳는다. `/` 와 `/explore` 는 `cookies()`·`searchParams` 로 이미 동적이고, `/design-system` 은 그 둘을 안 읽어 `force-dynamic` 을 명시했다 (4.31). **CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사하므로 눈으로 볼 필요는 없다** — 대신 그 스크립트는 `page.tsx` 가 직접 `eventApi` 를 import 하는 경우만 보므로, 중첩 서버 컴포넌트가 스스로 조회하기 시작하면 스크립트도 넓힌다
+- ⚠️ **목을 무는 페이지를 정적 프리렌더로 두지 않는다.** 프리렌더되면 빌드한 주의 날짜가 HTML 에 굳는다. `/` 와 `/explore` 는 `cookies()`·`searchParams` 로 이미 동적이고, `/design-system` 은 그 둘을 안 읽어 `force-dynamic` 을 명시했다 (4.31). **CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사한다** — `src/app` 안의 `.ts(x)` 를 전부 훑어 `eventApi` 를 무는 라우트를 찾으므로 `_components/` 하위도 잡힌다. `widgets`·`features` 까지는 안 따라간다
+- ⚠️ **목 API 가 회차를 돌려줄 때는 `detached` 를 거친다.** 필터·정렬·페이지네이션은 배열만 새로 만들고 **원소는 캐시 인스턴스 그대로** 통과시켜서, 화면이 `event.isLiked = true` 한 줄만 써도 같은 주 전체가 오염된다. `isLiked` 는 `EventSummary` 에 있어 상세뿐 아니라 **목록 카드**도 그 경로다 (4.31). 회차를 돌려주는 메서드를 추가하면 `events.test.ts` 의 커버리지 표에도 줄을 더한다
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---

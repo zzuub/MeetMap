@@ -14,9 +14,11 @@ import { join, relative, sep } from "node:path";
  *
  * 사용법: `npm run build | tee build.log && node scripts/assert-dynamic-routes.mjs build.log`
  *
- * ⚠️ **`page.tsx` 가 직접 `eventApi` 를 import 하는 경우만 본다.** 이 리포는 app
- * 레이어가 데이터를 받아 아래로 넘기는 구조라(FSD) 지금은 이걸로 충분하지만,
- * 중첩 서버 컴포넌트가 스스로 조회하기 시작하면 여기도 같이 넓혀야 한다.
+ * ⚠️ **`src/app` 안에서만 본다.** 라우트 폴더의 `page.tsx` 와 그 하위 파일
+ * (`_components/*.tsx` 등)을 훑는다 — 어차피 순회하는 트리라 공짜다. `widgets`·
+ * `features` 까지 따라가는 진짜 import 그래프는 만들지 않는다: 이 리포는 app
+ * 레이어가 받아 아래로 넘기는 구조이고(FSD), 목 자체가 실 API 전환 시 소멸할
+ * 스캐폴딩이라 그만한 투자를 오래 쓸 일이 없다 (PR #27 5차 리뷰).
  */
 
 const APP_DIR = join("src", "app");
@@ -65,16 +67,45 @@ console.log(`✓ ${NEEDLE} 라우트 ${routes.length}개가 전부 동적이다:
 
 /* ── 내부 ───────────────────────────────────────────────── */
 
+/**
+ * `eventApi` 를 무는 라우트들. **`page.tsx` 뿐 아니라 그 라우트 폴더 안의 다른
+ * `.tsx` 도 본다** — `explore/_components/Something.tsx` 가 직접 조회해도 결국
+ * 그 라우트가 프리렌더되면 안 되는 것은 같다. `walk()` 이 이미 지나가는 파일이라
+ * 필터만 넓히면 된다.
+ */
 function routesUsingEventApi() {
-  const found = [];
+  const routes = new Set();
+  const pages = new Set();
 
   for (const file of walk(APP_DIR)) {
-    if (!file.endsWith(`${sep}page.tsx`)) continue;
+    if (file.endsWith(`${sep}page.tsx`)) pages.add(toRoutePath(file));
+    if (!file.endsWith(".tsx") && !file.endsWith(".ts")) continue;
     if (!readFileSync(file, "utf8").includes(NEEDLE)) continue;
-    found.push(toRoutePath(file));
+    routes.add(toRoutePath(file));
   }
 
-  return found.sort();
+  /*
+    `_components/` 처럼 라우트가 아닌 하위 폴더에 있으면 그 경로는 라우트가 아니다.
+    가장 가까운 조상 라우트로 올려붙인다 — 그 페이지가 렌더할 때 딸려 들어가니까.
+  */
+  return [...routes]
+    .map((path) => nearestRoute(path, pages))
+    .filter((path) => path !== null)
+    .filter((path, index, all) => all.indexOf(path) === index)
+    .sort();
+}
+
+/** `/explore/_components` → `/explore`. 조상 중 실제 페이지가 있는 첫 경로 */
+function nearestRoute(path, pages) {
+  let current = path;
+
+  while (!pages.has(current)) {
+    if (current === "/") return null;
+    const cut = current.lastIndexOf("/");
+    current = cut === 0 ? "/" : current.slice(0, cut);
+  }
+
+  return current;
 }
 
 function* walk(dir) {

@@ -32,7 +32,7 @@ export const mockEventApi: EventApi = {
 
     // 홈은 세 섹션 모두 모집 중인 회차만 내린다 (5.3). 홈에는 상태 필터가 없어서
     // 마감 건이 섞이면 사용자가 그것을 걷어낼 수단이 없다.
-    const open = getMockEvents().filter(isOpen);
+    const open = detached(getMockEvents().filter(isOpen));
 
     return {
       // 이번 주 개최 + popularity 내림차순 (5.3)
@@ -56,7 +56,7 @@ export const mockEventApi: EventApi = {
   async getList(query) {
     await delay();
 
-    const filtered = applyFilters(getMockEvents(), query);
+    const filtered = detached(applyFilters(getMockEvents(), query));
     const sorted = applySort(filtered, query.sort);
     return paginateArray(
       sorted,
@@ -68,14 +68,6 @@ export const mockEventApi: EventApi = {
   async getDetail(id) {
     await delay();
 
-    /*
-      **복사해서 돌려준다.** 목록 경로와 달리 여기는 캐시가 들고 있는 객체 하나를
-      화면에 그대로 넘기는 자리라, 화면이 `event.isLiked = true` 한 줄만 써도
-      같은 주의 모든 요청이 그 값을 본다(P2-7 찜 토글이 그 코드를 만든다).
-      실 HTTP API 는 응답마다 새 객체를 주므로 이쪽이 오히려 실서버에 가깝다.
-      ⚠️ 얕은 복사다 — `jobGroups` 같은 배열 필드는 여전히 공유한다
-      (`decisions.md` 4.31).
-    */
     const found = getMockEvents().find((event) => event.id === id);
     if (!found) {
       // 실제 404와 같은 형태로 던져야 `not-found.tsx` 경로를 개발 중에 검증할 수 있다.
@@ -92,7 +84,7 @@ export const mockEventApi: EventApi = {
   async getMapMarkers(query) {
     await delay();
     // bbox 는 목에서 무시한다. 필터 결과와 마커 소스가 같아야 한다는 규칙(6.6)만 지킨다.
-    return applyFilters(getMockEvents(), query);
+    return detached(applyFilters(getMockEvents(), query));
   },
 
   async search(keyword) {
@@ -102,11 +94,13 @@ export const mockEventApi: EventApi = {
     if (!q) return [];
 
     // 검색 대상: 소개팅명 + 지역 + 주최사 (11.1). 카테고리 축은 삭제됐다.
-    return getMockEvents().filter((event) =>
-      [event.title, event.area, event.provider.name]
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
+    return detached(
+      getMockEvents().filter((event) =>
+        [event.title, event.area, event.provider.name]
+          .join(" ")
+          .toLowerCase()
+          .includes(q),
+      ),
     );
   },
 
@@ -116,6 +110,28 @@ export const mockEventApi: EventApi = {
 };
 
 /* ── 내부 ───────────────────────────────────────────────── */
+
+/**
+ * 캐시에서 떼어낸 사본. **응답으로 나가는 모든 회차가 이걸 거친다.**
+ *
+ * `getMockEvents()` 는 한 주 동안 같은 객체를 돌려주는데(4.31), 필터·정렬·페이지네이션은
+ * **배열만 새로 만들고 원소는 그대로 통과시킨다.** 그래서 응답으로 나간 객체에
+ * `event.isLiked = true` 한 줄만 써도 같은 주의 모든 요청이 그 값을 본다 —
+ * `isLiked` 는 `EventDetail` 이 아니라 **`EventSummary`** 에 있어서(12장) 상세뿐
+ * 아니라 **목록 카드의 찜 버튼**(6.5)도 그 코드를 만든다. P2-7 이 실제로 그걸 짠다.
+ *
+ * 처음에는 `getDetail` 만 복사하고 "캐시 객체를 화면에 넘기는 유일한 자리"라고
+ * 적었는데 **틀렸다.** `getHomeFeed`·`getList`·`getMapMarkers`·`search` 넷 다
+ * 같은 참조를 넘기고 있었다 (PR #27 5차 리뷰). 그래서 자리마다 판단하지 않고
+ * 나가는 경로를 전부 이 함수로 통일한다.
+ *
+ * ⚠️ **얕은 복사다.** `mood`·`jobGroups`·`images` 같은 배열 필드는 여전히 공유한다 —
+ * 깊은 복사는 목 8건짜리 스캐폴딩에 과하고, 진짜 방어는 쓰기 경로를 불변 갱신으로
+ * 짜는 것이다 (`decisions.md` 4.31).
+ */
+function detached<T extends object>(events: readonly T[]): T[] {
+  return events.map((event) => ({ ...event }));
+}
 
 export function applyFilters(
   events: readonly EventDetail[],

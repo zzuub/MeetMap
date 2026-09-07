@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { applyFilters, mockEventApi } from "../api/eventApi.mock";
+import type { EventSummary } from "../model/types";
 import { getMockEvents } from "./events";
 
 /**
@@ -58,15 +59,53 @@ describe("getMockEvents", () => {
   });
 });
 
+/**
+ * 캐시 오염 방지 (`decisions.md` 4.31).
+ *
+ * 응답으로 나간 회차 객체는 **캐시가 들고 있는 그 인스턴스가 아니어야** 한다.
+ * 그대로 넘기면 화면의 `event.isLiked = true` 한 줄이 같은 주의 모든 요청에 남는다.
+ * 타입(`Readonly<EventDetail>`)은 목 내부만 막고 `EventApi` 포트 밖에서는 지워지므로
+ * 런타임 방어가 따로 필요하다.
+ *
+ * **메서드를 하나씩 지목하지 않고 전부 훑는다.** 처음에는 `getDetail` 만 고치고
+ * "유일한 자리"라고 단언했는데 넷이 새고 있었다 (PR #27 5차 리뷰). 새 메서드가
+ * 생기면 이 표에 줄을 더하는 것이 규칙이다.
+ */
 describe("캐시 오염 방지", () => {
-  /**
-   * `getDetail` 은 캐시가 들고 있는 객체 하나를 화면에 넘기는 유일한 자리다.
-   * 그대로 넘기면 화면의 필드 대입 한 줄이 같은 주의 모든 요청에 남는다 —
-   * 타입(`Readonly<EventDetail>`)은 목 내부만 막고 포트 밖에서는 지워진다
-   * (`decisions.md` 4.31 / PR #27 4차 리뷰).
-   */
-  it("getDetail 이 돌려준 것을 고쳐도 캐시가 안 바뀐다", async () => {
-    const id = getMockEvents()[0].id;
+  const cachedIds = () => getMockEvents().map((event) => event.id);
+
+  /** 응답에서 회차를 꺼내는 방법. 회차를 돌려주는 메서드는 전부 여기 있어야 한다 */
+  const paths: [name: string, take: () => Promise<EventSummary[]>][] = [
+    ["getHomeFeed · weeklyPopular", async () => (await mockEventApi.getHomeFeed({})).weeklyPopular],
+    ["getHomeFeed · myAgeGroup", async () => (await mockEventApi.getHomeFeed({})).myAgeGroup],
+    ["getHomeFeed · newlyAdded", async () => (await mockEventApi.getHomeFeed({})).newlyAdded],
+    ["getList", async () => (await mockEventApi.getList({ limit: 20 })).items],
+    ["getDetail", async () => [await mockEventApi.getDetail(cachedIds()[0])]],
+    ["getMapMarkers", async () => mockEventApi.getMapMarkers({})],
+    ["search", async () => mockEventApi.search("소개팅")],
+  ];
+
+  it("회차를 돌려주는 메서드를 다 덮는다", () => {
+    // 이 단언이 깨지면 위 표에 빠진 메서드가 있다는 뜻이다
+    const covered = new Set(paths.map(([name]) => name.split(" · ")[0]));
+    const returnsEvents = ["getHomeFeed", "getList", "getDetail", "getMapMarkers", "search"];
+
+    expect([...covered].sort()).toEqual([...returnsEvents].sort());
+  });
+
+  it.each(paths)("%s 가 캐시 인스턴스를 그대로 넘기지 않는다", async (_name, take) => {
+    const cache = getMockEvents();
+    const returned = await take();
+
+    expect(returned.length).toBeGreaterThan(0);
+    for (const event of returned) {
+      expect(cache.some((cached) => cached === event)).toBe(false);
+    }
+  });
+
+  it("돌려받은 것을 고쳐도 캐시가 안 바뀐다", async () => {
+    const id = cachedIds()[0];
+    const before = getMockEvents().find((event) => event.id === id)?.popularity;
 
     const detail = await mockEventApi.getDetail(id);
     detail.isLiked = !detail.isLiked;
@@ -74,7 +113,7 @@ describe("캐시 오염 방지", () => {
 
     const cached = getMockEvents().find((event) => event.id === id);
 
+    expect(cached?.popularity).toBe(before);
     expect(cached?.isLiked).not.toBe(detail.isLiked);
-    expect(cached?.popularity).not.toBe(-1);
   });
 });
