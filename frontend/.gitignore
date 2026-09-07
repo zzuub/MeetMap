@@ -42,3 +42,6 @@ next-env.d.ts
 
 # 예시 파일은 커밋한다 (위 .env* 규칙의 예외)
 !.env.example
+
+# CI 가 라우트 표를 검사하려고 남기는 빌드 로그 (scripts/assert-dynamic-routes.mjs)
+/build.log

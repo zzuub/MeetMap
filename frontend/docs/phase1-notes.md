@@ -17,7 +17,7 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 | `entities/event/model/types.ts` | `EventSummary`/`EventDetail` 교체. `stationName` 을 하나 추가했다 — 6.6 마커 시트가 `{stationName} 인근` 을 그려야 하는데 `venueName` 은 `EventDetail` 의 `EXACT` 전용이라 자리가 없었다. **12장에도 반영해 뒀다** (`decisions.md` 4.13) |
 | `entities/event/model/derive.ts` 🆕 | `deriveScale` `isThisWeek`/`weekRangeKst` `priceFor` `isEligible`. **자격·가격 판정을 화면에서 다시 짜지 않는다** |
 | `shared/config/constants.ts` | `CATEGORIES`·`GENDER_FILTERS`·`ONLY_20S_MAX_AGE`·`DEADLINE_ALERT_SEAT_THRESHOLD` 삭제. `TIME_SLOTS` 4종, `WHEN_OPTIONS`·`SCALE_OPTIONS`·`PRICE_CAPS`·`JOB_GROUPS` 신설 |
-| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 / `PRICE_CAPS` 3종(3만·5만·7만)이 남·여 어느 기준으로도 서로 다른 건수 |
+| `entities/event/mock/events.ts` | 목 8건 전면 교체 (로테이션 소개팅). 경계값을 섞어 뒀다 — 가격 `null` 1건 / 후기 0건 1건 / `마감` 1건(인기 2위라 홈 첫 화면에 뜬다) / `locationPrecision` 3종 / `scale` 3종 / `timeSlot` 4종 / 이번 주 5건·그 이후 3건 / `PRICE_CAPS` 3종(3만·5만·7만)이 남·여 어느 기준으로도 서로 다른 건수.<br>**날짜는 2026-09-07 부터 상대값이다** — `mock/dates.ts` 의 `schedule(일수, 시각)`, 앵커는 `isThisWeek` 와 같은 `weekRangeKst` (4.31). 회차는 `getMockEvents()` 로 가져온다. `이번 주 5건` 이 주석의 약속이 아니라 구조로 보장된다 |
 | `entities/event/mock/viewer.ts` 🆕 | `MOCK_VIEWER`(1996년생·여). `eligibleOnly`·`maxPrice`·가격 정렬은 쿼리에 성별·출생연도를 싣지 않으므로(13장) 목에서 인증 주체를 대신한다 |
 | `entities/event/api/eventApi.mock.ts` | 필터를 `when`·`scale`·`status`·`maxPrice`·`eligibleOnly` 로, 홈 3섹션을 `weeklyPopular`/`myAgeGroup`/`newlyAdded` 로 |
 | `entities/user` · `entities/notification` | `interestCategories` / `NotificationSettings.deadlineAlert` / `urgent` kind 삭제 |
@@ -33,11 +33,16 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 
 ## 착수 순서
 
-~~P1-0 데이터 모델~~(#9) → ~~P1-1·P1-2 카드·조각~~(#11) → ~~P1-0b `provider` 승격~~ · ~~P1-2b 카드 참조~~ → ~~P1-3 홈~~ → ~~P1-4 탐색 리스트~~ → ~~P1-5 필터 시트~~ · ~~P1-5c 적용 필터 칩 줄~~(#19) → ~~P1-5b 지역 시트~~ → **P1-6 정렬/뷰** → P1-7 상세 → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
+~~P1-0 데이터 모델~~(#9) → ~~P1-1·P1-2 카드·조각~~(#11) → ~~P1-0b `provider` 승격~~ · ~~P1-2b 카드 참조~~ → ~~P1-3 홈~~ → ~~P1-4 탐색 리스트~~ → ~~P1-5 필터 시트~~ · ~~P1-5c 적용 필터 칩 줄~~(#19) → ~~P1-5b 지역 시트~~ → ~~P1-6 정렬~~(#21, **뷰 토글은 P3-1 로**) → **P1-7 상세** → P1-8 외부 신청 모달 → P1-9 빈 상태·에러·로딩
 
 **P1-0b 는 끝났다.** `entities/provider` 가 있고, 목 데이터는 **주최사 4곳 × 회차 2건**이다 — `prv-001`(모집 중 1건, 나머지 마감) / `prv-002`(평점 표시) / `prv-003`(**표시 임계 미달**, 후기 3건) / `prv-004`(**후기 0건 + 이미지 미동의**). 남은 것은 주최사 페이지 화면(**P5-4**)이다.
 
-**P1-6 요점**: 정렬이 **5종**이다 — 인기순(기본) / 최신순 / **평점 높은순** / 가격 낮은순 / 가격 높은순. 평점 정렬은 주최사 `ratingScore`(베이지안 보정) 기준이고 **게스트에게도 노출**한다(가격 정렬과 달리 인증 주체가 필요 없다). 2차 정렬은 개최일 가까운 순 → `decisions.md` 4.20.
+~~**P1-6 요점**~~ — **끝났다(2026-09-07, #21). 단 정렬만이다.** 정렬 5종(인기·최신·평점·가격↑·가격↓)이 `features/event-filter` 에 붙었고, **뷰 토글은 P3-1 로 넘겼다** → 4.29.
+
+- **뷰 토글을 안 만든 이유**: 지도가 P3-1 이라 세그먼트의 절반이 매번 자리표시자로 간다. 토글은 탐색 상단의 **상시 노출 크롬**이라 `누르면 아무 일 없는 컨트롤은 만들지 않는다`(5.4)에 정면으로 걸린다 — 4.24 가 `지도` 탭을 뺀 근거와 같다. `view` 축·`SegmentedControl` 이 이미 있어 **P3-1 이 컨트롤 하나만 얹으면 된다**
+- **지도 자리표시자에 `리스트로 보기` 링크가 있다.** 홈 프로모 카드로 이미 도달 가능한 화면인데 컨트롤이 하나도 없어 편도였다. **P3-1 은 토글을 붙이면서 이 링크를 지운다**
+- **게스트의 가격 정렬은 파싱이 막는다** → 4.30. 화면(`sortChoices`)은 `hasViewerAxes` 로 옵션을 감출 뿐이고, 손으로 붙인 `?sort=priceDesc` 는 `parseSort` 가 기본값으로 떨어뜨린다. 평점 정렬은 게스트에게도 보인다 (4.20)
+- **정렬은 축별 건수 규칙(4.28) 밖이다** — 결과 집합이 아니라 순서만 바꾸므로 패싯 스캔이 늘지 않는다
 
 ~~**P1-3 요점**~~ — **끝났다(2026-09-04).** 홈은 헤더 → 헤드라인·추천 기준 → 지도 프로모 카드 → 섹션 3개 순이고, 퀵 필터 칩 바는 만들지 않았다. 세 섹션 모두 **모집 중만** 내린다(4.23). 남은 것: 찜 버튼(P2-7)·알림 안읽음 도트(P4)·`viewer` 주입(P2-4).
 
@@ -48,7 +53,7 @@ Phase 1(USER 코어 퍼널) 작업을 **착수할 때** 편다. 진행 현황표
 - **`초기화` 가 둘이고 대상이 다르다** — 칩 줄 쪽은 자격까지 끄고 시간대를 남기고, 시트 쪽은 자격을 남기고 시간대를 되돌린다 → 4.26
 - **전환 표시는 사용자가 보고 있는 자리에 붙인다.** 조작하는 자리가 셋이라 표시도 셋이다 — 시간대 칩은 **누른 칩**, 적용 필터 칩 줄은 `useLinkStatus`(+`prefetch={false}`), 시트는 `N개 결과 보기`. **컨트롤을 새로 붙이면 이 표시도 같이 붙인다** — 시간대 칩이 이걸 빠뜨려 PR #23 리뷰에 걸렸다. route-level `loading.tsx` 는 여전히 P1-9 이고, 페이지의 `총 N개 소개팅` 은 그때까지 전환 중 멈춰 있다
 
-남은 것: 상단 **지역 선택 버튼**(P1-5b), 정렬 `select`·뷰 토글(P1-6), 리스트 카드의 `내 나이대 아님` 이 실제로 뜨는 것(P2-4 `viewer` 주입 — 규칙 `marksIneligible` 은 이미 있고 테스트도 있다).
+남은 것: **뷰 토글**(P3-1 → 4.29), 리스트 카드의 `내 나이대 아님` 이 실제로 뜨는 것(P2-4 `viewer` 주입 — 규칙 `marksIneligible` 은 이미 있고 테스트도 있다).
 
 ~~**P1-5b 요점**~~ — **끝났다(2026-09-05).** 시/도 → 구 2단 시트 + 상단 지역 버튼. 건수 규칙 둘이 P1-6 이후에도 그대로 간다 → 4.28.
 

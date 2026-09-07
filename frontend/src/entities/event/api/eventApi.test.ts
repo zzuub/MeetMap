@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { MOCK_EVENTS } from "../mock/events";
+import { getMockEvents } from "../mock/events";
 import { isOpen } from "../model/derive";
 import { HOME_SECTION_KEYS, type HomeFeed } from "../model/types";
 import { openSectionsOnly } from "./eventApi";
+
+const MOCK_EVENTS = getMockEvents();
 
 /**
  * 실 API 로 전환한 뒤의 방어선 (`ports.ts` 의 `getHomeFeed` 계약).

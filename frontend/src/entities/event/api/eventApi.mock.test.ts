@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { PRICE_CAPS } from "@/shared/config";
-import { MOCK_EVENTS, mockProviderRatingScore } from "../mock/events";
+import { getMockEvents, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
-import { deriveScale, isEligible, isOpen, isThisWeek, priceFor } from "../model/derive";
+import {
+  currentTimeSlot,
+  deriveScale,
+  isEligible,
+  isOpen,
+  isThisWeek,
+  priceFor,
+} from "../model/derive";
 import type { EventListQuery } from "../model/types";
 import { applyFilters, applySort, mockEventApi } from "./eventApi.mock";
+
+// 테스트 한 번 도는 동안 주가 바뀌지 않으므로 목 API 가 보는 것과 같은 배열이다
+const MOCK_EVENTS = getMockEvents();
 
 /**
  * 목 필터는 **기능정의서 6.1/6.4 의 필터 의미**를 코드로 적어둔 자리다.
@@ -108,6 +118,29 @@ describe("목 데이터 자체의 무결성", () => {
     expect([...consent.values()]).toContain(false);
   });
 
+  it("timeSlot 이 개최 시각과 어긋나지 않는다", () => {
+    // `timeSlot` 은 저장 필드지만 경계는 **시작 시각** 기준으로 정의돼 있다 (6.2).
+    // 날짜가 상대값이 되면서 시각 계산이 생겼으니, 계산이 틀어지면 카드의 `디너`
+    // 배지와 `10:30` 이 같이 뜨는 모순을 여기서 잡는다 (`decisions.md` 4.31)
+    for (const event of MOCK_EVENTS) {
+      expect(currentTimeSlot(new Date(event.date)), `${event.id} 의 시간대`).toBe(
+        event.timeSlot,
+      );
+    }
+  });
+
+  it("등록일은 언제 돌려도 과거다", () => {
+    // 개최일은 미래(이번 주 후반~2주 뒤)인데 등록일 일수가 양수로 바뀌면 **아직
+    // 등록되지 않은 소개팅**이 목록에 뜬다. 날짜가 상대값이 되면서 부호 하나로
+    // 생기는 실수라 여기서 잠근다 (`decisions.md` 4.31)
+    const now = Date.now();
+
+    for (const event of MOCK_EVENTS) {
+      expect(new Date(event.createdAt).getTime(), `${event.id} 의 등록일`).toBeLessThan(now);
+      expect(new Date(event.createdAt).getTime()).toBeLessThan(new Date(event.date).getTime());
+    }
+  });
+
   it("정렬 축에 동률이 없다", () => {
     // 동률이 생기면 `Array.sort` 의 안정성만으로 정렬 테스트가 통과해버려
     // 비교 함수의 버그를 못 잡는다. `sort=rating` 이 실제로 그랬다 —
@@ -157,14 +190,17 @@ describe("applyFilters", () => {
     const thisWeek = ids({ when: "THIS_WEEK" });
     const later = ids({ when: "LATER" });
 
+    // 여기가 이 테스트의 값이다 — 전건이 정확히 한쪽에만 속한다(`LATER` 가
+    // `!THIS_WEEK` 로 정의됐는가). 어느 건도 양쪽 다이거나 양쪽 다 아니면 걸린다
     expect(thisWeek.length + later.length).toBe(MOCK_EVENTS.length);
     expect(thisWeek.filter((id) => later.includes(id))).toEqual([]);
-    // 목 데이터는 양쪽 다 결과가 나오게 짜여 있다 (기준일 2026-09-02)
-    expect(thisWeek.length).toBeGreaterThan(0);
-    expect(later.length).toBeGreaterThan(0);
-    for (const id of thisWeek) {
-      expect(isThisWeek(MOCK_EVENTS.find((e) => e.id === id)!.date)).toBe(true);
-    }
+
+    // 5:3 은 **회귀 감지용 스냅샷**이다. 목 날짜가 `isThisWeek` 와 같은 앵커를 쓰므로
+    // 언제 돌려도 같지만, 그건 자기 일관성이지 경계가 옳다는 증명이 아니다 —
+    // 월 00:00~일 23:59:59.999 의 정확성은 `derive.test.ts` 가 고정된 `now` 와
+    // 절대 ISO 로 따로 본다 (PR #27 리뷰)
+    expect(thisWeek).toHaveLength(5);
+    expect(later).toHaveLength(3);
   });
 
   it("scale 은 규모로 거른다", () => {

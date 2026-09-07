@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-05 (**P1-5b 지역 시트 완료**)
+> 마지막 갱신: 2026-09-07 (**P1-6 정렬 완료** — 뷰 토글은 P3-1 로 이월 / 목 날짜를 상대값으로)
 
 ## 어디에 무엇이 있나
 
@@ -79,7 +79,7 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
-| `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤** + `exploreFacets`(축별 건수) |
+| `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
 | `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + 나머지는 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
@@ -119,6 +119,10 @@ const feed = await eventApi.getHomeFeed({});
 - `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
 - **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
+- ⚠️ **목 데이터의 날짜에 절대값을 다시 넣지 않는다.** `mock/dates.ts` 의 `schedule(일수, 시각)` 을 쓴다 — `date`·`dateLabel`·`timeLabel` 을 한 순간에서 함께 만들고, 앵커가 `isThisWeek` 와 같은 `weekRangeKst` 라 `이번 주 5건 · 그 이후 3건` 이 구조로 보장된다 (4.31). 절대 날짜였을 때 주가 넘어가며 CI 가 깨졌고, 라벨만 리터럴로 뒀을 때는 8건 전부 일주일씩 어긋났다. **등록일 일수는 전부 음수여야 한다**(미래 등록 방지)
+- ⚠️ **목 회차는 `MOCK_EVENTS` 상수가 아니라 `getMockEvents()` 로 가져온다.** 주를 키로 캐시해서 주가 바뀌면 다시 만든다 — 상수로 굳히면 서버를 켜둔 채 주가 넘어갔을 때 `THIS_WEEK` 가 **빈 화면이 아니라 조용히 틀린 건수**(5건 → 2건)가 된다 (4.31). 반환은 `readonly` 다(제자리 정렬 금지)
+- ⚠️ **목을 무는 페이지를 정적 프리렌더로 두지 않는다.** 프리렌더되면 빌드한 주의 날짜가 HTML 에 굳는다. `/` 와 `/explore` 는 `cookies()`·`searchParams` 로 이미 동적이고, `/design-system` 은 그 둘을 안 읽어 `force-dynamic` 을 명시했다 (4.31). **CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사한다** — `src/app` 안의 `.ts(x)` 를 전부 훑어 `eventApi` 를 무는 라우트를 찾으므로 `_components/` 하위도 잡힌다. `widgets`·`features` 까지는 안 따라간다
+- ⚠️ **목 API 가 회차를 돌려줄 때는 `detached` 를 거친다.** 필터·정렬·페이지네이션은 배열만 새로 만들고 **원소는 캐시 인스턴스 그대로** 통과시켜서, 화면이 `event.isLiked = true` 한 줄만 써도 같은 주 전체가 오염된다. `isLiked` 는 `EventSummary` 에 있어 상세뿐 아니라 **목록 카드**도 그 경로다 (4.31). 회차를 돌려주는 메서드를 추가하면 `events.test.ts` 의 커버리지 표에도 줄을 더한다
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
 ---
@@ -144,6 +148,8 @@ const feed = await eventApi.getHomeFeed({});
 - **비활성 버튼의 라벨이 미충족 사유를 말한다.** (`필수 약관에 동의해주세요`) 별도 에러 토스트를 띄우지 않는다
 - **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1). **주소를 손으로 조립하지 않는다** — 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 (4.24)
 - **하단 탭 두 번째는 `탐색`(리스트 기본)이다.** 지도는 목적지가 아니라 탐색의 뷰다 — 2026-09-05 개편 (5.5)
+- **뷰 토글(`리스트 / 지도`)은 아직 없다. P3-1 에서 붙인다** (4.29). 지도가 없는 동안 세그먼트 절반이 자리표시자로 가기 때문이다 — `누르면 아무 일 없는 컨트롤은 만들지 않는다`. 지금 `?view=map` 은 자리표시자 + `리스트로 보기` 링크이고, P3-1 이 토글을 붙이면서 **둘 다 지운다**
+- **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
 - **건수 0인 선택지는 노출하지 않는다.** 시간대 칩·지역 시트가 그렇다. 건수는 **현재 걸린 다른 필터를 반영**하고, 못 셌으면 건수를 감춘다 (4.28)

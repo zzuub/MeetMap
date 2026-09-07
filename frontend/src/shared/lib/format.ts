@@ -101,6 +101,22 @@ function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+/**
+ * `hour12: false` 에서 자정을 `"24"` 로 주는 `Intl` 구현을 접는다 (→ `0`).
+ *
+ * 실재했던 버그다 — V8·JSC 가 한때 그렇게 내려줬고 지금 Node 의 ICU 는 고쳐진
+ * 버전이라 **여기서는 이 분기를 밟을 입력을 만들 수 없다.** 그렇다고 지울 수는
+ * 없다: 이 포매터는 `shared/lib` 의 공유 유틸이라 화면에 붙으면 실행 환경이 CI 의
+ * Node 가 아니라 사용자 브라우저의 `Intl` 이 되고, 구형 엔진이 트래픽에 섞이면
+ * 그때 `24:00` 이 화면에 뜬다.
+ *
+ * `getKstParts` 안에 인라인으로 두면 `Intl` 을 속일 수단이 없어 **영구히
+ * 미검증**이라, 방어 로직만 떼어 직접 테스트한다 (PR #27 3차 리뷰).
+ */
+export function normalizeHour24(rawHour: string): number {
+  return Number(rawHour) % 24;
+}
+
 function getKstParts(date: Date) {
   const parts = Object.fromEntries(
     kstParts.formatToParts(date).map((p) => [p.type, p.value]),
@@ -110,7 +126,7 @@ function getKstParts(date: Date) {
     year: Number(parts.year),
     month: Number(parts.month),
     day: Number(parts.day),
-    hour: Number(parts.hour) % 24,
+    hour: normalizeHour24(parts.hour),
     minute: Number(parts.minute),
     weekday: parts.weekday ?? WEEKDAYS[date.getDay()],
   };

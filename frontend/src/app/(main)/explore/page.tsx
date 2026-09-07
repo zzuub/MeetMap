@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
 import {
   exploreFacets,
+  exploreHref,
   parseExploreParams,
   type RawSearchParams,
 } from "@/features/event-filter";
@@ -23,8 +25,29 @@ export default async function ExplorePage({
   const [session, raw] = await Promise.all([getServerSession(), searchParams]);
   const params = parseExploreParams(raw, { isGuest: session === null });
 
+  /*
+    지도는 P3-1 이라 아직 자리표시자다. 뷰 토글을 그리지 않기로 한 이상(4.29) 이
+    화면에는 상단 컨트롤이 통째로 없으므로, **리스트로 돌아갈 길을 여기가 준다** —
+    홈 지도 프로모 카드(5-6)로 이미 도달 가능한 화면이라 편도가 되면 안 된다.
+    걸어둔 조건은 그대로 들고 간다(`exploreHref`).
+  */
   if (params.view === "map") {
-    return <PhasePlaceholder title="지도 뷰" phase="Phase 3 · P3-1" spec="6.6" />;
+    return (
+      <PhasePlaceholder
+        title="지도 뷰"
+        phase="Phase 3 · P3-1"
+        spec="6.6"
+        action={
+          <Link
+            href={exploreHref({ ...params, view: "list" })}
+            replace
+            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-chip border border-border bg-surface px-4 text-[14px] font-semibold text-text"
+          >
+            리스트로 보기
+          </Link>
+        }
+      />
+    );
   }
 
   // 시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 목록과 함께 받는다

@@ -1,4 +1,4 @@
-import type { EventListQuery } from "@/entities/event";
+import type { EventListQuery, SortOption } from "@/entities/event";
 import {
   AREAS,
   DEFAULT_PROVINCE,
@@ -9,6 +9,7 @@ import {
   SEOUL_DISTRICTS,
   SORT_OPTIONS,
   TIME_SLOTS,
+  VIEWER_SORTS,
   WHEN_OPTIONS,
   type DistrictCode,
 } from "@/shared/config";
@@ -50,7 +51,7 @@ export function parseExploreParams(
     slot: pick(first(params.slot), TIME_SLOTS, "ALL"),
     scale: pick(first(params.scale), SCALE_OPTIONS, "ALL"),
     status: first(params.status) === "OPEN" ? "OPEN" : "ALL",
-    sort: pick(first(params.sort), SORT_OPTIONS, DEFAULT_SORT),
+    sort: parseSort(first(params.sort), isGuest),
     mood: parseMood(first(params.mood)),
     area: parseArea(first(params.area)),
   };
@@ -144,6 +145,25 @@ function parseMood(value: string | undefined): string[] | undefined {
     .filter((tag) => (MOOD_TAGS as readonly string[]).includes(tag));
 
   return tags.length > 0 ? [...new Set(tags)] : undefined;
+}
+
+/**
+ * 정렬 (6.2). **게스트에게 가격 정렬은 알 수 없는 값과 같다** — 성별 기준값을 쓰는데
+ * 성별을 모르므로 축이 성립하지 않는다. 그래서 기본값으로 떨어뜨린다
+ * (`decisions.md` 4.30).
+ *
+ * 화면에서 옵션만 감추면 손으로 `?sort=priceDesc` 를 붙인 게스트가 남고, `select` 는
+ * 자기 옵션에 없는 값을 받아 **아무것도 선택되지 않은 상태**로 뜬다. 게이트를 여기
+ * 하나로 두는 이유는 `eligibleOnly`·`maxPrice` 와 같다 (4.27).
+ *
+ * `eligibleOnly` 처럼 키를 지우지는 않는다 — 정렬은 기본값이 있는 축이라 지우면
+ * 호출부마다 `?? DEFAULT_SORT` 를 다시 쓰게 된다.
+ */
+function parseSort(value: string | undefined, isGuest: boolean): SortOption {
+  const sort = pick(value, SORT_OPTIONS, DEFAULT_SORT);
+  const needsViewer = (VIEWER_SORTS as readonly string[]).includes(sort);
+
+  return isGuest && needsViewer ? DEFAULT_SORT : sort;
 }
 
 /**

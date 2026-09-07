@@ -9,6 +9,7 @@ export {
   resetSheetFilters,
   type AppliedFilterChip,
 } from "./model/filterChips";
+export { sortChoices, type SortChoice } from "./model/sortChoices";
 export {
   EXPLORE_PATH,
   exploreHref,
@@ -19,3 +20,4 @@ export {
   type RawSearchParams,
 } from "./model/exploreParams";
 export { ExploreFilterBar } from "./ui/ExploreFilterBar";
+export { SortSelect } from "./ui/SortSelect";
