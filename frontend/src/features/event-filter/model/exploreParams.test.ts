@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AREAS, MOOD_TAGS, PRICE_CAPS } from "@/shared/config";
+import { AREAS, DEFAULT_SORT, MOOD_TAGS, PRICE_CAPS, VIEWER_SORTS } from "@/shared/config";
 import {
   parseExploreParams,
   serializeExploreParams,
@@ -113,6 +113,21 @@ describe("parseExploreParams", () => {
     expect(query.maxPrice).toBeUndefined();
     // 나머지 축은 게스트에게도 그대로 걸린다
     expect(asGuest({ slot: "DINNER" }).query.slot).toBe("DINNER");
+  });
+
+  it("게스트에게 가격 정렬은 알 수 없는 값과 같다 — 기본값으로 떨어진다", () => {
+    // 성별 기준값을 쓰는 축인데 게스트는 성별을 모른다 (6.2 / `decisions.md` 4.30).
+    // 화면에서 옵션만 감추면 손으로 붙인 파라미터가 그대로 통과한다
+    for (const sort of VIEWER_SORTS) {
+      expect(asGuest({ sort }).query.sort).toBe(DEFAULT_SORT);
+      expect(asUser({ sort }).query.sort).toBe(sort);
+    }
+  });
+
+  it("가격 외의 정렬은 게스트에게도 그대로 걸린다", () => {
+    // 평점 정렬은 주최사 `ratingScore` 기준이라 인증 주체가 필요 없다 (4.20)
+    expect(asGuest({ sort: "rating" }).query.sort).toBe("rating");
+    expect(asGuest({ sort: "latest" }).query.sort).toBe("latest");
   });
 
   it("같은 키가 두 번 오면 첫 값을 쓴다", () => {

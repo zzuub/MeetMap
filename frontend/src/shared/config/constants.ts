@@ -141,6 +141,16 @@ export const SORT_OPTIONS = [
 
 export const DEFAULT_SORT = "popular" as const;
 
+/**
+ * **인증 주체가 필요한 정렬** (6.2). 가격 정렬은 사용자 성별 기준값을 쓰므로
+ * (여성→`femalePrice`, 남성→`malePrice`) 성별을 모르는 게스트에게는 축이 성립하지
+ * 않는다. `eligibleOnly`·`maxPrice` 와 같은 부류다.
+ *
+ * 화면은 이 목록으로 옵션을 감추고, 값의 유효성은 파싱이 판정한다
+ * (`decisions.md` 4.30 — 게이트는 파싱 한 곳이다).
+ */
+export const VIEWER_SORTS = ["priceAsc", "priceDesc"] as const;
+
 /* ── 주최사 평점 (7.4 / 6.2) ────────────────────────────── */
 
 /**
