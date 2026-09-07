@@ -44,10 +44,13 @@ describe("getMockEvents", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
 
     try {
-      vi.setSystemTime(new Date("2026-09-14T09:00:00+09:00"));
+      // 위 테스트가 쓰지 않는 주를 고른다. 모듈 스코프 캐시를 두 테스트가
+      // 공유하므로, 같은 주를 쓰면 이 단언이 **앞 테스트가 만들어 둔 배열**을
+      // 보게 되어 실행 순서에 기대게 된다
+      vi.setSystemTime(new Date("2026-10-05T09:00:00+09:00")); // 월요일
       const first = getMockEvents();
 
-      vi.setSystemTime(new Date("2026-09-20T23:59:00+09:00")); // 같은 주 일요일
+      vi.setSystemTime(new Date("2026-10-11T23:59:00+09:00")); // 같은 주 일요일
       expect(getMockEvents()).toBe(first);
     } finally {
       vi.useRealTimers();

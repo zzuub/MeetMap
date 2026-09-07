@@ -456,8 +456,18 @@ function buildMockEvents(): EventDetail[] {
  *
  * ⚠️ **`MOCK_EVENTS` 상수를 되살리지 않는다.** 모듈 로드 시점에 한 번 굳는 값이
  * 바로 위 문제의 원인이었다.
+ *
+ * 캐시가 성립하려면 전제가 셋이다 (`decisions.md` 4.31).
+ *
+ * 1. **아무도 이 배열을 제자리에서 바꾸지 않는다** — 반환 타입이 `readonly` 인 이유다.
+ *    `getMockEvents().sort()` 한 줄이면 캐시가 그 자리에서 뒤집혀 다음 주까지 모든
+ *    요청이 그 순서를 본다. 관행이 아니라 타입으로 막는다
+ * 2. **검사와 대입 사이에 `await` 가 없다** — 동기 블록이라 요청이 몰려도 끼어들 수
+ *    없다. 이 함수 안에 비동기를 들이면 그 순간 깨진다
+ * 3. **이 함수를 무는 라우트가 정적 프리렌더되지 않는다** — 프리렌더되면 빌드
+ *    시점의 주가 HTML 에 굳어 영원히 안 바뀐다
  */
-export function getMockEvents(): EventDetail[] {
+export function getMockEvents(): readonly EventDetail[] {
   const weekStart = weekRangeKst(new Date()).start;
 
   if (cache === null || cache.weekStart !== weekStart) {
@@ -467,4 +477,4 @@ export function getMockEvents(): EventDetail[] {
   return cache.events;
 }
 
-let cache: { weekStart: number; events: EventDetail[] } | null = null;
+let cache: { weekStart: number; events: readonly EventDetail[] } | null = null;

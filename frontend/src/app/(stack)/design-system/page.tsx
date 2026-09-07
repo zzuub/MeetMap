@@ -8,6 +8,17 @@ export const metadata: Metadata = {
 };
 
 /**
+ * **정적 프리렌더를 끈다.** 이 페이지는 `cookies()`·`searchParams` 를 안 읽어서
+ * 기본값이면 빌드 시점에 HTML 로 굳는데, 목 날짜가 이번 주 기준 상대값이라
+ * (`decisions.md` 4.31) 굳는 순간 **빌드한 주의 날짜가 영원히 박제된다.**
+ * 카드 경계값을 눈으로 확인하는 페이지가 `/explore` 와 다른 날짜를 그리면
+ * 기준으로 쓸 수 없다.
+ *
+ * `/` 와 `/explore` 는 각각 `cookies()`·`searchParams` 를 읽어 이미 동적이다.
+ */
+export const dynamic = "force-dynamic";
+
+/**
  * Phase 0~1 산출물 확인용 페이지 (`/design-system`).
  *
  * P0-1(토큰) / P0-3(shared/ui) / P0-4(피드백 패턴) / P1-1(카드 variant 5종)의

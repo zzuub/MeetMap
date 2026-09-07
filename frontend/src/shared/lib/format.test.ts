@@ -7,6 +7,7 @@ import {
   formatNumber,
   formatPrice,
   formatRelativeTime,
+  normalizeHour24,
 } from "./format";
 
 /**
@@ -52,16 +53,29 @@ describe("formatEventTime", () => {
     expect(formatEventTime("2026-09-04T00:00:00+09:00")).toBe("00:00");
   });
 
-  /*
-   * ⚠️ 위 자정 케이스는 구현의 `% 24` 를 **밟지 못한다.** 그 줄을 지워도 통과한다
-   * (변이로 확인). 이 환경의 ICU 가 `hour12: false` 에서 자정을 이미 `"00"` 으로
-   * 주기 때문이다 — `% 24` 는 `"24"` 를 주는 다른 ICU 를 위한 방어 코드이고,
-   * 여기서 그 입력을 만들 수단이 없다. 자정이 `00:00` 이라는 계약 자체는 위에서
-   * 잠기지만, 그 방어선이 살아 있는지는 이 파일이 답하지 못한다.
-   */
-
   it("정오는 12:00 이다", () => {
     expect(formatEventTime("2026-09-04T12:00:00+09:00")).toBe("12:00");
+  });
+
+  /*
+   * ⚠️ 위 자정 케이스는 `normalizeHour24` 를 **밟지 못한다.** 이 환경의 ICU 는
+   * `hour12: false` 에서 자정을 이미 `"00"` 으로 주기 때문이다(그 줄을 지워도
+   * 통과한다 — 변이로 확인). `Intl` 을 속일 수단이 없어 방어선 자체는 아래에서
+   * 따로 본다.
+   */
+});
+
+describe("normalizeHour24", () => {
+  it("`24` 를 자정(0)으로 접는다", () => {
+    // `hour12: false` 에서 자정을 `"24"` 로 주는 구현이 실재했다. 이 방어선이
+    // 없으면 그런 환경에서 `24:00` 이 화면에 뜬다 (PR #27 3차 리뷰)
+    expect(normalizeHour24("24")).toBe(0);
+  });
+
+  it("나머지 시각은 그대로 둔다", () => {
+    expect(normalizeHour24("00")).toBe(0);
+    expect(normalizeHour24("09")).toBe(9);
+    expect(normalizeHour24("23")).toBe(23);
   });
 });
 
