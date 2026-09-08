@@ -47,9 +47,8 @@ export function AppHeader({ title, action, backHref, className }: AppHeaderProps
         </svg>
       </IconButton>
 
-      {/* 타이틀 없는 화면이 있다 — 소개팅 상세는 헤더에 `공유` 만 두고 제목은 히어로가
-          `h1` 으로 갖는다 (7.1). 빈 `h1` 을 남기면 문서에 제목 없는 헤딩이 하나 생기고,
-          히어로의 `h1` 과 합쳐 `h1` 이 둘이 된다. */}
+      {/* ⚠️ `title` 없이 쓰는 화면은 **자기 `h1` 을 반드시 하나 가져야 한다** — 타입이
+          강제하지 못하는 절반이다. 근거는 `decisions.md` 4.34 */}
       {title ? (
         <h1 className="min-w-0 flex-1 truncate text-center text-[16px] font-bold text-primary">
           {title}
