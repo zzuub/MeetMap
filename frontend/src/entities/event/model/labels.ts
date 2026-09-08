@@ -201,9 +201,9 @@ export function venueDisplay(
  * 같아 보인다. 표시 임계(5건) 미달이면 숫자를 버리고 `후기 N건` 만 남긴다.
  *
  * `EventProviderDetail.rating` 은 **이미 임계가 적용된 값**(12장)인데도 건수를
- * 한 번 더 본다. `openSectionsOnly`(4.23)와 같은 방어선이다 — 계약이 깨져
- * 3건짜리 평점이 내려오면 7.4 를 어긴 화면이 그대로 나가고, 사용자는 표본이
- * 몇 건인지 알 방법이 없다. **잘못 보여주는 것보다 덜 보여주는 쪽을 고른다.**
+ * 한 번 더 본다 — `openSectionsOnly`(4.23)와 같은 방어선이고, **언제 이 형태를
+ * 쓰는지는 4.35 의 사다리**가 정한다. 여기가 걸리는 이유는 사용자에게 이 값을
+ * 걷어낼 컨트롤이 없어서다: 3건짜리 평점이 내려와도 표본이 몇 건인지 알 방법이 없다.
  */
 export type RatingDisplay =
   | { kind: "score"; rating: number; reviewCount: number }
