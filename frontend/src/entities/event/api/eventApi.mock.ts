@@ -78,7 +78,9 @@ export const mockEventApi: EventApi = {
         message: "요청한 소개팅을 찾을 수 없습니다.",
       });
     }
-    return { ...found };
+    // 인라인 복사로 같은 일을 다시 쓰지 않는다 — 나중에 `detached` 에 방어가 붙으면
+    // 여기만 조용히 빠진다 (PR #27 6차 리뷰).
+    return detached([found])[0];
   },
 
   async getMapMarkers(query) {

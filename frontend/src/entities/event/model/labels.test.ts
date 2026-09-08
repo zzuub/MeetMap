@@ -4,12 +4,15 @@ import {
   birthYearLabel,
   birthYearRangeLabel,
   capacityLabel,
+  detailMetaLabel,
   locationLabel,
   priceDisplay,
+  providerRatingDisplay,
   providerScheduleLabel,
   providerSlotLabel,
   scaleLabel,
   timeSlotLabel,
+  venueDisplay,
 } from "./labels";
 import type { EventSummary } from "./types";
 
@@ -153,6 +156,136 @@ describe("메타 줄", () => {
 
   it("소형 카드는 날짜 대신 시간대를 쓴다 (5.3)", () => {
     expect(providerSlotLabel(event)).toBe("로테이션서울 · 디너 19:30");
+  });
+
+  const detailBase = {
+    ...event,
+    locationPrecision: "EXACT",
+    stationName: null,
+    district: "SEONGDONG",
+    area: "성수·건대",
+    distanceKm: null,
+  } as const;
+
+  it("상세는 지역을 덧붙인다 (7.1)", () => {
+    expect(detailMetaLabel(detailBase)).toBe(
+      "로테이션서울 · 9/4(금) 19:30 · 성수·건대",
+    );
+  });
+
+  it("상세의 지역 표기도 정밀도를 따른다 — 리스트와 같은 문자열이어야 한다", () => {
+    const station = {
+      ...detailBase,
+      locationPrecision: "STATION",
+      stationName: "강남역",
+      district: "GANGNAM",
+    } as const;
+
+    expect(detailMetaLabel(station)).toContain(locationLabel(station));
+    expect(detailMetaLabel(station)).toBe(
+      "로테이션서울 · 9/4(금) 19:30 · 강남역 인근",
+    );
+  });
+
+  it("거리를 알면 지역 뒤에 붙인다", () => {
+    expect(detailMetaLabel({ ...detailBase, distanceKm: 1.24 })).toBe(
+      "로테이션서울 · 9/4(금) 19:30 · 성수·건대 1.2km",
+    );
+  });
+
+  it("거리를 모르면 통째로 뺀다 — `성수·건대 -km` 는 값이 아니라 오식이다", () => {
+    expect(detailMetaLabel(detailBase)).not.toContain("-");
+  });
+});
+
+describe("venueDisplay", () => {
+  const base = {
+    locationPrecision: "EXACT",
+    stationName: null,
+    district: "SEONGDONG",
+    area: "성수·건대",
+    venueName: "루프탑 바 노이",
+    address: "서울 성동구 성수동2가 299-50",
+  } as const;
+
+  it("EXACT 만 장소명·주소를 낸다 — 상세에만 있는 필드다", () => {
+    expect(venueDisplay(base)).toEqual({
+      kind: "exact",
+      venueName: "루프탑 바 노이",
+      address: "서울 성동구 성수동2가 299-50",
+    });
+  });
+
+  it("STATION·DISTRICT 는 리스트와 같은 문자열로 떨어진다", () => {
+    const station = {
+      ...base,
+      locationPrecision: "STATION",
+      stationName: "강남역",
+      district: "GANGNAM",
+      venueName: null,
+      address: null,
+    } as const;
+
+    expect(venueDisplay(station)).toEqual({
+      kind: "approximate",
+      label: locationLabel(station),
+    });
+    expect(venueDisplay(station)).toEqual({
+      kind: "approximate",
+      label: "강남역 인근",
+    });
+  });
+
+  it("EXACT 인데 장소명이 비면 근사 표기로 내린다", () => {
+    expect(venueDisplay({ ...base, venueName: null })).toEqual({
+      kind: "approximate",
+      label: "성수·건대",
+    });
+  });
+});
+
+describe("providerRatingDisplay", () => {
+  it("표시 임계를 넘으면 평점과 건수를 함께 낸다 (prv-001: 4.6 / 47건)", () => {
+    expect(providerRatingDisplay({ rating: 4.6, reviewCount: 47 })).toEqual({
+      kind: "score",
+      rating: 4.6,
+      reviewCount: 47,
+    });
+  });
+
+  it("서버가 임계를 적용해 null 을 주면 건수만 남긴다 (prv-003: 후기 3건)", () => {
+    expect(providerRatingDisplay({ rating: null, reviewCount: 3 })).toEqual({
+      kind: "countOnly",
+      reviewCount: 3,
+    });
+  });
+
+  it("후기 0건도 같은 갈래다 (prv-004)", () => {
+    expect(providerRatingDisplay({ rating: null, reviewCount: 0 })).toEqual({
+      kind: "countOnly",
+      reviewCount: 0,
+    });
+  });
+
+  /**
+   * 계약이 깨진 응답. `rating` 이 이미 임계를 지난 값이라는 것이 12장의 약속이지만,
+   * 어겨졌을 때 3건짜리 평점을 그대로 그리면 7.4 를 어긴 화면이 나간다.
+   * `openSectionsOnly`(4.23)와 같은 방어선이다.
+   */
+  it("건수가 임계 미달이면 평점이 실려 와도 버린다", () => {
+    expect(providerRatingDisplay({ rating: 4.67, reviewCount: 3 })).toEqual({
+      kind: "countOnly",
+      reviewCount: 3,
+    });
+  });
+
+  it("경계는 5건이다 — 4건은 감추고 5건은 낸다", () => {
+    expect(providerRatingDisplay({ rating: 4.0, reviewCount: 4 }).kind).toBe(
+      "countOnly",
+    );
+    expect(providerRatingDisplay({ rating: 4.0, reviewCount: 5 }).kind).toBe(
+      "score",
+    );
   });
 });
 

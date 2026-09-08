@@ -47,9 +47,15 @@ export function AppHeader({ title, action, backHref, className }: AppHeaderProps
         </svg>
       </IconButton>
 
-      <h1 className="min-w-0 flex-1 truncate text-center text-[16px] font-bold text-primary">
-        {title}
-      </h1>
+      {/* ⚠️ `title` 없이 쓰는 화면은 **자기 `h1` 을 반드시 하나 가져야 한다** — 타입이
+          강제하지 못하는 절반이다. 근거는 `decisions.md` 4.34 */}
+      {title ? (
+        <h1 className="min-w-0 flex-1 truncate text-center text-[16px] font-bold text-primary">
+          {title}
+        </h1>
+      ) : (
+        <div className="min-w-0 flex-1" />
+      )}
 
       {/* 타이틀을 가운데 정렬로 유지하기 위해 액션이 없어도 자리를 비워둔다 */}
       <div className="flex min-w-11 justify-end">{action}</div>

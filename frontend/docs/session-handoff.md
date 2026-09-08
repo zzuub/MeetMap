@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-07 (**P1-6 정렬 완료** — 뷰 토글은 P3-1 로 이월 / 목 날짜를 상대값으로)
+> 마지막 갱신: 2026-09-08 (**P1-7 상세 완료** — 하단 CTA 는 P1-8 로, 주최사 링크는 P5-4 로 이월)
 
 ## 어디에 무엇이 있나
 
@@ -80,8 +80,8 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
 | `features/` | **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
-| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + 나머지는 자리표시자 페이지 |
+| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 + `ShareButton`) |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + 나머지는 자리표시자 페이지 |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 `features/` 슬라이스는 `event-filter` 하나다. 탐색의 필터 관련은 **전부 여기** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
@@ -146,6 +146,7 @@ const feed = await eventApi.getHomeFeed({});
 - **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1). **주소를 손으로 조립하지 않는다** — 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 (4.24)
 - **하단 탭 두 번째는 `탐색`(리스트 기본)이다.** 지도는 목적지가 아니라 탐색의 뷰다 — 2026-09-05 개편 (5.5)
 - **뷰 토글(`리스트 / 지도`)은 아직 없다. P3-1 에서 붙인다** (4.29). 지도가 없는 동안 세그먼트 절반이 자리표시자로 가기 때문이다 — `누르면 아무 일 없는 컨트롤은 만들지 않는다`. 지금 `?view=map` 은 자리표시자 + `리스트로 보기` 링크이고, P3-1 이 토글을 붙이면서 **둘 다 지운다**
+- **상세의 하단 고정 CTA·주최사 페이지 링크도 아직 없다. 바는 P1-8 이 모달과 함께 세운다** (4.32) — 같은 규칙이다. ⚠️ **`신청하기` 를 `externalApplyUrl` 로 직결하지 않는다**: 결제 비대행 고지(7.3)를 우회하는 경로가 된다
 - **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
@@ -159,7 +160,7 @@ const feed = await eventApi.getHomeFeed({});
 - **칩·필터를 가로 스크롤로 만들지 않는다.** `flex-wrap` 을 쓴다. 홈의 카드 캐러셀만 예외
 - **`--color-accent` 위에 흰 텍스트를 올리지 않는다.** 대비 1.6:1 로 WCAG 미달. `text-text` 를 쓴다
 - 색상을 하드코딩하지 않는다. Tailwind 토큰(`bg-accent`, `text-text-sub`)을 쓴다
-- 접근성은 만들 때 넣는다: `div + onClick` 금지, 터치 타깃 44×44, 시트·모달 포커스 트랩
+- 접근성은 만들 때 넣는다: `div + onClick` 금지, 터치 타깃 44×44, 시트·모달 포커스 트랩, **`title` 없는 `AppHeader` 를 쓰는 화면은 자기 `h1` 을 갖는다**(4.34 — 타입이 강제 못 한다)
 
 ### 코드 작성 시 주의
 

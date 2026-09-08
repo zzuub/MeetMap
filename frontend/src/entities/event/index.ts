@@ -14,13 +14,18 @@ export {
   birthYearLabel,
   birthYearRangeLabel,
   capacityLabel,
+  detailMetaLabel,
   locationLabel,
   priceDisplay,
+  providerRatingDisplay,
   providerScheduleLabel,
   providerSlotLabel,
   scaleLabel,
   timeSlotLabel,
+  venueDisplay,
   type PriceDisplay,
+  type RatingDisplay,
+  type VenueDisplay,
 } from "./model/labels";
 export type { EventApi } from "./model/ports";
 export { HOME_SECTION_KEYS } from "./model/types";

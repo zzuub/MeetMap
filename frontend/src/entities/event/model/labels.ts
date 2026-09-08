@@ -1,6 +1,14 @@
 import { DISTRICT_LABEL, SCALE_OPTIONS, TIME_SLOTS } from "@/shared/config";
+import { canShowRating, formatDistance } from "@/shared/lib";
 import { priceFor } from "./derive";
-import type { EventScale, EventSummary, TimeSlot, ViewerGender } from "./types";
+import type {
+  EventDetail,
+  EventProviderDetail,
+  EventScale,
+  EventSummary,
+  TimeSlot,
+  ViewerGender,
+} from "./types";
 
 /**
  * 표시 문자열 생성 (순수 함수).
@@ -118,6 +126,100 @@ export function providerSlotLabel(
   event: Pick<EventSummary, "provider" | "timeSlot" | "timeLabel">,
 ): string {
   return `${event.provider.name} · ${timeSlotLabel(event.timeSlot)} ${event.timeLabel}`;
+}
+
+/**
+ * `'로테이션서울 · 9/4(금) 19:30 · 성수·건대 1.2km'` — 상세 메타 줄 (7.1).
+ *
+ * 리스트의 메타 줄(`providerScheduleLabel`)에 **지역·거리를 덧붙인 것**이라
+ * 앞부분을 다시 조립하지 않고 그 함수를 그대로 부른다. 지역 표기도 마찬가지로
+ * `locationLabel` 을 거친다 — 정밀도 3분기가 두 벌이 되면 상세만 `강남역 인근`
+ * 대신 동 이름을 쓰는 식으로 어긋난다.
+ *
+ * ⚠️ **거리는 모르면 아예 빼고, `-` 로 채우지 않는다.** `formatDistance` 의 `-` 는
+ * 비교함(8장) 표처럼 **칸을 비울 수 없는 자리**의 규칙이다. 문장 안에서 `성수·건대
+ * -km` 는 값이 아니라 오식으로 읽힌다.
+ */
+export function detailMetaLabel(
+  event: Pick<
+    EventSummary,
+    | "provider"
+    | "dateLabel"
+    | "timeLabel"
+    | "locationPrecision"
+    | "stationName"
+    | "district"
+    | "area"
+    | "distanceKm"
+  >,
+): string {
+  const place =
+    event.distanceKm === null
+      ? locationLabel(event)
+      : `${locationLabel(event)} ${formatDistance(event.distanceKm)}`;
+
+  return `${providerScheduleLabel(event)} · ${place}`;
+}
+
+/* ── 상세 전용 ──────────────────────────────────────────── */
+
+/**
+ * 상세의 장소 표기 (7.1 장소 행).
+ *
+ * `EXACT` 만 상세에서 달라진다 — 장소명과 주소가 `EventDetail` 에만 있어서다.
+ * 나머지 둘은 카드·마커 시트와 **같은 문자열**이어야 하므로 `locationLabel` 로
+ * 떨어뜨린다. 정밀도 분기를 여기서 다시 쓰면 두 화면이 서로 다른 답을 낸다.
+ *
+ * `EXACT` 인데 장소명이 비어 있으면 근사 표기로 내린다 — `locationLabel` 이
+ * 역명 없는 `STATION` 을 구로 내리는 것과 같은 규칙이다.
+ */
+export type VenueDisplay =
+  | { kind: "exact"; venueName: string; address: string | null }
+  | { kind: "approximate"; label: string };
+
+export function venueDisplay(
+  event: Pick<
+    EventDetail,
+    | "locationPrecision"
+    | "stationName"
+    | "district"
+    | "area"
+    | "venueName"
+    | "address"
+  >,
+): VenueDisplay {
+  if (event.locationPrecision === "EXACT" && event.venueName) {
+    return { kind: "exact", venueName: event.venueName, address: event.address };
+  }
+  return { kind: "approximate", label: locationLabel(event) };
+}
+
+/**
+ * 주최사 평점 표기 (7.1 주최사 블록 / 7.4).
+ *
+ * **평점은 항상 후기 건수와 함께 쓴다** — `4.6` 만 있으면 5건짜리와 500건짜리가
+ * 같아 보인다. 표시 임계(5건) 미달이면 숫자를 버리고 `후기 N건` 만 남긴다.
+ *
+ * `EventProviderDetail.rating` 은 **이미 임계가 적용된 값**(12장)인데도 건수를
+ * 한 번 더 본다 — `openSectionsOnly`(4.23)와 같은 방어선이고, **언제 이 형태를
+ * 쓰는지는 4.35 의 사다리**가 정한다. 여기가 걸리는 이유는 사용자에게 이 값을
+ * 걷어낼 컨트롤이 없어서다: 3건짜리 평점이 내려와도 표본이 몇 건인지 알 방법이 없다.
+ */
+export type RatingDisplay =
+  | { kind: "score"; rating: number; reviewCount: number }
+  | { kind: "countOnly"; reviewCount: number };
+
+export function providerRatingDisplay(
+  provider: Pick<EventProviderDetail, "rating" | "reviewCount">,
+): RatingDisplay {
+  if (provider.rating === null || !canShowRating(provider.reviewCount)) {
+    return { kind: "countOnly", reviewCount: provider.reviewCount };
+  }
+  return {
+    kind: "score",
+    rating: provider.rating,
+    reviewCount: provider.reviewCount,
+  };
 }
 
 /* ── 내부 ───────────────────────────────────────────────── */
