@@ -29,6 +29,10 @@ interface ModalProps {
  * `Sheet` 와 같은 이유로 `document.body` 로 포털한다 — `position: fixed` 가
  * 조상의 `transform`/`filter`/`backdrop-filter` 에 갇히는 것을 막는다.
  * 이 모달은 소개팅 상세(히어로 이미지 + 고정 CTA) 위에서 열리므로 특히 중요하다.
+ *
+ * ⚠️ **여기서 `children` 을 그리기를 그만두면 7.3 법적 고지가 화면에서 사라지는데
+ * 잡는 테스트가 없다.** 호출부(`ApplyOutboundModal`)의 회귀는 잠겨 있지만 이 파일
+ * 자신의 회귀는 사각지대다 — 경위는 `decisions.md` 4.39.
  */
 export function Modal({
   open,

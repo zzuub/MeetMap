@@ -43,7 +43,7 @@
 | --- | --- |
 | 진행 단계 | **Phase 1 진행 중.** P1-0~P1-8 완료(뷰 토글은 P3-1, 찜·비교 담기 슬롯은 P2-7·P3-4, 주최사 링크는 P5-4 로 이월 → 4.29·4.36). **다음은 P1-9(빈 상태·에러·로딩)** — 그러면 Phase 1 DoD 가 닫힌다 |
 | 소스 파일 | 135개 (테스트 제외) / 약 9,230줄 |
-| 테스트 | 302개 (20파일), `npm test` 전부 통과 |
+| 테스트 | 308개 (20파일), `npm test` 전부 통과 |
 | 스택 | Next.js 16.3.3 · React 19.2.4 · TypeScript 5 · Tailwind CSS v4 · Vitest 4 |
 | 백엔드 | Spring Boot 스켈레톤. **실 API 없음** → 목 데이터로 개발 중 |
 | CI | `lint` → `test` → `build` (frontend) / `gradlew build -x test` (backend) |
@@ -94,6 +94,29 @@ Phase 2~7 은 `docs/dev-plan.md` 참조.
 ---
 
 ## 3. 작업 이력
+
+### 2026-09-09 · [#23](https://github.com/zzuub/MeetMap/issues/23) · P1-8 4차 리뷰 반영
+**셀렉터 쫓기를 멈추고 등급 선언을 정확하게 고쳤다**
+
+리뷰가 `Reflect.get(e, "externalApplyUrl")` 류가 샌다고 짚었다 — 확인하니 리플렉션 4형태 전부 안 걸린다. 4.38 이 적어 둔 범위("코드에 그 글자가 없는 것만 못 잡는다")가 **틀렸다**: 이 줄들은 글자가 소스에 그대로 있고 grep 으로도 잡히는데 `CallExpression` 의 인자라 다섯 분기를 비켜 간다.
+
+**셀렉터를 더 늘리지 않았다.** 리뷰의 권고가 맞다 — `Reflect.get`·`getOwnPropertyDescriptor`·제네릭 접근자·lodash `get` … 목록이 끝없고, **그걸 쫓는 것이 이 규칙이 세 라운드 연속 뚫린 방식이다.** 대신 범위를 정확히 다시 적었다: **`MemberExpression` 과 `ObjectPattern > Property` 두 형태만 잡는다.** 못 잡는 넷은 테스트에 `caught: false` 로 올렸다.
+
+**리뷰가 짚은 테스트 구멍 둘도 닫았다.**
+
+- **`severity` 를 안 봤다** — `"error"` 를 `"warn"` 으로 낮추면 메시지는 그대로 나와 전 케이스가 통과하는데 `npm run lint` 는 빌드를 못 막는다. `severity === 2` 를 단언한다
+- **프로브 경로가 하나뿐이었다** — 다른 위치를 `ignores` 에 넣으면 그 보호만 조용히 사라진다. `explore-board`·`entities/event`·`app` 세 경로를 더 본다
+
+둘 다 변이로 확인했다(`error → warn`, `ignores` 에 `src/entities/**` 추가 — 각각 대응 테스트만 실패).
+
+**리뷰의 제안 하나는 받지 않았다.** 4.38·4.39 를 합치자는 것인데, 합치면 47줄·⚠️ 5개로 **4.31 이 세운 압축 신호에 다시 걸린다** — 한 항목이 둘을 다뤄서 커진 것이 바로 지난 라운드에 쪼갠 이유다. 번호는 나눈 채로 두고 4.39 머리에 짝이라는 한 줄을 붙여 왕복을 없앴다.
+
+- `shared/ui/Modal.tsx` 에 4.39 사각지대를 가리키는 ⚠️ 를 남겼다. 지금 `Modal` 소비자는 하나뿐이고 P1-9·P2-7 둘 다 안 건드리지만, 이 파일을 여는 사람이 렌더 회귀를 모르고 지나가는 것이 위험이다
+- 4.32 가 ⚠️ 3개로 압축 신호에 걸려 있어 하나를 본문으로 내렸다 (2개)
+- `beforeAll` 60초는 그대로 뒀다 — 리뷰 분석대로 파일이 하나뿐이라 경합이 없다. 이 패턴이 두 번째 파일로 퍼질 때 `Linter` 직접 주입을 다시 본다
+
+검증: `tsc`·`eslint`·`vitest 308건`(신규 6)·`next build`·`assert-dynamic-routes` 통과.
+
 
 ### 2026-09-09 · [#23](https://github.com/zzuub/MeetMap/issues/23) · P1-8 3차 리뷰 반영
 **세 번 뚫린 이유가 같아서, 이번엔 우회 목록을 테스트로 고정했다**
