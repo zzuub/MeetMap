@@ -30,6 +30,34 @@ export function ApplyOutboundModal({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={OUTBOUND_COPY.title} footer={<Footer event={event} onClose={onClose} />}>
+      <OutboundNoticeBody event={event} />
+    </Modal>
+  );
+}
+
+/** 본문이 쓰는 값. 7.3 조건 확인 블록의 세 행 + 마감 여부가 전부다 */
+export type OutboundNoticeEvent = Pick<
+  EventDetail,
+  | "status"
+  | "birthYearFrom"
+  | "birthYearTo"
+  | "maleCapacity"
+  | "femaleCapacity"
+  | "malePrice"
+  | "femalePrice"
+>;
+
+/**
+ * 모달 본문 — 법적 고지 · 마감 안내 · 조건 확인 블록 · 하단 경고 (7.3 필수 전부).
+ *
+ * **`Modal` 밖으로 떼어 둔 것은 렌더 결과를 잠그기 위해서다.** `Modal` 은
+ * `document.body` 로 포털하고 `useIsClient` 로 서버 렌더를 건너뛰어
+ * `renderToStaticMarkup` 이 빈 문자열을 준다. 본문만 순수 컴포넌트로 떼면 jsdom
+ * 없이(4.10) **고지가 실제로 그려지는지** 테스트할 수 있다 (`decisions.md` 4.38).
+ */
+export function OutboundNoticeBody({ event }: { event: OutboundNoticeEvent }) {
+  return (
+    <>
       <p className="font-bold text-text">{OUTBOUND_COPY.notice}</p>
 
       {event.status === "마감" ? (
@@ -41,7 +69,7 @@ export function ApplyOutboundModal({
       <ConditionBlock event={event} />
 
       <p className="mt-3 text-[13px] leading-5 text-warning">{OUTBOUND_COPY.warning}</p>
-    </Modal>
+    </>
   );
 }
 
@@ -51,7 +79,7 @@ export function ApplyOutboundModal({
  * 세 행의 **구성이 7.3 에 고정돼 있다** — 상세의 정보 카드(7.1)가 행을 늘리거나
  * 순서를 바꿔도 여기는 따라가지 않는다. 값을 그리는 조각만 같은 것을 쓴다.
  */
-function ConditionBlock({ event }: { event: EventDetail }) {
+function ConditionBlock({ event }: { event: OutboundNoticeEvent }) {
   return (
     <section className="mt-3 rounded-button border border-border px-3 py-2.5">
       <h3 className="text-[13px] font-bold text-text">{OUTBOUND_COPY.conditionsHeading}</h3>
