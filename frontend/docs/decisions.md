@@ -685,7 +685,16 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 
 **4.16 이 같은 제약에서 쓴 해법이다** — 거기서도 찜·신청 버튼을 `action` prop 으로 비웠고, `entities` 가 `features` 를 import 할 수 없다는 제약이 여기서는 위젯과 feature 사이에 있다. 4.16 이 이미 `features/event-apply` 를 이름으로 지목해 뒀고 이번에 그 슬라이스가 생겼다.
 
-⚠️ **"검증된 형태"라고 말할 수는 없다** (PR #30 리뷰). 4.16 의 `action` 슬롯은 **프로덕션 화면에서 한 번도 채워진 적이 없다** — `EventSection`·`EventList` 둘 다 안 넘기고, 채우는 곳은 `/design-system` 쇼케이스의 자리표시자뿐이다. 같은 미사용 패턴을 한 번 더 쓰는 것이라, 근거는 "이미 통했다"가 아니라 **"같은 제약에는 이 배치밖에 없다"** 다. 다만 죽은 코드는 아니다 — `dev-plan.md` 가 P2-7·P3-4 로 채울 티켓을 이미 잡아 뒀다.
+⚠️ **"검증된 형태"라고 말할 수는 없다** (PR #30 리뷰). 4.16 의 `action` 슬롯은 **프로덕션 화면에서 한 번도 채워진 적이 없다** — `EventSection`·`EventList` 둘 다 안 넘기고, 채우는 곳은 `/design-system` 쇼케이스의 자리표시자뿐이다. 같은 미사용 패턴을 한 번 더 쓰는 것이다. 다만 죽은 코드는 아니다 — `dev-plan.md` 가 P2-7·P3-4 로 채울 티켓을 이미 잡아 뒀다.
+
+⚠️ **두 슬롯의 이유가 다르다** (PR #31 리뷰). 한동안 "같은 제약"이라고 묶어 적었는데 틀렸다.
+
+| | 왜 슬롯인가 | 성격 |
+| --- | --- | --- |
+| `EventCard` (4.16) | `entities` 는 `features` 를 **영원히** import 할 수 없다 (FSD) | **영구적 제약** — 대안이 없다 |
+| `DetailCtaBar` (여기) | 위젯은 feature 를 부를 수 있다. 실제로 바로 옆에서 `ApplyButton` 을 그렇게 부른다 | **일시적 상황** — `features/event-like`·`event-compare` 가 아직 없을 뿐이다 |
+
+그래서 이쪽 근거는 "레이어가 막아서"가 아니라 **"P2-7·P3-4 가 들어올 때 이 파일을 다시 안 열려고"** 다. 티켓이 다 붙으면 슬롯을 걷고 직접 import 로 바꿔도 레이어 규칙에 안 걸린다 — 아래 번복 조건이 이미 그것이다.
 
 | 대안 | 왜 안 되나 |
 | --- | --- |
@@ -732,11 +741,27 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 | `@/features/event-apply/ui/ApplyOutboundModal` 처럼 **깊은 경로로 import** | 배럴 강제 규칙이 `src/app/**` 에만 걸려 있었고, 패턴도 `@/entities/*` `@/shared/*` 뿐이라 `@/features/*/ui/*` 가 아예 없었다 |
 | `<a href={event.externalApplyUrl}>` 를 **새로 쓴다** | 더 근본적이다. `externalApplyUrl` 은 `EventDetail` 의 평범한 `string` 필드라 **슬라이스를 import 조차 하지 않는다.** 배럴을 아무리 좁혀도 안 막힌다 |
 
-**둘 다 린트로 막았다.** 배럴 패턴을 `widgets`·`features`·`entities` 까지 넓히고, `no-restricted-syntax` 로 **`externalApplyUrl` 필드 접근 자체**를 `features/event-apply` 밖에서 금지했다. 목·타입 선언은 `Property`/`TSPropertySignature` 라 이 선택자에 안 걸린다. 두 우회를 실제로 써 보고 각각 에러가 나는 것을 확인했다.
+**둘 다 린트로 막았다.** 배럴 패턴을 `widgets`·`features`·`entities` 까지 넓히고, `no-restricted-syntax` 로 **`externalApplyUrl` 필드 접근 자체**를 `features/event-apply` 밖에서 금지했다.
+
+⚠️ **읽는 방법이 셋인데 처음에는 하나만 적었다** (PR #31 리뷰). `MemberExpression[property.name=…]` 하나로는 **구조분해가 조용히 통과한다** — 난독화도 아니고 평범한 리팩터 습관이다. 다섯 가지 형태를 실제로 써서 확인했다.
+
+| 형태 | 처음 | 지금 |
+| --- | --- | --- |
+| `event.externalApplyUrl` | 걸림 | 걸림 |
+| `const { externalApplyUrl } = event` | **샘** | 걸림 (`ObjectPattern > Property`) |
+| `function f({ externalApplyUrl }: EventDetail)` | **샘** | 걸림 (같은 브랜치) |
+| `event["externalApplyUrl"]` | **샘** | 걸림 (`MemberExpression[computed=true] > Literal`) |
+| `Object.values(event)` · 문자열 조합 | 샘 | **여전히 샘** |
+
+`ObjectPattern >` 으로 한정하는 것이 요점이다 — 목 데이터의 `externalApplyUrl: "…"` 도 `Property` 노드라, 한정 없이 잡으면 목 8건이 전부 에러가 된다(`ObjectExpression > Property` 라 지금은 안 걸린다). 브랜치를 빼고 돌려 구조분해가 다시 새는 것까지 확인했다.
+
+⚠️ **이 규칙의 등급은 "실수 방지"다.** 마지막 줄은 정적 선택자로 원천적으로 못 잡는다 — 코드에 `externalApplyUrl` 이라는 글자가 안 나오기 때문이다. 의도적으로 우회하려는 사람을 막지는 못한다고 적어 둔다.
 
 ⚠️ **`no-restricted-imports` 를 별도 블록으로 추가하면 안 된다.** flat config 는 같은 규칙 이름을 **뒤 블록이 통째로 덮어쓴다.** `src/widgets/**` 에 배럴 블록을 따로 두면 그 파일들의 **레이어 경계 규칙이 조용히 사라진다** — 린트는 계속 통과하므로 아무도 못 알아챈다. 그래서 패턴을 합쳐 한 규칙으로 넘기고, `features → widgets` 위반이 여전히 잡히는지 확인했다. 지금 배럴 블록이 `src/app/**` 에만 남아 있는 것은 `app` 이 레이어 규칙 대상이 아니어서다(`LAYERS.filter`).
 
 **타입으로는 못 조인다.** `externalApplyUrl` 을 브랜드 타입으로 감싸도 언랩 함수를 다른 레이어가 깊은 경로로 부르면 구멍이 한 단계 이동할 뿐이다 — 그 이동을 막는 것도 결국 같은 린트다. 그래서 타입을 건드리지 않았다.
+
+**대신 모달이 받는 타입을 좁혔다.** `ApplyOutboundModal`·`ApplyButton` 은 `EventDetail` 전체가 아니라 `ApplyOutboundEvent`(조건 5행 + `id` + `externalApplyUrl`)만 받는다. 우회를 막는 장치는 아니고 — 테스트가 목 8건을 끌어오지 않고 9개 필드짜리 픽스처로 끝나게 하는 것이 실익이다.
 
 ### 고지가 **그려지는지**는 상수 테스트가 못 본다
 
@@ -747,7 +772,12 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 | 무엇을 잠그나 | 어디서 |
 | --- | --- |
 | 문구가 무뎌지는 것 (`결제를 대행하지 않습니다` 삭제·축약) | `model/copy.test.ts` — `REQUIRED_PHRASES` |
-| **문구가 그려지지 않는 것** (조건부로 감추기) | `ui/ApplyOutboundModal.test.tsx` — `renderToStaticMarkup` |
+| **문구가 그려지지 않는 것** (본문을 조건부로 감추기) | `ui/ApplyOutboundModal.test.tsx` — `renderToStaticMarkup` |
+| **모달이 본문을 안 품는 것** (`<OutboundNoticeBody />` 삭제) | 같은 파일 — 아래 |
+
+⚠️ **본문만 렌더하면 그 본문이 모달에 붙어 있는지는 아무도 안 본다** (PR #31 리뷰). 처음에는 `OutboundNoticeBody` 를 단독으로만 렌더해서, `ApplyOutboundModal` 에서 `<OutboundNoticeBody />` 한 줄을 지워도 스위트가 전부 통과했다 — **고지가 실제 모달에 있는지를 보장하는 테스트가 하나도 없는 상태**였다.
+
+리뷰는 여기서 jsdom + RTL 이 유일한 길이라고 봤지만 아니다. **`ApplyOutboundModal` 에는 훅이 없어 평범한 함수로 부를 수 있다** — 돌려받은 엘리먼트에서 `Modal` 의 `children` 만 떼어 렌더하면 포털·`useIsClient` 를 거치지 않는다. 이걸로 4.10 을 그대로 두고 연결까지 잠갔다. 이 방법이 성립하는 전제는 **`ApplyOutboundModal` 이 훅 없는 순수 함수라는 것**이고, 상태가 하나라도 들어오면 그때는 jsdom 이 필요하다.
 
 **번복 조건**: 컴포넌트 상호작용까지 테스트해야 하면(예: P2-7 찜 낙관적 업데이트) 4.10 대로 jsdom + RTL 을 붙인다. 그때 이 렌더 테스트는 RTL 로 옮겨도 되고 그대로 둬도 된다 — 서버 렌더만 보는 쪽이 더 빠르다.
 

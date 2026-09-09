@@ -24,7 +24,7 @@ export function ApplyOutboundModal({
   open,
   onClose,
 }: {
-  event: EventDetail;
+  event: ApplyOutboundEvent;
   open: boolean;
   onClose: () => void;
 }) {
@@ -34,6 +34,10 @@ export function ApplyOutboundModal({
     </Modal>
   );
 }
+
+/** 모달 전체가 쓰는 값. 본문 + 이동 링크 둘뿐이라 `EventDetail` 전체를 받지 않는다 */
+export type ApplyOutboundEvent = OutboundNoticeEvent &
+  Pick<EventDetail, "id" | "externalApplyUrl">;
 
 /** 본문이 쓰는 값. 7.3 조건 확인 블록의 세 행 + 마감 여부가 전부다 */
 export type OutboundNoticeEvent = Pick<
@@ -130,7 +134,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
  * 무관하게 이동이 보장된다 — `logOutboundClick` 은 실패해도 흐름을 막지 않는다는
  * 계약(`ports.ts`)을 코드 모양으로 지키는 것이다.
  */
-function Footer({ event, onClose }: { event: EventDetail; onClose: () => void }) {
+function Footer({ event, onClose }: { event: ApplyOutboundEvent; onClose: () => void }) {
   return (
     <div className="flex gap-2">
       <PrimaryButton variant="secondary" onClick={onClose} className="flex-1">

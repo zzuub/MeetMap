@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { EventDetail } from "@/entities/event";
 import { PrimaryButton } from "@/shared/ui";
-import { ApplyOutboundModal } from "./ApplyOutboundModal";
+import { ApplyOutboundModal, type ApplyOutboundEvent } from "./ApplyOutboundModal";
 
 /**
  * 하단 고정 CTA 의 `신청하기` (7.2) — **외부 이동 모달(7.3)의 유일한 입구**.
@@ -12,7 +11,7 @@ import { ApplyOutboundModal } from "./ApplyOutboundModal";
  * 모달 없이 버튼만 놓는 자리가 생기고, 그게 7.3 을 우회하는 경로다 — P3-2 마커
  * 시트의 신청 버튼도 이 슬라이스를 거친다. 마감 회차에도 비활성이 아니다 (4.37).
  */
-export function ApplyButton({ event }: { event: EventDetail }) {
+export function ApplyButton({ event }: { event: ApplyOutboundEvent }) {
   const [open, setOpen] = useState(false);
 
   return (

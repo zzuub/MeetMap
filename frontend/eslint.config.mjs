@@ -95,7 +95,16 @@ const eslintConfig = defineConfig([
      * (PR #30 리뷰). 배럴 규칙으로는 이 경로가 안 막히므로 **필드 접근 자체**를
      * 슬라이스 밖에서 금지한다 (`decisions.md` 4.38).
      *
-     * 목·타입 선언은 `Property`/`TSPropertySignature` 라 이 선택자에 안 걸린다.
+     * 읽는 방법이 셋이라 셋 다 적는다 — `event.x` / `event["x"]` / `const { x } =`.
+     * 처음에는 첫째만 적었는데 **구조분해가 조용히 통과했다** (PR #31 리뷰).
+     *
+     * `ObjectPattern >` 으로 한정하는 것이 요점이다. 목 데이터의
+     * `externalApplyUrl: "..."` 은 `ObjectExpression > Property` 라 안 걸린다 —
+     * 노드 타입이 같아서 한정 없이 `Property` 를 잡으면 목이 전부 에러가 된다.
+     *
+     * ⚠️ **의도적 우회는 못 막는다** — `Object.values(event)`·`for...in`·문자열
+     * 조합은 선택자에 `externalApplyUrl` 이 나타나지 않는다. 이 규칙의 등급은
+     * **실수 방지**다 (`decisions.md` 4.38).
      */
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/features/event-apply/**"],
@@ -103,7 +112,11 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         {
-          selector: "MemberExpression[property.name='externalApplyUrl']",
+          selector: [
+            "MemberExpression[property.name='externalApplyUrl']",
+            "MemberExpression[computed=true] > Literal[value='externalApplyUrl']",
+            "ObjectPattern > Property[key.name='externalApplyUrl']",
+          ].join(", "),
           message:
             "외부 신청 URL 을 직접 읽지 마세요 — 7.3 확인 모달을 우회하는 경로가 됩니다. " +
             "`features/event-apply` 의 `ApplyButton` 을 쓰세요 (decisions.md 4.32·4.38).",

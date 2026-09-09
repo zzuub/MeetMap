@@ -1,7 +1,12 @@
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { OUTBOUND_COPY, REQUIRED_PHRASES } from "../model/copy";
-import { OutboundNoticeBody, type OutboundNoticeEvent } from "./ApplyOutboundModal";
+import {
+  ApplyOutboundModal,
+  OutboundNoticeBody,
+  type OutboundNoticeEvent,
+} from "./ApplyOutboundModal";
 
 /**
  * **고지가 실제로 그려지는지** 본다 (7.3 필수 항목).
@@ -57,5 +62,28 @@ describe("외부 이동 모달 본문", () => {
   it("마감 고지는 마감 회차에만 붙는다 (4.37)", () => {
     expect(html(open)).not.toContain(OUTBOUND_COPY.closedNotice);
     expect(html({ ...open, status: "마감" })).toContain(OUTBOUND_COPY.closedNotice);
+  });
+
+  /**
+   * 본문만 따로 렌더하면 **모달이 그 본문을 실제로 품는지는 아무도 안 본다** —
+   * `<OutboundNoticeBody />` 한 줄을 지워도 위 테스트들이 전부 통과한다
+   * (PR #31 리뷰). 여기가 그 연결을 잠근다.
+   *
+   * `ApplyOutboundModal` 은 훅이 없어 **평범한 함수로 부를 수 있다.** 돌려받은
+   * 엘리먼트에서 `Modal` 의 `children` 만 떼어 렌더하면 포털·`useIsClient` 를
+   * 거치지 않아 jsdom 이 필요 없다 (4.10 유지 · `decisions.md` 4.38).
+   */
+  it("모달이 본문을 children 으로 실제로 넘긴다", () => {
+    const element = ApplyOutboundModal({
+      event: { ...open, id: "evt-x", externalApplyUrl: "https://example.com/apply" },
+      open: true,
+      onClose: () => {},
+    });
+
+    const { children } = element.props as { children: ReactNode };
+
+    expect(renderToStaticMarkup(<>{children}</>)).toContain(
+      REQUIRED_PHRASES.notice[0],
+    );
   });
 });

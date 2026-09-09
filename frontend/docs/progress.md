@@ -95,6 +95,36 @@ Phase 2~7 은 `docs/dev-plan.md` 참조.
 
 ## 3. 작업 이력
 
+### 2026-09-09 · [#23](https://github.com/zzuub/MeetMap/issues/23) · P1-8 2차 리뷰 반영
+**린트가 막는다고 적어 둔 것이 흔한 리팩터 습관 하나도 못 막고 있었다**
+
+리뷰(PR #31)가 `no-restricted-syntax` 선택자를 정적으로 분석해 구멍을 짚었다. 실제로 다섯 형태를 써서 돌려 보니 **`event.externalApplyUrl` 하나만 잡히고 나머지가 전부 샜다.**
+
+| 형태 | 처음 | 지금 |
+| --- | --- | --- |
+| `event.externalApplyUrl` | 걸림 | 걸림 |
+| `const { externalApplyUrl } = event` | **샘** | 걸림 |
+| `function f({ externalApplyUrl }: EventDetail)` | **샘** | 걸림 |
+| `event["externalApplyUrl"]` | **샘** | 걸림 |
+| `Object.values(event)` · 문자열 조합 | 샘 | **여전히 샘** |
+
+구조분해가 난독화가 아니라 **평범한 습관**이라는 것이 이 지적의 값이다. `ObjectPattern > Property` 로 한정하는 것이 요점 — 목 데이터의 `externalApplyUrl: "…"` 도 같은 `Property` 노드라 한정 없이 잡으면 목 8건이 전부 에러가 된다. 브랜치를 빼고 돌려 구조분해가 다시 새는 것까지 확인했다.
+
+**등급을 문서에 명시했다** → 4.38. 마지막 줄은 코드에 그 글자가 안 나와 정적 선택자로 원천적으로 못 잡는다. 이 규칙은 **실수 방지**이지 의도적 우회 차단이 아니다.
+
+**내가 지난 라운드에 넣은 렌더 테스트에도 같은 종류의 구멍이 있었다.** `OutboundNoticeBody` 를 단독으로만 렌더해서, `ApplyOutboundModal` 에서 `<OutboundNoticeBody />` 한 줄을 지워도 스위트가 전부 통과했다 — **고지가 실제 모달에 붙어 있는지를 보장하는 테스트가 하나도 없었다.**
+
+리뷰는 여기서 jsdom + RTL 이 유일한 길이라고 봤지만 아니다. `ApplyOutboundModal` 에는 **훅이 없어 평범한 함수로 부를 수 있고**, 돌려받은 엘리먼트에서 `Modal` 의 `children` 만 떼어 렌더하면 포털·`useIsClient` 를 안 거친다. 4.10 을 그대로 두고 연결까지 잠갔다 — 전제는 이 컴포넌트가 순수 함수라는 것이고, 상태가 하나라도 들어오면 그때는 jsdom 이다.
+
+**4.36 의 근거를 둘로 나눴다.** "4.16 과 같은 제약"이라고 묶어 적었는데 리뷰 말대로 절반만 맞다 — `EventCard` 는 `entities → features` 가 **영원히** 막힌 것이고, `DetailCtaBar` 는 위젯이라 feature 를 부를 수 있다(바로 옆에서 `ApplyButton` 을 그렇게 부른다). 이쪽 근거는 레이어가 아니라 **"P2-7·P3-4 가 들어올 때 파일을 다시 안 열려고"** 다.
+
+- `ApplyOutboundModal`·`ApplyButton` 이 `EventDetail` 전체가 아니라 `ApplyOutboundEvent`(조건 5행 + `id` + `externalApplyUrl`)만 받게 좁혔다. 우회 방어가 아니라 **테스트 픽스처를 9개 필드로 끝내려는 것**이다
+
+**리뷰의 지적 둘은 조치 불필요였다.** flat config 의 `files` 글롭은 경로 접두어로 앵커링돼 `src/app/widgets/…` 가 생겨도 안 겹치고, `OutboundNoticeBody` 는 이미 배럴 규칙(`@/features/*/ui/*`)의 사거리 안이라 새 규칙이 필요 없다. 넓힌 배럴 패턴에 걸리는 기존 deep import 도 0건으로 재확인했다.
+
+검증: `tsc`·`eslint`·`vitest 288건`(신규 1)·`next build` 통과. 변이 2종 — 모달에서 본문 제거(새 테스트가 잡음) / `ObjectPattern` 브랜치 제거(구조분해가 다시 샘) — 확인.
+
+
 ### 2026-09-09 · [#23](https://github.com/zzuub/MeetMap/issues/23) · P1-8 코드리뷰 반영
 **"우회 경로를 만들지 않는다"를 강제하는 것이 아무것도 없었다**
 
