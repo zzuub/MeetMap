@@ -2,7 +2,10 @@ name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+    # `synchronize` 는 PR 에 커밋을 푸시할 때마다 전체 리뷰를 처음부터 다시 돌린다.
+    # 리뷰 한 번의 값어치는 PR 이 열릴 때에 있지, 오타를 고친 두 번째 푸시에 있지 않다.
+    # 중간에 다시 보게 하고 싶으면 PR 코멘트에서 `@claude` 로 부른다(claude.yml).
+    types: [opened, ready_for_review]
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"

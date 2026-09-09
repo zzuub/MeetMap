@@ -1,5 +1,6 @@
 import type { EventDetail } from "@/entities/event";
 import { AttendeeListBlock } from "./AttendeeListBlock";
+import { DetailCtaBar } from "./DetailCtaBar";
 import { DetailHero } from "./DetailHero";
 import { DetailSection } from "./DetailSection";
 import { InfoCard } from "./InfoCard";
@@ -9,15 +10,13 @@ import { VenueBlock } from "./VenueBlock";
 /**
  * 소개팅 상세 (7.1).
  *
- * ⚠️ **하단 고정 CTA(찜 / 비교 담기 / 신청하기)가 아직 없다.** 세 버튼의 동작이
- * 각각 P2-7 · P3-4 · P1-8 이라 지금 붙이면 셋 다 눌러도 아무 일이 없다. 4.29 가
- * 뷰 토글에 쓴 기준이고, 특히 `신청하기` 를 `externalApplyUrl` 로 직결하면 결제
- * 비대행 고지(7.3)를 우회하는 경로가 생긴다 — **P1-8 이 모달과 함께 바를 세운다**
- * (`decisions.md` 4.32). 그래서 본문 하단 여백도 CTA 높이를 비워두지 않는다.
+ * 하단 고정 CTA 는 P1-8 이 모달과 함께 세웠다 (4.32). **찜·비교 담기 자리는
+ * 슬롯으로 비어 있고**(4.36) P2-7·P3-4 가 채운다. 본문 하단 여백이 바 높이를
+ * 비워 두는데, 이 값이 조건부가 되는 것은 P3-4 의 몫이다 (4.32 ⚠️).
  */
 export function EventDetailView({ event }: { event: EventDetail }) {
   return (
-    <article className="pb-10">
+    <article className="pb-[calc(var(--height-fixed-cta)+16px)]">
       <DetailHero event={event} />
 
       <div className="mt-6 flex flex-col gap-6 px-5">
@@ -32,6 +31,8 @@ export function EventDetailView({ event }: { event: EventDetail }) {
           </p>
         </DetailSection>
       </div>
+
+      <DetailCtaBar event={event} />
     </article>
   );
 }
