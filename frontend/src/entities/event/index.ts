@@ -56,6 +56,10 @@ export {
   type EventCardVariant,
   type EventCardViewer,
 } from "./ui/EventCard";
+export {
+  EventCardSkeleton,
+  EventCardSkeletonList,
+} from "./ui/EventCardSkeleton";
 export { EventStatusBadge } from "./ui/EventStatusBadge";
 export { EventThumbnail } from "./ui/EventThumbnail";
 export { PriceText } from "./ui/PriceText";

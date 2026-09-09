@@ -222,3 +222,76 @@ function labelOf<T extends string>(
 function priceCapLabel(value: number): string {
   return PRICE_CAPS.find((cap) => cap.value === value)?.label ?? `${value}원`;
 }
+
+/* ── 결과 0건일 때 풀 것 (11.2) ─────────────────────────── */
+
+export interface EmptyRelaxation {
+  /** 버튼 라벨 */
+  label: string;
+  /** 그 조건을 푼 주소 */
+  href: string;
+}
+
+/**
+ * 0건 빈 상태의 액션 (11.2 `필터 결과 없음`).
+ *
+ * **`필터 초기화` 를 상수로 박지 않는다.** 칩 줄에 칩이 하나도 없는데 0건인 경우가
+ * 실제로 있고, 그때 `필터 초기화`(= `clearAppliedFilters`)는 **아무것도 바꾸지 않는
+ * 링크**가 된다 — 눌러도 같은 빈 화면이 다시 뜬다. 빈 상태가 다음 행동을 제시한다는
+ * 규칙(11.2)을 문구만 지키고 실제로는 어기는 자리다.
+ *
+ * 그래서 0건을 만들 수 있는 축을 **전부 세고** 그중 실제로 풀리는 것 하나를 돌려준다.
+ *
+ * | 축 | 화면의 컨트롤 | 여기서 푸는 법 |
+ * | --- | --- | --- |
+ * | `area` | **없다** (URL 로만 들어온다) | 지운다 — 1순위 |
+ * | `when`·`scale`·`maxPrice`·`mood`·`status`·`eligibleOnly` | 적용 필터 칩 줄 | `필터 초기화` |
+ * | `district` | 지역 버튼 (6.2) | 전지역 |
+ * | `slot` | 시간대 칩 (6.2) | 전체 |
+ * | `province` | 없음 — 서울 고정 (MVP1) | 풀 대상이 아니다 |
+ * | `sort` | 정렬 셀렉트 | **결과 집합을 안 바꾼다** — 0건의 원인일 수 없다 |
+ * | `providerId` | URL 파싱 대상이 아니다 (P5-4) | — |
+ * | `cursor`·`limit` | 페이지네이션 | — |
+ *
+ * **순서의 근거**: `area` 가 먼저인 것은 그것만 화면에 컨트롤이 없어서다 — 여기서
+ * 안 풀면 사용자가 풀 방법이 없다. 나머지 셋은 상단 컨트롤로도 풀 수 있으므로
+ * 11.2 가 이름을 준 `필터 초기화` 를 앞에 둔다.
+ *
+ * 한 번에 **하나만** 돌려준다. 누르면 결과가 반드시 넓어지고, 그래도 0건이면 다음
+ * 축이 뜬다 — 매 단계가 참이다. 여러 개를 늘어놓으면 눌러도 안 넓어지는 버튼이
+ * 섞인다.
+ *
+ * `조건 넓혀 보기`(11.2 의 두 번째 액션)는 **만들지 않는다.** 완화 규칙이 사양에서
+ * TBD 이고, 임의로 정하면 되돌릴 때 화면·URL·건수 규칙이 함께 흔들린다 → 4.42.
+ */
+export function emptyRelaxation(params: ExploreParams): EmptyRelaxation | null {
+  const { query } = params;
+
+  if (query.area !== undefined) {
+    return {
+      label: `'${query.area}' 조건 지우기`,
+      href: exploreHref(patched(params, { area: undefined })),
+    };
+  }
+
+  if (chipSpecs(params).length > 0) {
+    return { label: "필터 초기화", href: exploreHref(clearAppliedFilters(params)) };
+  }
+
+  if (query.district && query.district !== "ALL") {
+    return {
+      label: "서울 전지역 보기",
+      href: exploreHref(patched(params, { district: "ALL" })),
+    };
+  }
+
+  if (query.slot && query.slot !== "ALL") {
+    return {
+      label: "시간대 전체 보기",
+      href: exploreHref(patched(params, { slot: "ALL" })),
+    };
+  }
+
+  // 걸린 조건이 하나도 없는데 0건 — 풀 것이 없다. 화면이 문구를 바꾼다
+  return null;
+}

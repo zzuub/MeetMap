@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MOOD_TAGS } from "@/shared/config";
 import { clampSelection, formatPrice } from "@/shared/lib";
 import {
+  ActionLink,
   Checkbox,
   Chip,
   EmptyState,
@@ -137,7 +138,8 @@ export function SharedUiShowcase() {
         icon="🔍"
         title="조건에 맞는 소개팅이 없어요"
         description="적용한 필터를 하나씩 풀어보면 더 많은 소개팅을 볼 수 있어요"
-        action={<PrimaryButton variant="secondary">필터 초기화</PrimaryButton>}
+        // 실제 화면의 액션은 **이동**이라 버튼이 아니라 앵커다 (`ActionLink`)
+        action={<ActionLink href="/explore">필터 초기화</ActionLink>}
       />
     </div>
   </Section>

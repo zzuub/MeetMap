@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
-import { eventApi, type EventDetail } from "@/entities/event";
-import { isApiError } from "@/shared/api";
+import { eventApi } from "@/entities/event";
+import { loadOrError } from "@/shared/api";
+import { ApiErrorScreen } from "@/shared/ui";
 import { AppHeader } from "@/widgets/app-header";
 import { EventDetailView, ShareButton } from "@/widgets/event-detail";
 
@@ -10,6 +10,10 @@ import { EventDetailView, ShareButton } from "@/widgets/event-detail";
  * 헤더에 타이틀을 주지 않는다 — 액션은 `공유` 뿐이고 소개팅명은 **히어로의 `h1`** 이다
  * (타이틀 없는 `AppHeader` 를 쓰는 화면이 지는 의무 — 4.34). `(stack)/layout.tsx` 가
  * 예고한 겹침 헤더는 스크롤 리스너가 필요해 통상 배치로 둔다.
+ *
+ * 실패는 둘로 갈린다 — **404 만 없는 페이지**(`not-found.tsx`)이고 나머지는 11.2 의
+ * 에러 카드다. 그 판정은 `ApiErrorScreen` 이 `resource="single"` 로 한 번에 한다
+ * (`shared/api/errorScreen.ts` 의 표).
  */
 export default async function EventDetailPage({
   params,
@@ -18,25 +22,26 @@ export default async function EventDetailPage({
   params: Promise<{ eventId: string }>;
 }) {
   const { eventId } = await params;
-  const event = await getDetailOrNotFound(eventId);
+  const detail = await loadOrError(() => eventApi.getDetail(eventId));
+
+  if (!detail.ok) {
+    return (
+      <>
+        <AppHeader />
+        {/* 타이틀 없는 `AppHeader` 를 쓰는 화면의 의무 (4.34). 정상 경로의 `h1` 은 히어로가 진다 */}
+        <h1 className="sr-only">소개팅 정보를 불러오지 못했어요</h1>
+
+        <div className="px-5 py-16">
+          <ApiErrorScreen error={detail.error} resource="single" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <AppHeader action={<ShareButton title={event.title} />} />
-      <EventDetailView event={event} />
+      <AppHeader action={<ShareButton title={detail.data.title} />} />
+      <EventDetailView event={detail.data} />
     </>
   );
-}
-
-/**
- * 404 만은 **에러 카드가 아니라 없는 페이지**다 — 재시도 버튼을 줄 대상이 아니다.
- * 나머지(네트워크·5xx)는 올려 `error.tsx` 가 받는다. 둘 다 P1-9 라 지금은 Next 기본이다.
- */
-async function getDetailOrNotFound(id: string): Promise<EventDetail> {
-  try {
-    return await eventApi.getDetail(id);
-  } catch (error) {
-    if (isApiError(error) && error.kind === "NOT_FOUND") notFound();
-    throw error;
-  }
 }

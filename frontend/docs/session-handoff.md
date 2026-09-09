@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-08 (**P1-8 외부 이동 모달 완료** — 하단 CTA 를 세웠고 찜·비교는 슬롯으로 비었다)
+> 마지막 갱신: 2026-09-09 (**Phase 1 완료** — P1-9 로 빈 상태·에러·로딩이 붙고 DoD 가 닫혔다. 다음은 Phase 2)
 
 ## 어디에 무엇이 있나
 
@@ -74,14 +74,14 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 
 | 위치 | 내용 |
 | --- | --- |
-| `shared/ui/` | `PrimaryButton` `Chip` `SegmentedControl` `Sheet` `Modal` `Toast`(+`useToast`) `Numeric` `Skeleton` `EmptyState` `ErrorState` `Toggle` `Checkbox` `IconButton` |
+| `shared/ui/` | `PrimaryButton` `Chip` `SegmentedControl` `Sheet` `Modal` `Toast`(+`useToast`) `Numeric` `Skeleton` `EmptyState` `ErrorState` `Toggle` `Checkbox` `IconButton` **`ActionLink`**(빈 상태·에러의 액션 — 이동이라 앵커다) **`RetryErrorCard`**·**`ApiErrorScreen`**(11.2 카드 + 재시도) |
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating`) |
-| `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` |
+| `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
 | `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
-| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + 나머지는 자리표시자 페이지 |
+| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) — **셋 다 자기 스켈레톤을 함께 내보낸다** |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + 나머지는 자리표시자 페이지 + **error 3개 · loading 3개 · not-found 2개** (4.41) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 `features/` 슬라이스는 둘이고 탐색의 필터 관련은 **전부 `event-filter`** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
@@ -149,10 +149,11 @@ const feed = await eventApi.getHomeFeed({});
 - **`신청하기` 는 `features/event-apply` 를 거친다.** 버튼과 7.3 모달이 한 덩어리다. ⚠️ **`externalApplyUrl` 직접 접근과 슬라이스 깊은 import 를 린트가 막는다** (4.38) — 지도 마커 시트(P3-2)도 이걸 쓴다. 마감 회차도 막지 않고 모달이 알린다 (4.37)
 - **하단 CTA 의 찜·비교 담기는 슬롯으로 비어 있다** (4.36). P2-7·P3-4 는 `DetailCtaBar` 에 넘기기만 한다. **주최사 페이지 링크는 아직 없다** — P5-4 다 (4.32)
 - **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다
+- **조회 실패는 페이지가 잡는다.** `loadOrError` → `ApiErrorScreen`. 던져 올리면 11.2 가 요구하는 오류 코드·발생 시각이 **프로덕션에서 사라진다** (4.40) — `error.tsx` 는 렌더 중 예외만 받는다. 빈 상태의 액션은 상수가 아니라 **실제로 풀리는 조건**을 고른다 (4.42)
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
 - **건수 0인 선택지는 노출하지 않는다.** 시간대 칩·지역 시트가 그렇다. 건수는 **현재 걸린 다른 필터를 반영**하고, 못 셌으면 건수를 감춘다 (4.28)
-- **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다. 지역은 예외 — **상단 지역 버튼 라벨**이 그 자리다 (6.2 표시 제외). **`초기화` 는 둘이고 지우는 대상이 다르다** — 칩 줄 쪽은 자격까지 끄고 시간대를 남기고, 시트 쪽은 자격을 남기고 시간대를 되돌린다 (4.26)
+- **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다. 지역은 예외 — **상단 지역 버튼 라벨**이 그 자리다 (6.2 표시 제외). **`초기화` 는 셋이고 지우는 대상이 다 다르다** — 칩 줄 쪽은 자격까지 끄고 시간대를 남기고, 시트 쪽은 자격을 남기고 시간대를 되돌리며(4.26), 0건 빈 상태 쪽은 **그 0건을 만든 축 하나**만 푼다 (4.42)
 - **연령은 필터가 아니라 자격이다.** 프로필 출생연도로 처음부터 걸러 보여주고(`eligibleOnly`), 넓히고 싶을 때 끄게 한다. **게스트·출생연도 미입력자는 전건**을 본다(판정 근거가 없다), 자격 토글을 **끄면** 자격 밖 카드에 `내 나이대 아님` 을 붙인다 (6.4)
   - ⚠️ **끄기는 파라미터 삭제가 아니라 `eligibleOnly=0` 이다.** 기본이 ON 이라 지우면 되살아난다 (4.25)
   - ⚠️ **게스트 판정을 화면에서 다시 하지 않는다.** 파싱이 게스트에게 `eligibleOnly`·`maxPrice` 키를 안 만들므로 그 유무를 읽는다(`hasViewerAxes`) (4.27)

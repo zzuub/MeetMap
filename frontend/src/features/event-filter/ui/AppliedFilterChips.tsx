@@ -58,9 +58,9 @@ export function AppliedFilterChips({ chips, clearHref }: AppliedFilterChipsProps
 /**
  * 해제 링크 하나.
  *
- * **`prefetch={false}` 가 `useLinkStatus` 와 짝이다.** `/explore` 는 동적 라우트인데
- * `loading.tsx` 가 아직 없어서(P1-9) 누른 뒤 응답까지 화면이 그대로 서 있는다. 그
- * 사이 아무 표시가 없으면 눌리지 않은 것처럼 보이므로 누른 칩만 흐리게 둔다.
+ * **`prefetch={false}` 가 `useLinkStatus` 와 짝이다.** `/explore` 에 `loading.tsx` 가
+ * 붙은 뒤에도 이 표시가 필요하다 — 조건 변경은 트랜지션 안의 이동이라 폴백이 뜨지
+ * 않는다 (`decisions.md` 4.41). 표시가 없으면 눌리지 않은 것처럼 보인다.
  *
  * 칩마다 목적지를 미리 받아두는 것은 낭비다 — 조건 조합마다 다른 동적 페이지고,
  * 사용자는 그중 하나만 누른다.

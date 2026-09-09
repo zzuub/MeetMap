@@ -4,10 +4,12 @@ export {
   activeFilterCount,
   appliedFilterChips,
   clearAppliedFilters,
+  emptyRelaxation,
   filterButtonLabel,
   hasViewerAxes,
   resetSheetFilters,
   type AppliedFilterChip,
+  type EmptyRelaxation,
 } from "./model/filterChips";
 export { sortChoices, type SortChoice } from "./model/sortChoices";
 export {
