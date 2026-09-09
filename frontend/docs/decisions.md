@@ -685,7 +685,7 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 
 **4.16 이 같은 제약에서 쓴 해법이다** — 거기서도 찜·신청 버튼을 `action` prop 으로 비웠고, `entities` 가 `features` 를 import 할 수 없다는 제약이 여기서는 위젯과 feature 사이에 있다. 4.16 이 이미 `features/event-apply` 를 이름으로 지목해 뒀고 이번에 그 슬라이스가 생겼다.
 
-⚠️ **"검증된 형태"라고 말할 수는 없다** (PR #30 리뷰). 4.16 의 `action` 슬롯은 **프로덕션 화면에서 한 번도 채워진 적이 없다** — `EventSection`·`EventList` 둘 다 안 넘기고, 채우는 곳은 `/design-system` 쇼케이스의 자리표시자뿐이다. 같은 미사용 패턴을 한 번 더 쓰는 것이다. 다만 죽은 코드는 아니다 — `dev-plan.md` 가 P2-7·P3-4 로 채울 티켓을 이미 잡아 뒀다.
+**"검증된 형태"는 아니다.** 4.16 의 `action` 슬롯도 프로덕션에서 한 번도 채워진 적이 없다 — `EventSection`·`EventList` 둘 다 안 넘기고 `/design-system` 쇼케이스만 채운다. 죽은 코드는 아니다: `dev-plan.md` 가 P2-7·P3-4 로 채울 티켓을 잡아 뒀다.
 
 ⚠️ **두 슬롯의 이유가 다르다** (PR #31 리뷰). 한동안 "같은 제약"이라고 묶어 적었는데 틀렸다.
 
@@ -743,27 +743,25 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 
 **둘 다 린트로 막았다.** 배럴 패턴을 `widgets`·`features`·`entities` 까지 넓히고, `no-restricted-syntax` 로 **`externalApplyUrl` 필드 접근 자체**를 `features/event-apply` 밖에서 금지했다.
 
-⚠️ **읽는 방법이 셋인데 처음에는 하나만 적었다** (PR #31 리뷰). `MemberExpression[property.name=…]` 하나로는 **구조분해가 조용히 통과한다** — 난독화도 아니고 평범한 리팩터 습관이다. 다섯 가지 형태를 실제로 써서 확인했다.
+**이 규칙은 세 번 뚫렸고 매번 같은 이유였다** (PR #30·#31 리뷰) — 방어선을 만든 뒤 *떠오른 형태만* 확인했다. 점 표기만 보고 구조분해를 놓쳤고, 구조분해를 막고 나서 템플릿 리터럴·문자열 키·계산 키를 놓쳤다. 지금은 5분기다.
 
-| 형태 | 처음 | 지금 |
-| --- | --- | --- |
-| `event.externalApplyUrl` | 걸림 | 걸림 |
-| `const { externalApplyUrl } = event` | **샘** | 걸림 (`ObjectPattern > Property`) |
-| `function f({ externalApplyUrl }: EventDetail)` | **샘** | 걸림 (같은 브랜치) |
-| `event["externalApplyUrl"]` | **샘** | 걸림 (`MemberExpression[computed=true] > Literal`) |
-| `Object.values(event)` · 문자열 조합 | 샘 | **여전히 샘** |
+**그래서 우회 목록을 코드로 고정했다** — `model/outboundGuard.test.ts` 가 `externalApplyUrl` 이라는 **글자가 소스에 나타나는 모든 형태**에 대해 린트를 실제로 돌린다(ESLint Node API). 새 형태가 생각나면 문서가 아니라 그 표에 줄을 더한다. 분기를 하나씩 지워 각각이 실제로 일하는 것도 확인했다.
 
-`ObjectPattern >` 으로 한정하는 것이 요점이다 — 목 데이터의 `externalApplyUrl: "…"` 도 `Property` 노드라, 한정 없이 잡으면 목 8건이 전부 에러가 된다(`ObjectExpression > Property` 라 지금은 안 걸린다). 브랜치를 빼고 돌려 구조분해가 다시 새는 것까지 확인했다.
+`ObjectPattern >` 으로 한정하는 것이 요점이다 — 목 데이터의 `externalApplyUrl: "…"` 도 같은 `Property` 노드라, 한정 없이 잡으면 목 8건이 전부 에러가 된다.
 
-⚠️ **이 규칙의 등급은 "실수 방지"다.** 마지막 줄은 정적 선택자로 원천적으로 못 잡는다 — 코드에 `externalApplyUrl` 이라는 글자가 안 나오기 때문이다. 의도적으로 우회하려는 사람을 막지는 못한다고 적어 둔다.
+⚠️ **이 규칙의 등급은 "실수 방지"다.** `Object.values(event)`·문자열 조합은 코드에 그 글자가 안 나와 정적 선택자로 원천 불가능하다. 그 두 줄은 테스트에 `caught: false` 로 적혀 있다 — **포기가 아니라 등급 선언**이고, 누가 규칙을 넓혀 잡히게 되면 테스트가 실패해 이 문장을 함께 고치게 한다.
 
 ⚠️ **`no-restricted-imports` 를 별도 블록으로 추가하면 안 된다.** flat config 는 같은 규칙 이름을 **뒤 블록이 통째로 덮어쓴다.** `src/widgets/**` 에 배럴 블록을 따로 두면 그 파일들의 **레이어 경계 규칙이 조용히 사라진다** — 린트는 계속 통과하므로 아무도 못 알아챈다. 그래서 패턴을 합쳐 한 규칙으로 넘기고, `features → widgets` 위반이 여전히 잡히는지 확인했다. 지금 배럴 블록이 `src/app/**` 에만 남아 있는 것은 `app` 이 레이어 규칙 대상이 아니어서다(`LAYERS.filter`).
 
 **타입으로는 못 조인다.** `externalApplyUrl` 을 브랜드 타입으로 감싸도 언랩 함수를 다른 레이어가 깊은 경로로 부르면 구멍이 한 단계 이동할 뿐이다 — 그 이동을 막는 것도 결국 같은 린트다. 그래서 타입을 건드리지 않았다.
 
-**대신 모달이 받는 타입을 좁혔다.** `ApplyOutboundModal`·`ApplyButton` 은 `EventDetail` 전체가 아니라 `ApplyOutboundEvent`(조건 5행 + `id` + `externalApplyUrl`)만 받는다. 우회를 막는 장치는 아니고 — 테스트가 목 8건을 끌어오지 않고 9개 필드짜리 픽스처로 끝나게 하는 것이 실익이다.
+**대신 모달이 받는 타입을 좁혔다.** `ApplyOutboundModal`·`ApplyButton` 은 `EventDetail` 전체가 아니라 `ApplyOutboundEvent`(조건 5행 + `id` + `externalApplyUrl`)만 받는다. 우회를 막는 장치는 아니고 — 테스트가 목 8건을 끌어오지 않고 9개 필드짜리 픽스처로 끝나게 하는 것이 실익이다. ⚠️ 새 필드가 필요할 때 `Pick` 을 넓히는 것을 **잊는** 경로는 타입이 막지만(선언된 타입 기준으로 검사된다), `as EventDetail` 캐스팅으로 넓히기를 건너뛰면 지금은 호출부가 실제로 전체를 넘겨서 통과해 버린다. 더 좁은 객체를 넘기는 호출부가 생기는 순간 터진다 — **넓혀야지 캐스팅하지 않는다** (PR #32 리뷰).
 
-### 고지가 **그려지는지**는 상수 테스트가 못 본다
+**번복 조건**: 실 API 가 붙어 `externalApplyUrl` 의 성격이 바뀌면(예: 서버가 이동 토큰을 내려준다) 이 규칙의 대상 이름부터 바뀐다. 그때 `outboundGuard.test.ts` 의 표를 새 이름으로 옮긴다.
+
+## 4.39 법적 고지가 **그려지는지**는 jsdom 없이도 잠글 수 있다 (2026-09-09)
+
+
 
 `copy.test.ts` 는 문자열 상수만 잠근다. 상수를 그대로 두고 JSX 에서 `{false && …}` 로 감싸 **조용히 감추는 변경**을 못 잡는다 — 리뷰가 정확히 짚은 구멍이고, 실제로 그 변이를 넣으면 상수 테스트는 15건 전부 통과한다.
 
@@ -777,7 +775,9 @@ P1-7 은 이름이 `상세 + 하단 CTA` 인데 **상세만 붙였다.** 주최�
 
 ⚠️ **본문만 렌더하면 그 본문이 모달에 붙어 있는지는 아무도 안 본다** (PR #31 리뷰). 처음에는 `OutboundNoticeBody` 를 단독으로만 렌더해서, `ApplyOutboundModal` 에서 `<OutboundNoticeBody />` 한 줄을 지워도 스위트가 전부 통과했다 — **고지가 실제 모달에 있는지를 보장하는 테스트가 하나도 없는 상태**였다.
 
-리뷰는 여기서 jsdom + RTL 이 유일한 길이라고 봤지만 아니다. **`ApplyOutboundModal` 에는 훅이 없어 평범한 함수로 부를 수 있다** — 돌려받은 엘리먼트에서 `Modal` 의 `children` 만 떼어 렌더하면 포털·`useIsClient` 를 거치지 않는다. 이걸로 4.10 을 그대로 두고 연결까지 잠갔다. 이 방법이 성립하는 전제는 **`ApplyOutboundModal` 이 훅 없는 순수 함수라는 것**이고, 상태가 하나라도 들어오면 그때는 jsdom 이 필요하다.
+리뷰는 여기서 jsdom + RTL 이 유일한 길이라고 봤지만 아니다. **`ApplyOutboundModal` 에는 훅이 없어 평범한 함수로 부를 수 있다** — 돌려받은 엘리먼트에서 `Modal` 의 `children` 만 떼어 렌더하면 포털·`useIsClient` 를 거치지 않는다. 이걸로 4.10 을 그대로 두고 연결까지 잠갔다. 이 방법이 성립하는 전제는 **`ApplyOutboundModal` 이 훅 없는 순수 함수라는 것**이다. 전제가 깨져도 **조용히 무너지지 않는다** — 훅을 하나 넣고 돌려 보니 그 줄에서 `TypeError: Cannot read properties of null (reading 'useState')` 로 즉시 실패한다(렌더 컨텍스트 밖이라 디스패처가 `null` 이다). 그래서 훅 금지 린트를 따로 붙이지 않았다.
+
+⚠️ **`Modal` 자체의 회귀는 못 잡는다.** 이 테스트는 `Modal` 을 한 번도 호출하지 않고 **호출부가 무엇을 넘겼는지**만 본다. `ApplyOutboundModal` 에서 본문을 빼면 잡히지만, `shared/ui/Modal` 이 `children` 을 그리기를 그만두면 여기도 `copy.test.ts` 도 통과한 채 화면에서만 고지가 사라진다 — **`Modal` 을 건드리는 작업은 이 사각지대를 알고 가야 한다.** 거기까지 덮으려면 4.10 대로 jsdom + RTL 이 필요하다.
 
 **번복 조건**: 컴포넌트 상호작용까지 테스트해야 하면(예: P2-7 찜 낙관적 업데이트) 4.10 대로 jsdom + RTL 을 붙인다. 그때 이 렌더 테스트는 RTL 로 옮겨도 되고 그대로 둬도 된다 — 서버 렌더만 보는 쪽이 더 빠르다.
 

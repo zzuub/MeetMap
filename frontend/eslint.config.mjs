@@ -113,9 +113,15 @@ const eslintConfig = defineConfig([
         "error",
         {
           selector: [
+            // e.x · e?.x · (e as T).x · rest.x
             "MemberExpression[property.name='externalApplyUrl']",
+            // e["x"] · e[`x`]
             "MemberExpression[computed=true] > Literal[value='externalApplyUrl']",
+            "MemberExpression[computed=true] > TemplateLiteral > TemplateElement[value.cooked='externalApplyUrl']",
+            // const { x } = e · function f({ x }) · { x = "" } · 중첩
             "ObjectPattern > Property[key.name='externalApplyUrl']",
+            // const { "x": u } = e · const { ["x"]: u } = e
+            "ObjectPattern > Property[key.value='externalApplyUrl']",
           ].join(", "),
           message:
             "외부 신청 URL 을 직접 읽지 마세요 — 7.3 확인 모달을 우회하는 경로가 됩니다. " +
