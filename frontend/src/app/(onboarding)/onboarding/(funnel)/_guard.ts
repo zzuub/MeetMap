@@ -39,6 +39,7 @@ import { getServerSession } from "@/entities/account/server";
  * 데이터가 없으니 새는 것도 없고, 다음 걸음에서 걸린다.
  *
  * 규칙의 **구현은 이 함수 하나**다. 부르는 자리를 늘리더라도 판정을 복사하지 않는다.
+ * ⚠️ **위 표는 사람이 세지 않는다** — `_guard.test.ts` 가 폴더를 훑어 강제한다 (4.51).
  */
 export async function requireFunnelSession(): Promise<Session> {
   const session = await getServerSession();
@@ -46,3 +47,21 @@ export async function requireFunnelSession(): Promise<Session> {
 
   return session;
 }
+
+/**
+ * **가드를 스스로 안 부르는 단계와 그 사유** (`decisions.md` 4.51).
+ *
+ * `_guard.test.ts` 가 이 폴더의 단계를 훑어 `requireFunnelSession` 호출을 요구하고,
+ * 여기 적힌 단계만 통과시킨다. **새 단계를 넣고 아무것도 안 하면 테스트가 깨진다** —
+ * 통과시키려면 가드를 부르거나, 왜 필요 없는지를 여기 한 줄로 적어야 한다.
+ *
+ * 세 판 연속으로 "규칙을 만들고 적용될 자리를 안 센" 실수를 했고(4.51), 표는 사람이
+ * 다시 세야 갱신되므로 세는 일을 테스트로 넘겼다. `REQUIRED_PHRASES`(4.39)·
+ * `assert-dynamic-routes`(4.31) 와 같은 형태다.
+ *
+ * ⚠️ **비어 있는 채로 두지 않는다.** 사유가 값이다 — "왜 이 단계는 세션이 필요
+ * 없는가"를 적어야 다음 사람이 그 판단을 다시 검토할 수 있다.
+ */
+export const NO_SESSION_STEPS: Record<string, string> = {
+  intro: "정적 안내뿐이다 — 서버에서 읽는 것도 쓰는 것도 없다 (3.3)",
+};
