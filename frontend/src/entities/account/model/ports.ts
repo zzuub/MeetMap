@@ -34,10 +34,11 @@ export interface AccountApi {
    * 프로필은 선택이라(3.3 `나중에 할래요` · 3.4 `건너뛰기`) 여기가 경계다 —
    * 프로필까지 기다리면 건너뛴 사용자가 로그인할 때마다 퍼널로 되돌아온다.
    *
-   * ⚠️ **http 구현은 비어 있고, 그게 백엔드 계약에 기대는 유일한 자리다.**
-   * 실 모드에서는 `POST /users/me/terms` 의 응답이 갱신된 토큰을 `Set-Cookie` 로
-   * 심어야 한다 — 계약은 `shared/api/endpoints.ts` 의 `user.terms` 에 적어 뒀다.
-   * 프론트에는 그 계약이 지켜졌는지 확인할 수단이 없다 (PR #35 리뷰).
+   * ⚠️ **http 구현이 비어 있는 것은 "지금은 연결할 자리가 없다"는 뜻이기도 하다.**
+   * 실 모드의 세션 갱신은 `POST /users/me/terms` 를 타야 하는데, 그 호출은 서버→서버
+   * fetch 라 응답의 `Set-Cookie` 가 브라우저까지 못 간다 — **실 API 전환 때 이
+   * 메서드가 그 갱신을 받는 자리가 될 가능성이 크다.** 두 선택지는
+   * `shared/api/endpoints.ts` 의 `user.terms` 에 적어 뒀다 (`decisions.md` 4.50).
    */
   finishSignUp(): Promise<void>;
 }

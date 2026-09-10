@@ -13,9 +13,10 @@ const httpAccountApi: AccountApi = {
   // OAuth 는 fetch 가 아니라 **브라우저 이동**이다. 여기서는 갈 주소만 만든다.
   startSignIn: async (input) => ({ kind: "REDIRECT", url: authorizeUrl(input) }),
 
-  // 서버가 약관 POST 를 받을 때 `isNewUser` 를 내리고 새 토큰을 `Set-Cookie` 로
-  // 심는다. 프론트가 할 일이 없어 비어 있다 — **그 계약은 `ENDPOINTS.user.terms`
-  // 에 적혀 있고, 안 지켜지면 프론트가 알아챌 방법이 없다** (PR #35 리뷰).
+  // 실 모드의 세션 갱신은 약관 POST 를 타야 하는데, 그 호출은 서버→서버 fetch 라
+  // 응답의 `Set-Cookie` 가 브라우저까지 못 간다. **비어 있는 것은 "할 일이 없다"가
+  // 아니라 "아직 연결할 자리가 없다"에 가깝다** — 두 선택지는 `ENDPOINTS.user.terms`
+  // 에 적어 뒀다 (`decisions.md` 4.50).
   finishSignUp: async () => {},
 };
 

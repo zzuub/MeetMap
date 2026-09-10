@@ -4,6 +4,7 @@ import { onboardingSummary } from "@/entities/user";
 import { userApi } from "@/entities/user/server";
 import { loadOrError } from "@/shared/api";
 import { ActionLink, ApiErrorScreen } from "@/shared/ui";
+import { requireFunnelSession } from "../_guard";
 
 /**
  * 온보딩 완료 `/onboarding/done` (3.5 — P2-5).
@@ -18,8 +19,14 @@ import { ActionLink, ApiErrorScreen } from "@/shared/ui";
  *
  * `홈으로 이동` 의 목적지는 `AFTER_ONBOARDING` 이다 — 3.5 는 위치 권한 화면을
  * 거치라고 적었지만 그 화면은 P2-6 이고, 지금 링크를 걸면 404 로 간다 (4.29).
+ *
+ * ⚠️ **가드를 스스로 부른다.** 인트로의 `나중에 할래요` 와 프로필의 `건너뛰기` 가
+ * 둘 다 `<Link>` 라, 레이아웃 재실행이 보장되지 않는 경로로 여기 도달한다 (4.49).
+ * 쓰기는 없지만 **프로필을 읽으므로** 세션이 필요한 화면이다.
  */
 export default async function OnboardingDonePage() {
+  await requireFunnelSession();
+
   const accessToken = await getAccessToken();
   const loaded = await loadOrError(() => userApi.getMyProfile({ accessToken }));
 
