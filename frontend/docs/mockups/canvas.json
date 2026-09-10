@@ -1,12 +1,27 @@
 {
+  "pages": [
+    { "id": "page-1", "name": "USER" },
+    { "id": "page-2", "name": "ADMIN · PROVIDER" }
+  ],
   "artboards": [
-    { "file": "Main.dc.html", "title": "주최사 소개 /providers/[id]", "x": 0, "y": 0, "w": 430, "h": 1620, "is_interactive": true },
-    { "file": "ProviderReviews.dc.html", "title": "주최사 후기 목록 /providers/[id]/reviews", "x": 550, "y": 0, "w": 430, "h": 1620, "is_interactive": true },
-    { "file": "Actions.dc.html", "title": "상세 · 비교함 · 찜 (평점 반영)", "x": 1100, "y": 0, "w": 430, "h": 1820, "is_interactive": true }
+    { "file": "Onboarding.dc.html", "title": "온보딩 — 로그인·약관·프로필", "page": "page-1", "x": 0, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "UserV2.dc.html", "title": "홈 · 탐색 · 찜 · 마이", "page": "page-1", "x": 550, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "Actions.dc.html", "title": "상세 · 비교함 · 찜 목록", "page": "page-1", "x": 1100, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "Main.dc.html", "title": "주최사 소개 /providers/[id]", "page": "page-1", "x": 1650, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "ProviderReviews.dc.html", "title": "주최사 후기 /providers/[id]/reviews", "page": "page-1", "x": 0, "y": 1970, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "My.dc.html", "title": "알림 · 후기 · 마이페이지", "page": "page-1", "x": 550, "y": 1970, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "Support.dc.html", "title": "검색 · 위치 권한 · 빈 상태", "page": "page-1", "x": 1100, "y": 1970, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "Common.dc.html", "title": "공통 요소", "page": "page-1", "x": 1650, "y": 1970, "w": 430, "h": 1820, "is_interactive": true },
+
+    { "file": "Admin.dc.html", "title": "ADMIN — 로그인 · 대시보드 · 검수", "page": "page-2", "x": 0, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "AdminManage.dc.html", "title": "ADMIN — 관리", "page": "page-2", "x": 550, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "Provider.dc.html", "title": "PROVIDER — 로그인 · 대시보드 · 등록", "page": "page-2", "x": 1100, "y": 0, "w": 430, "h": 1820, "is_interactive": true },
+    { "file": "ProviderManage.dc.html", "title": "PROVIDER — 관리", "page": "page-2", "x": 1650, "y": 0, "w": 430, "h": 1820, "is_interactive": true }
   ],
   "annotations": [
-    { "id": "note-new-screens", "x": 0, "y": -150, "w": 980, "text": "신규 — 기능정의서 7.4 가 원본이다 (목업이 없던 두 화면).\n평점 요약은 후기 5건 미만이면 숨고 건수만 남는다. 상단 tweak 으로 후기 수와 진행 중인 회차 수를 바꿔 두 분기를 다 볼 수 있다." },
-    { "id": "note-actions-edit", "x": 1100, "y": -150, "w": 430, "text": "기존 파일 수정 — 상세에 주최사 블록(평점 + 소개 보기) 신설.\n비교표는 기능정의서 8장대로 5행 고정: 참가비 · 일정 · 거리 · 주최사 평점 · 모집 상태.\n강남 보드게임은 후기 3건이라 숫자 대신 '후기 3건'으로 떨어진다." }
+    { "id": "note-user", "page": "page-1", "x": 0, "y": -170, "w": 1080, "text": "각 아트보드는 화면 여러 개를 담고 있다 — 우하단 플로팅 탭바로 전환한다. 그 탭바는 프로토타입 장치이지 제품 기능이 아니다.\n\nMain · ProviderReviews 두 장은 2026-09-10 에 기능정의서 7.4 를 보고 새로 그린 것이고, Actions 는 상세 주최사 블록과 비교표 5행 고정이 반영돼 캔버스 원본보다 앞서 있다." },
+    { "id": "note-drift", "page": "page-1", "x": 1180, "y": -170, "w": 900, "text": "⚠️ 사양과 어긋난 자리 (2026-09-10 기준)\n\n· UserV2 — 카드가 삭제된 축인 category(와인·전시·러닝…)를 사진 자리 라벨로 아직 쓴다\n· UserV2 — 정렬에 '평점 높은순'·'가격 높은순'이 없다\n· My — 후기 목록에 평점 요약 블록이 붙어 있다 (10.4 에서 /my/reviews 는 요약 없음으로 갈렸다)" },
+    { "id": "note-admin", "page": "page-2", "x": 0, "y": -170, "w": 1080, "text": "이 4장의 화면별 기능정의는 아직 spec/ 에 없다 — 기능정의서가 USER 한정 문서라서다. 백엔드 기능정의서의 쓰기 경로(등록·검수·계정 발급)가 여기 다 들어 있다." }
   ],
-  "launch": { "view": "canvas" }
+  "launch": { "view": "canvas", "page": "page-1" }
 }

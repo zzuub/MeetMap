@@ -49,3 +49,6 @@ next-env.d.ts
 # 목업 캔버스 빌드 산출물 — .dc.html + canvas.json 에서 재생성된다 (docs/mockups/README.md)
 docs/mockups/*.html
 !docs/mockups/*.dc.html
+
+# 화면별 아트보드 생성 산출물 — build-artboards.mjs 로 재생성된다
+docs/mockups/.build/
