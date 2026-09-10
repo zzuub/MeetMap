@@ -4,8 +4,22 @@
     {
       "name": "meetmap-frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev"
+      ],
       "port": 3001
+    },
+    {
+      "name": "mockups",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "frontend/docs/mockups/serve.mjs",
+        ".build"
+      ],
+      "port": 4173
     }
   ]
 }

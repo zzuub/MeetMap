@@ -70,8 +70,15 @@ describe("찜 버튼 (7.2)", () => {
     const html = markup([]);
     const hit = /<button[^>]*class="([^"]*)"/.exec(html)?.[1] ?? "";
 
+    // ⚠️ 허용 값을 **열거하지 않는다.** `size-(11|12)` 로 적으면 새 variant 가 생길
+    // 때마다 사람이 목록을 갱신해야 하고, `size-14` 처럼 **하한을 지키는 값도
+    // 실패**한다. 규칙 자체를 적는다 — Tailwind `size-N` 은 N×4px 이므로 44px
+    // 하한은 N ≥ 11 이다 (PR #40 리뷰)
+    const scale = Number(/\bsize-(\d+)\b/.exec(hit)?.[1] ?? 0);
+
     // 버튼 자신의 크기를 본다. 안쪽 시각 원(`size-9`)이 통과시키지 않도록 한다
-    expect(hit).toMatch(/\bsize-(11|12|14)\b/);
+    expect(hit, "버튼에 크기 클래스가 없다").toMatch(/\bsize-\d+\b/);
+    expect(scale * 4).toBeGreaterThanOrEqual(44);
   });
 
   it("`button` 이다 — `div + onClick` 이 아니다 (15장 시맨틱)", () => {
