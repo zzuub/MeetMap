@@ -76,6 +76,10 @@ export function LikeProvider({
       // ⚠️ `useOptimistic` 의 갱신은 **transition 안에서만** 허용된다
       startTransition(async () => {
         apply(eventId);
+        // ⚠️ **이 토스트를 transition 밖으로 빼지 않는다.** 안에 있어서 액션이 끝난
+        // 뒤에 커밋되고, 그래서 **결과 확인**이 된다. 늦다고 밖으로 빼면 느린
+        // 실패에서 `저장했어요` 가 1.8초 뒤 사라지고 한참 뒤 `저장하지 못했어요` 가
+        // 따로 뜬다 — 서로 이어지지 않는 두 문구다 (`decisions.md` 4.61)
         showToast(next ? LIKE_TOAST.liked : LIKE_TOAST.unliked);
 
         const result = await toggleLike(eventId, next);
