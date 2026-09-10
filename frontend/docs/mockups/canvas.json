@@ -1,0 +1,12 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "주최사 소개 /providers/[id]", "x": 0, "y": 0, "w": 430, "h": 1620, "is_interactive": true },
+    { "file": "ProviderReviews.dc.html", "title": "주최사 후기 목록 /providers/[id]/reviews", "x": 550, "y": 0, "w": 430, "h": 1620, "is_interactive": true },
+    { "file": "Actions.dc.html", "title": "상세 · 비교함 · 찜 (평점 반영)", "x": 1100, "y": 0, "w": 430, "h": 1820, "is_interactive": true }
+  ],
+  "annotations": [
+    { "id": "note-new-screens", "x": 0, "y": -150, "w": 980, "text": "신규 — 기능정의서 7.4 가 원본이다 (목업이 없던 두 화면).\n평점 요약은 후기 5건 미만이면 숨고 건수만 남는다. 상단 tweak 으로 후기 수와 진행 중인 회차 수를 바꿔 두 분기를 다 볼 수 있다." },
+    { "id": "note-actions-edit", "x": 1100, "y": -150, "w": 430, "text": "기존 파일 수정 — 상세에 주최사 블록(평점 + 소개 보기) 신설.\n비교표는 기능정의서 8장대로 5행 고정: 참가비 · 일정 · 거리 · 주최사 평점 · 모집 상태.\n강남 보드게임은 후기 3건이라 숫자 대신 '후기 3건'으로 떨어진다." }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -45,3 +45,7 @@ next-env.d.ts
 
 # CI 가 라우트 표를 검사하려고 남기는 빌드 로그 (scripts/assert-dynamic-routes.mjs)
 /build.log
+
+# 목업 캔버스 빌드 산출물 — .dc.html + canvas.json 에서 재생성된다 (docs/mockups/README.md)
+docs/mockups/*.html
+!docs/mockups/*.dc.html

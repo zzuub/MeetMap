@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-6 온보딩 퍼널 + 위치 권한이 붙어 DoD 앞쪽이 닫혔다. 다음은 P2-7 찜)
+> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-7 로 **DoD 를 양쪽 다 닫았다**. 다음은 P2-8 찜 목록)
 
 ## 어디에 무엇이 있나
 
@@ -85,7 +85,7 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) **`geo`**(역지오코딩 포트 + `nearestArea` — 좌표를 지역 마스터로 되돌린다, 4.54) |
-| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만, 화면 셋은 순수 컴포넌트) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
+| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만, 화면 셋은 순수 컴포넌트) · **`event-like`**(찜 — 상태는 **화면마다 하나**인 `LikeProvider`, 버튼은 읽기만. 원본은 `likedIds` 이고 `isLiked` 는 안 읽는다 → 4.59) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
 | `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) — **셋 다 자기 스켈레톤을 함께 내보낸다** |
 | `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **온보딩 6화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done·location) + 나머지는 자리표시자 + **error 4개 · loading 4개 · not-found 2개** (4.41·4.47) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
@@ -94,9 +94,11 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 
 > `entities/event/model/derive.ts` 에 파생 규칙이 모여 있다 — `deriveScale` `isThisWeek` `priceFor` `isEligible` `marksIneligible` `isOpen` `currentTimeSlot`. 자격·가격 판정을 화면에서 다시 구현하지 않는다. 목 모드의 "인증 주체"(출생연도·성별)는 `entities/event/mock/viewer.ts` 의 `MOCK_VIEWER` 다.
 
-### 목업 — 리포지토리에 없다
+### 목업 — `docs/mockups/`
 
-목업 10종은 **Claude Design 캔버스**의 `MeetMap UI/UX 작업` 프로젝트에 있다. git 에 없으므로 파일로 열 수 없고, 필요하면 사용자에게 URL 을 요청한다. **User v2 / Actions / My 에는 옛 값이 남아 있다** — 목업과 기능정의서가 어긋나면 **기능정의서가 원본이다** ([spec/15-도메인-재정의-이력.md](spec/15-도메인-재정의-이력.md)).
+2026-09-10 부터 리포지토리에 있다 (그전에는 Claude Design 캔버스에만 있었다). 파일 표·드리프트·여는 법은 [mockups/README.md](mockups/README.md).
+
+**목업과 기능정의서가 어긋나면 기능정의서가 원본이다** ([spec/15-도메인-재정의-이력.md](spec/15-도메인-재정의-이력.md)). 구현된 화면은 **코드가 목업보다 앞서 있다** — `P1-1` 이후로는 목업이 아니라 사양을 보고 그린다.
 
 ### 데이터 가져오는 법
 
