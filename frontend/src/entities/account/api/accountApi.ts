@@ -14,7 +14,8 @@ const httpAccountApi: AccountApi = {
   startSignIn: async (input) => ({ kind: "REDIRECT", url: authorizeUrl(input) }),
 
   // 서버가 약관 POST 를 받을 때 `isNewUser` 를 내리고 새 토큰을 `Set-Cookie` 로
-  // 심는다. 프론트가 할 일이 없다 — 목 모드에만 있는 일이라 여기는 비어 있다.
+  // 심는다. 프론트가 할 일이 없어 비어 있다 — **그 계약은 `ENDPOINTS.user.terms`
+  // 에 적혀 있고, 안 지켜지면 프론트가 알아챌 방법이 없다** (PR #35 리뷰).
   finishSignUp: async () => {},
 };
 

@@ -13,6 +13,7 @@ import {
 } from "@/entities/user";
 import { userApi } from "@/entities/user/server";
 import { toActionFailure, type ActionFailure } from "@/shared/ui";
+import { requireFunnelSession } from "../_guard";
 
 /**
  * 프로필 설정 제출 (3.4).
@@ -26,6 +27,9 @@ export async function saveProfileAction(
   _previous: ActionFailure | null,
   formData: FormData,
 ): Promise<ActionFailure | null> {
+  // 레이아웃 가드가 `<Link>` 이동에서는 안 돈다. 쓰기 직전에 한 번 더 본다 (4.49)
+  await requireFunnelSession();
+
   const input = readProfile(formData);
 
   // 비활성 버튼이 이미 막는다(2.5). 폼을 우회한 제출을 위한 방어선이다.

@@ -33,6 +33,11 @@ export interface AccountApi {
    *
    * 프로필은 선택이라(3.3 `나중에 할래요` · 3.4 `건너뛰기`) 여기가 경계다 —
    * 프로필까지 기다리면 건너뛴 사용자가 로그인할 때마다 퍼널로 되돌아온다.
+   *
+   * ⚠️ **http 구현은 비어 있고, 그게 백엔드 계약에 기대는 유일한 자리다.**
+   * 실 모드에서는 `POST /users/me/terms` 의 응답이 갱신된 토큰을 `Set-Cookie` 로
+   * 심어야 한다 — 계약은 `shared/api/endpoints.ts` 의 `user.terms` 에 적어 뒀다.
+   * 프론트에는 그 계약이 지켜졌는지 확인할 수단이 없다 (PR #35 리뷰).
    */
   finishSignUp(): Promise<void>;
 }

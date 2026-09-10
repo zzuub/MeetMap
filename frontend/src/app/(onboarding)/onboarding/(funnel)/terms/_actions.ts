@@ -6,6 +6,7 @@ import { accountApi, getAccessToken } from "@/entities/account/server";
 import { requiredTermsMet, type TermsAgreement } from "@/entities/user";
 import { userApi } from "@/entities/user/server";
 import { toActionFailure, type ActionFailure } from "@/shared/ui";
+import { requireFunnelSession } from "../_guard";
 
 /**
  * 약관 동의 제출 (3.2).
@@ -22,6 +23,9 @@ export async function agreeTermsAction(
   _previous: ActionFailure | null,
   formData: FormData,
 ): Promise<ActionFailure | null> {
+  // 레이아웃 가드가 `<Link>` 이동에서는 안 돈다. 쓰기 직전에 한 번 더 본다 (4.49)
+  await requireFunnelSession();
+
   const agreement = readAgreement(formData);
 
   // 비활성 버튼이 이미 막는다(2.5). JS 없이 제출된 경우를 위한 방어선이다.

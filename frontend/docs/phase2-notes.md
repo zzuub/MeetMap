@@ -19,10 +19,11 @@ Phase 1 의 것은 [phase1-notes.md](phase1-notes.md) 에 그대로 있다 — *
 - **백엔드에 OAuth 가 없다. `accountApi` 포트를 세웠다** → 4.43. `eventApi`(4.3)와 같은 형태이고 분기는 `api/accountApi.ts` 마지막 한 줄이다. ⚠️ **`meetmap_mock_role` 에 묶지 않았다** — 그 쿠키의 세션은 `isNewUser` 가 항상 거짓이라 묶는 순간 3.1 의 신규 분기가 죽고, 애초에 개발용 역할 스위치이지 화면이 아니다
 - ⚠️ **역할 스위치 쿠키가 로그인 세션을 이긴다.** `document.cookie = "meetmap_mock_role=USER;path=/"` 를 한 번이라도 켜 뒀으면 **퍼널을 눌러볼 수 없다.** 지우고 본다:
   `document.cookie = "meetmap_mock_role=;path=/;max-age=0"`
+- ⚠️ **역할 스위치를 켠 채 로그인까지 하면 `찜`·`마이` 가 막힌다.** 스위치가 이기므로 역할이 `PROVIDER`/`ADMIN` 로 판정돼 `roles: ["USER"]` 게이트에 걸려 `/onboarding` 으로 되돌아온다 — 실제로는 USER 로 로그인했는데도. 가격·자격은 영향이 없다(`viewer` 는 `meetmap_mock_user` 에서 따로 읽는다). 이것도 스위치를 지우면 사라진다 (PR #35 리뷰)
 - **처음부터 다시 보려면 목 쿠키를 지운다.** 로그인은 `meetmap_mock_session`(계정)·`meetmap_mock_user`(약관·프로필) 두 장을 심고 **둘 다 HttpOnly** 라 콘솔에서 못 지운다 — 개발자도구 → Application → Cookies 에서 지운다. 안 지우면 두 번째 로그인부터 `기존 회원 → 홈` 으로 간다(그게 정상 동작이다)
 - **`isNewUser` 를 판정하는 자리는 로그인 액션 하나뿐이다** (`signInLanding`). ⚠️ **`/onboarding` 은 세션을 보고 리다이렉트하지 않는다** — 튕겨내면 퍼널 중간에 뒤로가기로 돌아온 사용자가 갇히고, `기존 회원은 홈으로` 분기를 누를 방법이 사라진다 → 4.45
 - **`?redirect=` 를 처음으로 읽는다. 검증은 `safeRedirect` 한 곳**(소비 시점)이다 → 4.45. `proxy.ts` 가 만든 값도 믿지 않는다 — 주소창에 직접 칠 수 있다. **신규 가입자에게는 적용하지 않는다**(3.5 가 퍼널의 끝을 못 박았다)
-- **퍼널 가드는 `(funnel)` 라우트 그룹 레이아웃 하나다.** `PUBLIC_PREFIXES` 가 `/onboarding` 전체를 열어 두므로 세션 없이 프로필 폼에 도달하는 구멍이 있었다. **P2-6 은 폴더에 넣기만 하면 같은 가드가 걸린다**
+- **퍼널 가드의 구현은 `(funnel)/_guard.ts` 의 `requireFunnelSession` 하나이고, 부르는 자리가 셋이다** — 레이아웃 + 약관 액션 + 프로필 액션 → 4.49. ⚠️ **레이아웃 재실행은 `<Link>` 소프트 내비게이션에서 보장되지 않는다**(두 번 측정해 답이 달랐다). **P2-6 을 폴더에 넣으면 진입 경로에는 가드가 걸리지만, 그 단계가 쓰기를 하면 액션에서 `requireFunnelSession` 을 직접 불러야 한다**
 - **`viewer` 를 주입했다** → 4.44. 홈·탐색의 `viewer={null}` 이 풀렸고, 인증 축 게이트가 `isGuest: session === null` → **`hasViewer: viewer !== null`** 로 바뀌었다. 이름을 바꾼 것이 요점이다 — 값만 갈아끼우면 다음 사람이 다시 세션을 넣는다. **상세(7.1)는 여전히 대기열 밖이다** (4.32)
 - **네 번째 실패 표면이 생겼다 — 쓰기다** → 4.46. 제출 실패는 화면을 갈아끼우지 않고 **폼 안에서** 코드·시각을 알린다(`FormErrorNotice`). 적용 자리는 **약관 제출·프로필 제출 둘**이고, 3.1 의 인증 실패 토스트는 **만들지 않았다**(실패가 나는 자리가 OAuth 콜백이라 목에 재현 경로가 없다)
 - **`(onboarding)` 그룹 경계를 붙였다** → 4.47. 근거는 화면 수가 아니라 **출구**다 — 탭도 헤더도 없는 유일한 셸이라 에러 카드가 `홈으로 가기` 를 직접 준다. `loading.tsx` 는 **퍼널 공통 한 장**, `not-found.tsx` 는 **안 만들었다**
@@ -33,7 +34,7 @@ Phase 1 의 것은 [phase1-notes.md](phase1-notes.md) 에 그대로 있다 — *
 ## P2-6 위치 권한이 이어받는 것
 
 - **`AFTER_ONBOARDING`**(`entities/account/model/landing.ts`)을 `/onboarding/location` 으로 바꾼다. 지금은 `/` 다
-- 화면을 `app/(onboarding)/onboarding/(funnel)/location/` 에 만들면 **세션 가드와 로딩 폴백이 자동으로 걸린다**
+- 화면을 `app/(onboarding)/onboarding/(funnel)/location/` 에 만들면 **진입 경로의 세션 가드와 로딩 폴백이 자동으로 걸린다.** ⚠️ 단 그 화면이 **쓰기를 하면** 액션에서 `requireFunnelSession` 을 직접 불러야 한다 — 레이아웃은 `<Link>` 이동에서 안 돈다 (4.49)
 - `/onboarding/location` 은 지금 **라우트가 없어 404** 다. 진입점이 하나도 없어 만든 적이 없다 — `/providers/[id]` 와 같은 상태다 (4.32 ⚠️)
 - 지역 마스터는 `AREAS` **8개**로 이미 통일돼 있다 (dev-plan blocking #3). 4.3 의 8개 목록을 새로 만들지 않는다
 - 권한 거부 시 **거리순 정렬·현재 위치 기준 거리 표기·지도 자동 센터링을 비활성**한다 — 정렬 축을 감추는 자리는 `sortChoices` 이고 값을 막는 자리는 `parseSort` 다 (4.30 과 같은 형태)
@@ -46,6 +47,7 @@ Phase 1 의 것은 [phase1-notes.md](phase1-notes.md) 에 그대로 있다 — *
 | **`compact` 카드의 모집 상태 표시** | **P2-8 찜 목록.** 찜한 소개팅은 마감돼도 목록에서 사라지지 않으므로 9장 표시 항목대로 상태 배지가 필요하다. `compact` 는 홈과 공용이라 넣을 때 홈에서 어떻게 보일지 함께 본다 |
 | **`/policy/terms` 화면이 없다** | **실서비스 출시.** 개발 단계에서는 막지 않지만, **약관 전문을 볼 수 없는 동의 UI 는 그대로 내보낼 수 없다.** 3.1 `약관 링크` · 3.2 `자세히 보기` 두 자리가 그 화면을 기다린다 |
 | **3.1 인증 실패 토스트** | 아무것도 — 백엔드 OAuth 가 붙을 때 `/onboarding?error=…` 를 읽어 띄운다 (4.46) |
+| **`POST /users/me/terms` 가 세션 토큰을 갱신해야 한다** | **실 API 전환.** `accountApi.finishSignUp` 의 http 구현이 비어 있는 근거가 이 계약이다. 백엔드가 약관만 저장하고 토큰을 안 바꾸면 실 모드에서 **`isNewUser` 가 영원히 참**으로 남아 기존 회원이 로그인할 때마다 약관 화면으로 되돌아온다. **프론트에는 확인할 수단이 없다** — 목에 재현 경로가 없어 테스트도 못 잡는다. 계약은 `shared/api/endpoints.ts` 의 `user.terms` 에 적어 뒀다 (PR #35 리뷰) |
 | 세션 만료 중 프로필 401 | 아무것도 — 헤더는 로그인 상태인데 가격이 게스트 기준이 되는 어긋남. 목에 재현 경로가 없어 열어 뒀다 (4.44) |
 
 ---

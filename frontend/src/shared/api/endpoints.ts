@@ -18,6 +18,18 @@ export const ENDPOINTS = {
   },
 
   user: {
+    /**
+     * 약관 동의 (3.2).
+     *
+     * ⚠️ **이 POST 는 저장만 하는 것이 아니다.** 응답에서 **갱신된 세션 토큰을
+     * `Set-Cookie` 로 심어 `isNewUser` 를 내려야 한다** — 온보딩의 필수 구간이
+     * 여기서 끝나기 때문이다 (`decisions.md` 4.43).
+     *
+     * 안 지키면 실 모드에서 **`isNewUser` 가 영원히 참**으로 남아 기존 회원이
+     * 로그인할 때마다 약관 화면으로 되돌아온다. 프론트에는 이 계약을 확인할 수단이
+     * 없다 — 목 모드에는 재현 경로가 없어 `accountApi.finishSignUp` 의 http 구현이
+     * 비어 있고, 테스트도 이 실패를 잡지 못한다 (PR #35 리뷰).
+     */
     terms: "/users/me/terms",
     profile: "/users/me/profile",
     likes: "/users/me/likes",
