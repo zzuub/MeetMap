@@ -33,7 +33,14 @@ export interface UserApi {
   /** 약관 동의 (3.2). 선택 항목(마케팅)은 알림 설정과 연동된다 (10.3) */
   saveTerms(agreement: TermsAgreement, auth: AuthContext): Promise<void>;
 
-  /** 프로필 설정 (3.4) */
+  /**
+   * 프로필 설정 (3.4).
+   *
+   * ⚠️ **선호 지역을 통째로 덮어쓴다.** 3.4 가 그 필드를 직접 받으므로 그래야 하지만,
+   * 4.3 의 위치 권한 화면도 **같은 필드**에 쓴다 (`savePreferredAreas` /
+   * `decisions.md` 4.53). 그래서 **프로필 수정 화면(P4-4)이 현재 값을 프리필하지
+   * 않고 제출하면 위치 권한 화면에서 고른 지역이 조용히 지워진다.**
+   */
   saveProfile(input: ProfileInput, auth: AuthContext): Promise<UserProfile>;
 
   /**
