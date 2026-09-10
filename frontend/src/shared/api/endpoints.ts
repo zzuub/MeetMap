@@ -62,7 +62,25 @@ export const ENDPOINTS = {
      * 못 잡는다.** 읽는 화면을 만드는 판이 그 방어선을 함께 세우는 자리다.
      */
     preferredAreas: "/users/me/preferred-areas",
+    /**
+     * 찜한 소개팅 **id 배열** (9장 · 2.4 `likedIds`).
+     *
+     * ⚠️ **회차 본문이 아니라 id 만 내려준다.** 홈·탐색은 카드의 찜 표시를 위해 이
+     * 값을 읽는데, 회차를 통째로 받으면 같은 데이터를 두 번 나르게 된다. 찜 목록
+     * 화면(P2-8)이 본문을 필요로 하면 그때 `?expand=` 를 더한다.
+     *
+     * ⚠️ **`GET /events` 응답의 `isLiked` 와 어긋나면 안 된다.** 화면은 **이 값만**
+     * 읽으므로(4.59) 어긋나도 티가 안 나지만, 실 API 는 같은 인증 주체 기준으로
+     * 둘을 채워야 한다.
+     */
     likes: "/users/me/likes",
+    /**
+     * 찜 **설정/해제** — `PUT` 이 찜, `DELETE` 가 해제 (7.2).
+     *
+     * ⚠️ **토글(`POST`)이 아니다.** 낙관적 업데이트가 이미 화면을 그린 뒤에 오므로
+     * 토글이면 재시도·중복 클릭이 상태를 뒤집는다. `PUT`/`DELETE` 는 멱등이라 같은
+     * 요청이 두 번 가도 답이 같다 (`decisions.md` 4.59).
+     */
     like: (eventId: string) => `/users/me/likes/${eventId}`,
     notifications: "/users/me/notifications",
     notificationRead: (id: string) => `/users/me/notifications/${id}/read`,

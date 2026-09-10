@@ -3,7 +3,8 @@ import { loadOrError } from "@/shared/api";
 import { ApiErrorScreen } from "@/shared/ui";
 import { HomeHeader } from "@/widgets/app-header";
 import { HomeFeed } from "@/widgets/home-feed";
-import { loadViewerContext } from "../../_lib/viewer";
+import { LikeProvider, toggleLikeAction } from "@/features/event-like";
+import { loadViewerContext, signInHrefFor } from "../../_lib/viewer";
 
 /**
  * 홈 `/` (기능정의서 5장).
@@ -17,7 +18,7 @@ import { loadViewerContext } from "../../_lib/viewer";
  * 길이 같이 사라진다 (`decisions.md` 4.40).
  */
 export default async function HomePage() {
-  const [{ viewer }, feed] = await Promise.all([
+  const [{ session, viewer, likedIds }, feed] = await Promise.all([
     loadViewerContext(),
     loadOrError(() => eventApi.getHomeFeed({})),
   ]);
@@ -28,15 +29,21 @@ export default async function HomePage() {
       <HomeHeader />
 
       {feed.ok ? (
-        <HomeFeed
-          feed={feed.data}
-          // 가격·자격의 기준은 프로필에서 온다. 프로필을 건너뛴 사용자는 `null` 이라
-          // 로그인 상태여도 게스트와 같은 표기가 된다 (`decisions.md` 4.44)
-          viewer={viewer}
-          // 섹션 B(`내 나이대`)는 출생연도가 있어야 성립한다 — 로그인 여부가
-          // 아니라 프로필의 유무를 본다 (5.3)
-          showMyAgeGroup={viewer !== null}
-        />
+        <LikeProvider
+          liked={likedIds}
+          signInHref={signInHrefFor(session, "/")}
+          toggleLike={toggleLikeAction}
+        >
+          <HomeFeed
+            feed={feed.data}
+            // 가격·자격의 기준은 프로필에서 온다. 프로필을 건너뛴 사용자는 `null` 이라
+            // 로그인 상태여도 게스트와 같은 표기가 된다 (`decisions.md` 4.44)
+            viewer={viewer}
+            // 섹션 B(`내 나이대`)는 출생연도가 있어야 성립한다 — 로그인 여부가
+            // 아니라 프로필의 유무를 본다 (5.3)
+            showMyAgeGroup={viewer !== null}
+          />
+        </LikeProvider>
       ) : (
         <div className="px-5 py-16">
           <ApiErrorScreen error={feed.error} resource="collection" />

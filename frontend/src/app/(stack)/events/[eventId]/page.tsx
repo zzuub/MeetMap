@@ -1,8 +1,10 @@
 import { eventApi } from "@/entities/event";
+import { LikeProvider, toggleLikeAction } from "@/features/event-like";
 import { loadOrError } from "@/shared/api";
 import { ApiErrorScreen } from "@/shared/ui";
 import { AppHeader } from "@/widgets/app-header";
 import { EventDetailView, ShareButton } from "@/widgets/event-detail";
+import { loadViewerContext, signInHrefFor } from "../../../_lib/viewer";
 
 /**
  * 소개팅 상세 `/events/[eventId]` (7.1·7.2). **카드 5종이 전부 여기로 온다.**
@@ -22,7 +24,10 @@ export default async function EventDetailPage({
   params: Promise<{ eventId: string }>;
 }) {
   const { eventId } = await params;
-  const detail = await loadOrError(() => eventApi.getDetail(eventId));
+  const [{ session, likedIds }, detail] = await Promise.all([
+    loadViewerContext(),
+    loadOrError(() => eventApi.getDetail(eventId)),
+  ]);
 
   if (!detail.ok) {
     return (
@@ -41,7 +46,13 @@ export default async function EventDetailPage({
   return (
     <>
       <AppHeader action={<ShareButton title={detail.data.title} />} />
-      <EventDetailView event={detail.data} />
+      <LikeProvider
+        liked={likedIds}
+        signInHref={signInHrefFor(session, `/events/${eventId}`)}
+        toggleLike={toggleLikeAction}
+      >
+        <EventDetailView event={detail.data} />
+      </LikeProvider>
     </>
   );
 }

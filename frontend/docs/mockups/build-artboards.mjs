@@ -6,10 +6,7 @@
  * 그래서 화면마다 사본을 떠서 ① 초기 화면을 고정하고 ② 플로팅 탭바를 뗀다.
  *
  *   node build-artboards.mjs      → .build/ 에 45개 + canvas.json
-<<<<<<< Updated upstream
-=======
  *   node serve.mjs .build         → http://localhost:4173 로 확인
->>>>>>> Stashed changes
  *
  * ⚠️ `UserV2` 의 하단 탭은 제품의 실제 4탭 내비라 떼지 않는다. `Onboarding` 은
  *    플로팅 탭바가 없고 플로우 버튼으로 넘어간다.
@@ -34,8 +31,6 @@ const SCREENS = {
   Common: { splash: "스플래시", redirect: "리다이렉트", error: "에러", maintenance: "점검" },
 };
 
-<<<<<<< Updated upstream
-=======
 /**
  * 앞선 화면에서 담아야 내용이 생기는 화면의 초기 상태를 대신 채운다.
  *
@@ -46,7 +41,6 @@ const SEED = {
   "Actions.compare": { compareIds: "[1, 2, 3]" },
 };
 
->>>>>>> Stashed changes
 /** 화면이 하나뿐이라 그대로 나르는 파일 */
 const SINGLE = {
   Main: "주최사 소개 /providers/[id]",
@@ -68,16 +62,6 @@ const H = 1820;
 const GAP_X = 120;
 const GAP_Y = 150;
 
-<<<<<<< Updated upstream
-/** `state = { … screen: 'x' … }` 의 초기값만 바꾼다 — go* 핸들러는 건드리지 않는다 */
-function setInitialScreen(src, screen) {
-  const at = src.indexOf("state = {");
-  if (at < 0) throw new Error("state 초기화를 찾지 못했다");
-  const head = src.slice(at, at + 300);
-  if (!/screen:\s*'[a-zA-Z0-9_]+'/.test(head)) throw new Error("screen 초기값을 찾지 못했다");
-  const replaced = head.replace(/screen:\s*'[a-zA-Z0-9_]+'/, `screen: '${screen}'`);
-  return src.slice(0, at) + replaced + src.slice(at + 300);
-=======
 /** `state = { … }` 초기화 블록의 필드 하나만 바꾼다 — go* 핸들러는 건드리지 않는다 */
 function setStateField(src, key, valueSrc) {
   const at = src.indexOf("state = {");
@@ -87,7 +71,6 @@ function setStateField(src, key, valueSrc) {
   const re = new RegExp(`(\\b${key}:\\s*)([^,}\\n]+)`);
   if (!re.test(head)) throw new Error(`state.${key} 를 초기화 블록에서 찾지 못했다`);
   return src.slice(0, at) + head.replace(re, `$1${valueSrc}`) + src.slice(at + WINDOW);
->>>>>>> Stashed changes
 }
 
 /** 우하단 플로팅 탭바 `<div …position:fixed;bottom:Npx;right:Npx…>` 를 통째로 걷어낸다 */
@@ -109,28 +92,19 @@ function stripTabBar(src) {
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
-<<<<<<< Updated upstream
-const made = new Map(); // 원본 파일 → [{file, title}]
-let stripped = 0;
-=======
 const made = new Map();
 let stripped = 0;
 let seeded = 0;
->>>>>>> Stashed changes
 
 for (const [name, screens] of Object.entries(SCREENS)) {
   const src = fs.readFileSync(path.join(SRC, `${name}.dc.html`), "utf8");
   const list = [];
   for (const [id, title] of Object.entries(screens)) {
-<<<<<<< Updated upstream
-    let out = setInitialScreen(src, id);
-=======
     let out = setStateField(src, "screen", `'${id}'`);
     for (const [key, value] of Object.entries(SEED[`${name}.${id}`] ?? {})) {
       out = setStateField(out, key, value);
       seeded++;
     }
->>>>>>> Stashed changes
     if (!KEEP_TABBAR.has(name)) {
       const r = stripTabBar(out);
       out = r.out;
@@ -149,13 +123,9 @@ for (const [name, title] of Object.entries(SINGLE)) {
   made.set(name, [{ file, title }]);
 }
 
-<<<<<<< Updated upstream
-// 진입 아트보드는 Main.dc.html 이어야 한다 — 이미 SINGLE 에 있다
-=======
 // 로컬 확인용 — .dc.html 은 같은 폴더의 support.js 를 상대경로로 문다
 fs.copyFileSync(path.join(SRC, "support.js"), path.join(OUT, "support.js"));
 
->>>>>>> Stashed changes
 const artboards = [];
 for (const page of PAGES) {
   let i = 0;
@@ -186,11 +156,7 @@ const canvas = {
 
 fs.writeFileSync(path.join(OUT, "canvas.json"), JSON.stringify(canvas, null, 2) + "\n");
 
-<<<<<<< Updated upstream
-console.log(`${artboards.length}개 아트보드 · 탭바 제거 ${stripped}개 · ${OUT}`);
-=======
 console.log(`${artboards.length}개 아트보드 · 탭바 제거 ${stripped} · 상태 시드 ${seeded} · ${OUT}`);
->>>>>>> Stashed changes
 for (const page of PAGES) {
   console.log(`  ${page.name}: ${artboards.filter((a) => a.page === page.id).length}개`);
 }

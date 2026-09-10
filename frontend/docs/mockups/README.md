@@ -46,21 +46,6 @@ Claude Design 캔버스(`MeetMap UI/UX 작업` 프로젝트)의 화면 파일이
 ## 캔버스로 다시 올리기
 
 **캔버스 (45화면)** — https://claude.ai/code/artifact/d2c9bd0a-b85f-4c48-9f94-4b1f5d118407
-<<<<<<< Updated upstream
-`USER` 22 / `ADMIN · PROVIDER` 19 / `공통` 4 세 페이지다. 툴바의 페이지 메뉴로 전환한다.
-
-파일 하나에 화면이 3~5개씩 들어 있어 그대로 올리면 45화면이 12프레임에 숨는다. 그래서 [`build-artboards.mjs`](build-artboards.mjs) 가 **화면당 사본 하나**를 떠서 ① 초기 화면을 고정하고 ② 우하단 플로팅 탭바를 뗀다.
-
-```bash
-node build-artboards.mjs   # .build/ 에 45개 + canvas.json
-```
-
-⚠️ **`UserV2` 의 하단 4탭은 떼지 않는다** — 프로토타입 장치가 아니라 제품의 실제 내비게이션이다. `Onboarding` 은 플로팅 탭바가 없고 플로우 버튼으로 넘어간다.
-
-`.build/` 와 씨앗 산출물(`*.html`, ~4MB)은 `.gitignore` 로 뺐다. 원본 `.dc.html` 12개가 원본이고 나머지는 언제든 다시 만들어진다 — **`.build/` 안의 파일을 고치지 않는다.**
-
-⚠️ 이 캔버스는 `MeetMap UI/UX 작업` **원본 캔버스와 별개다.** 여기서 편집하고 저장하면 원본에는 반영되지 않는다 — 위 드리프트 표를 계속 채워야 하는 이유다.
-=======
 
 `USER` 22 / `ADMIN · PROVIDER` 19 / `공통` 4 세 페이지다. 툴바의 페이지 메뉴로 전환한다.
 
@@ -79,4 +64,3 @@ node serve.mjs .build         # http://localhost:4173 로 확인
 
 ⚠️ 이 캔버스는 `MeetMap UI/UX 작업` **원본 캔버스와 별개다.** 여기서 편집하고 저장하면 원본에는 반영되지 않는다 — 위 드리프트 표를 계속 채워야 하는 이유다.
 
->>>>>>> Stashed changes

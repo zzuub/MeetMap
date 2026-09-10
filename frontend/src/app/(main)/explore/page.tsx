@@ -9,7 +9,8 @@ import { loadOrError } from "@/shared/api";
 import { ActionLink, ApiErrorScreen } from "@/shared/ui";
 import { ExploreBoard } from "@/widgets/explore-board";
 import { PhasePlaceholder } from "../../_components/PhasePlaceholder";
-import { loadViewerContext } from "../../_lib/viewer";
+import { LikeProvider, toggleLikeAction } from "@/features/event-like";
+import { loadViewerContext, signInHrefFor } from "../../_lib/viewer";
 
 /**
  * 탐색 `/explore` (기능정의서 6장).
@@ -27,7 +28,10 @@ export default async function ExplorePage({
   // Next 16 에서 Promise 다 (session-handoff 4장)
   searchParams: Promise<RawSearchParams>;
 }) {
-  const [{ viewer }, raw] = await Promise.all([loadViewerContext(), searchParams]);
+  const [{ session, viewer, likedIds }, raw] = await Promise.all([
+    loadViewerContext(),
+    searchParams,
+  ]);
   const params = parseExploreParams(raw, { hasViewer: viewer !== null });
 
   /*
@@ -75,7 +79,16 @@ export default async function ExplorePage({
 
   const [page, facets] = loaded.data;
 
-  return <ExploreBoard page={page} params={params} facets={facets} viewer={viewer} />;
+  return (
+    <LikeProvider
+      liked={likedIds}
+      // 걸어 둔 조건까지 들고 돌아온다 — 게스트가 필터를 다시 짜지 않게 한다
+      signInHref={signInHrefFor(session, exploreHref(params))}
+      toggleLike={toggleLikeAction}
+    >
+      <ExploreBoard page={page} params={params} facets={facets} viewer={viewer} />
+    </LikeProvider>
+  );
 }
 
 /**

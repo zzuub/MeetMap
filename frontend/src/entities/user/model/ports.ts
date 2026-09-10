@@ -44,6 +44,24 @@ export interface UserApi {
   saveProfile(input: ProfileInput, auth: AuthContext): Promise<UserProfile>;
 
   /**
+   * **찜한 소개팅 id 집합** (9장 · 2.4 `likedIds`).
+   *
+   * ⚠️ **화면은 `EventSummary.isLiked` 를 읽지 않는다** — 찜 상태의 원본은 이 집합
+   * 하나다 (`decisions.md` 4.59). 목 구현이 그 필드를 사용자별로 채울 수 없기
+   * 때문이고(목록 조회는 클라이언트에서도 도는데 쿠키를 못 읽는다), 값을 둘로 두면
+   * 어긋난다 (4.53 과 같은 판단).
+   */
+  getLikedIds(auth: AuthContext): Promise<string[]>;
+
+  /**
+   * 찜 토글 (7.2 / 9장). `liked` 가 원하는 **결과 상태**다.
+   *
+   * **토글이 아니라 원하는 상태를 넘기는** 이유는 낙관적 업데이트다 — 화면이 이미
+   * 결과를 그린 뒤에 부르므로, 서버가 다시 뒤집으면 두 번 누른 것과 구분되지 않는다.
+   */
+  setLike(eventId: string, liked: boolean, auth: AuthContext): Promise<void>;
+
+  /**
    * 선호 지역만 갱신 (4.3 활동 지역 선택).
    *
    * ⚠️ **`saveProfile` 로 대신할 수 없다.** 위치 권한 화면은 퍼널의 마지막이라

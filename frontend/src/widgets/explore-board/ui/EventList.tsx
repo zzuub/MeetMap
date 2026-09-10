@@ -8,6 +8,7 @@ import {
   type EventListQuery,
   type EventSummary,
 } from "@/entities/event";
+import { LikeButton } from "@/features/event-like";
 import { toApiError, type ApiError, type CursorPage } from "@/shared/api";
 import { ERROR_COPY, ErrorState, PrimaryButton } from "@/shared/ui";
 
@@ -71,6 +72,7 @@ export function EventList({ initial, query, viewer }: EventListProps) {
               variant="list"
               viewer={viewer}
               eligibleOnly={query.eligibleOnly}
+              action={<LikeButton eventId={event.id} />}
             />
           </li>
         ))}
