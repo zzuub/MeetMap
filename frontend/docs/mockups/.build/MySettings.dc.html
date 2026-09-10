@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    textarea{font-family:'Pretendard',sans-serif}
+    textarea:focus{outline:2px solid #DDC497;outline-offset:-1px}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;padding-bottom:96px;background:#FFFFFF;box-shadow:0 0 0 1px #EDE7D6">
+
+  <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px">
+    <span style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+    <span style="font-size:15px;font-weight:700">{{ headerTitle }}</span>
+    <span onClick="{{ headerActionFn }}" style="font-size:12.5px;font-weight:600;color:#14382A;cursor:pointer;min-width:44px;text-align:right">{{ headerAction }}</span>
+  </header>
+
+  <sc-if value="{{ isNotis }}" hint-placeholder-val="{{ true }}">
+    <main style="padding:16px 18px 24px">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <div onClick="{{ setNotiAll }}" style="{{ notiAllStyle }}">전체 {{ notiTotal }}</div>
+        <div onClick="{{ setNotiUnread }}" style="{{ notiUnreadStyle }}">안읽음 {{ unreadCount }}</div>
+      </div>
+
+      <sc-if value="{{ hasNotis }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ notiList }}" as="n" hint-placeholder-count="5">
+            <div onClick="{{ n.read }}" style="{{ n.cardStyle }}">
+              <div style="{{ n.iconStyle }}"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                  <span style="{{ n.tagStyle }}">{{ n.tag }}</span>
+                  <span style="font-size:11px;color:#59503E">{{ n.time }}</span>
+                </div>
+                <div style="{{ n.titleStyle }}">{{ n.title }}</div>
+                <div style="font-size:11.5px;color:#59503E;margin-top:4px;line-height:1.5">{{ n.body }}</div>
+              </div>
+              <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ true }}">
+                <span style="width:7px;height:7px;border-radius:50%;background:#A86D58;flex-shrink:0;margin-top:4px"></span>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noNotis }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:80px 20px;color:#59503E">
+          <div style="width:52px;height:52px;border-radius:18px;background:#F5EEDD;margin:0 auto 16px"></div>
+          <div style="font-size:14.5px;font-weight:700;color:#14382A;margin-bottom:7px">안읽은 알림이 없어요</div>
+          <div style="font-size:12.5px;line-height:1.7">새 소식이 오면 여기에 표시됩니다</div>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isNotiSettings }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <p style="font-size:12.5px;color:#59503E;margin:0 0 16px;line-height:1.6">앱 푸시와 이메일로 함께 발송됩니다</p>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:6px 18px;margin-bottom:12px">
+        <div onClick="{{ set0.toggle }}" style="{{ set0.rowStyle }}">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:600">{{ set0.label }}</div>
+            <div style="font-size:11.5px;color:#59503E;margin-top:4px;line-height:1.5">{{ set0.desc }}</div>
+          </div>
+          <div style="{{ set0.trackStyle }}"><div style="{{ set0.knobStyle }}"></div></div>
+        </div>
+        <div onClick="{{ set1.toggle }}" style="{{ set1.rowStyle }}">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:600">{{ set1.label }}</div>
+            <div style="font-size:11.5px;color:#59503E;margin-top:4px;line-height:1.5">{{ set1.desc }}</div>
+          </div>
+          <div style="{{ set1.trackStyle }}"><div style="{{ set1.knobStyle }}"></div></div>
+        </div>
+        <div onClick="{{ set2.toggle }}" style="{{ set2.rowStyle }}">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13.5px;font-weight:600">{{ set2.label }}</div>
+            <div style="font-size:11.5px;color:#59503E;margin-top:4px;line-height:1.5">{{ set2.desc }}</div>
+          </div>
+          <div style="{{ set2.trackStyle }}"><div style="{{ set2.knobStyle }}"></div></div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:18px;margin-bottom:12px">
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:5px">방해 금지 시간</div>
+        <div style="font-size:11.5px;color:#59503E;margin-bottom:14px;line-height:1.6">이 시간에는 알림을 보관했다가 다음 날 보내드려요</div>
+        <div style="display:flex;gap:8px">
+          <div onClick="{{ setQuiet0 }}" style="{{ quiet0Style }}">사용 안 함</div>
+          <div onClick="{{ setQuiet1 }}" style="{{ quiet1Style }}">23시–08시</div>
+          <div onClick="{{ setQuiet2 }}" style="{{ quiet2Style }}">00시–09시</div>
+        </div>
+      </div>
+
+      <div style="background:#F5EEDD;border-radius:13px;padding:14px 15px;font-size:11.5px;color:#14382A;line-height:1.7">
+        마케팅 정보 수신 동의는 마이페이지 &gt; 약관 및 개인정보에서 변경할 수 있습니다.
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isReviews }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:20px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
+          <div style="text-align:center;flex-shrink:0">
+            <div style="font-family:Georgia,serif;font-size:32px;font-weight:700;line-height:1">4.6</div>
+            <div style="font-size:12px;color:#96A377;margin-top:5px;letter-spacing:1px">★★★★★</div>
+            <div style="font-size:11px;color:#59503E;margin-top:5px">후기 128개</div>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ ratingBars }}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:10.5px;color:#59503E;width:20px;flex-shrink:0">{{ r.star }}점</span>
+                <div style="flex:1;height:6px;border-radius:3px;background:#F0E7D0;overflow:hidden"><div style="{{ r.barStyle }}"></div></div>
+                <span style="font-size:10.5px;color:#59503E;width:26px;text-align:right;flex-shrink:0">{{ r.count }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="border-top:1px solid #FBFAF6;padding-top:16px">
+          <div style="font-size:12px;font-weight:700;color:#59503E;margin-bottom:10px">참여자가 많이 남긴 태그</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ topTags }}" as="t" hint-placeholder-count="5">
+              <span style="{{ t.style }}">{{ t.label }} {{ t.count }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+        <div onClick="{{ setRvAll }}" style="{{ rvAllStyle }}">전체</div>
+        <div onClick="{{ setRvMood }}" style="{{ rvMoodStyle }}">분위기</div>
+        <div onClick="{{ setRvHost }}" style="{{ rvHostStyle }}">진행</div>
+        <div onClick="{{ setRvPlace }}" style="{{ rvPlaceStyle }}">장소</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ reviewList }}" as="rv" hint-placeholder-count="4">
+          <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:16px">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+              <div style="{{ rv.avatarStyle }}"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700">{{ rv.author }}</div>
+                <div style="font-size:11px;color:#59503E;margin-top:2px">{{ rv.date }} · {{ rv.eventTitle }}</div>
+              </div>
+              <div style="font-size:11.5px;color:#A86D58;letter-spacing:0.5px;flex-shrink:0">{{ rv.stars }}</div>
+            </div>
+            <div style="font-size:13px;line-height:1.7;color:#14382A;margin-bottom:11px">{{ rv.body }}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ rv.tags }}" as="tg" hint-placeholder-count="2">
+                <span style="font-size:11px;padding:4px 9px;border-radius:7px;background:#F5EEDD;color:#14382A;font-weight:600">{{ tg }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isWrite }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:14px;margin-bottom:14px;display:flex;gap:13px;align-items:center">
+        <div style="width:58px;height:58px;border-radius:13px;flex-shrink:0;background:#F5EEDD"></div>
+        <div style="min-width:0">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:4px">성수 와인 로테이션 소개팅</div>
+          <div style="font-size:11.5px;color:#59503E">8/2(토) 참여 · 소셜테이블</div>
+          <div style="font-size:11.5px;color:#59503E;margin-top:3px">90~96년생 · 남 7 · 여 7</div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:22px 20px;margin-bottom:12px;text-align:center">
+        <div style="font-size:14px;font-weight:700;margin-bottom:16px">소개팅은 어땠나요?</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px">
+          <div onClick="{{ star1.set }}" style="{{ star1.style }}">★</div>
+          <div onClick="{{ star2.set }}" style="{{ star2.style }}">★</div>
+          <div onClick="{{ star3.set }}" style="{{ star3.style }}">★</div>
+          <div onClick="{{ star4.set }}" style="{{ star4.style }}">★</div>
+          <div onClick="{{ star5.set }}" style="{{ star5.style }}">★</div>
+        </div>
+        <div style="{{ ratingLabelStyle }}">{{ ratingLabel }}</div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:20px;margin-bottom:12px">
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:4px">어떤 점이 좋았나요?</div>
+        <div style="font-size:11.5px;color:#59503E;margin-bottom:14px">해당하는 태그를 모두 골라주세요</div>
+
+        <div style="font-size:11.5px;font-weight:700;color:#14382A;margin-bottom:9px">분위기</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+          <div onClick="{{ tagM0.toggle }}" style="{{ tagM0.style }}">{{ tagM0.label }}</div>
+          <div onClick="{{ tagM1.toggle }}" style="{{ tagM1.style }}">{{ tagM1.label }}</div>
+          <div onClick="{{ tagM2.toggle }}" style="{{ tagM2.style }}">{{ tagM2.label }}</div>
+        </div>
+
+        <div style="font-size:11.5px;font-weight:700;color:#14382A;margin-bottom:9px">진행</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+          <div onClick="{{ tagH0.toggle }}" style="{{ tagH0.style }}">{{ tagH0.label }}</div>
+          <div onClick="{{ tagH1.toggle }}" style="{{ tagH1.style }}">{{ tagH1.label }}</div>
+          <div onClick="{{ tagH2.toggle }}" style="{{ tagH2.style }}">{{ tagH2.label }}</div>
+        </div>
+
+        <div style="font-size:11.5px;font-weight:700;color:#14382A;margin-bottom:9px">장소</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div onClick="{{ tagP0.toggle }}" style="{{ tagP0.style }}">{{ tagP0.label }}</div>
+          <div onClick="{{ tagP1.toggle }}" style="{{ tagP1.style }}">{{ tagP1.label }}</div>
+          <div onClick="{{ tagP2.toggle }}" style="{{ tagP2.style }}">{{ tagP2.label }}</div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:20px;margin-bottom:16px">
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:12px">후기 작성</div>
+        <textarea value="{{ reviewText }}" onChange="{{ onReviewText }}" placeholder="다른 참여자에게 도움이 될 경험을 남겨주세요" style="width:100%;box-sizing:border-box;min-height:120px;padding:14px;border:1px solid #EDE7D6;border-radius:13px;font-size:13.5px;background:#FBFAF6;resize:vertical;line-height:1.7"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:11.5px;color:#59503E">{{ reviewLen }}/500자</span>
+          <span style="font-size:11.5px;color:#59503E">최소 10자 이상</span>
+        </div>
+      </div>
+
+      <div style="background:#F5EEDD;border-radius:13px;padding:13px 14px;font-size:11.5px;color:#14382A;line-height:1.7;margin-bottom:16px">
+        참여 인증이 확인된 소개팅에만 후기를 남길 수 있습니다. 특정인 비방, 개인정보 노출은 삭제될 수 있습니다.
+      </div>
+
+      <div onClick="{{ submitReview }}" style="{{ submitStyle }}">{{ submitLabel }}</div>
+      <sc-if value="{{ reviewDone }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px;background:rgba(78,123,84,0.14);border-radius:13px;padding:14px;font-size:12.5px;color:#14382A;font-weight:600;text-align:center">후기가 등록되었습니다. 감사합니다!</div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isMy }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:20px;padding:20px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <div style="width:56px;height:56px;border-radius:19px;flex-shrink:0;background:#E6E3D2"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:16px;font-weight:800;margin-bottom:4px">지수</div>
+            <div style="font-size:12px;color:#59503E">여성 · 1996년생 · 성수·강남 관심</div>
+          </div>
+          <div style="font-size:11.5px;font-weight:600;color:#14382A;border:1px solid #F5EEDD;padding:7px 11px;border-radius:10px;cursor:pointer;flex-shrink:0">수정</div>
+        </div>
+
+        <div style="background:#F5EEDD;border-radius:14px;padding:15px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+            <span style="font-size:12.5px;font-weight:700">프로필 완성도</span>
+            <span style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#14382A">{{ completionPct }}%</span>
+          </div>
+          <div style="height:7px;border-radius:4px;background:#EDE7D6;overflow:hidden;margin-bottom:11px">
+            <div style="{{ completionBarStyle }}"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <sc-for list="{{ completionItems }}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="{{ c.dotStyle }}">{{ c.mark }}</div>
+                <span style="{{ c.labelStyle }}">{{ c.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div onClick="{{ goReviews }}" style="flex:1;background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer">
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">6</div>
+          <div style="font-size:11.5px;color:#59503E;margin-top:4px">찜한 소개팅</div>
+        </div>
+        <div onClick="{{ goReviews }}" style="flex:1;background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer">
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">3</div>
+          <div style="font-size:11.5px;color:#59503E;margin-top:4px">신청 이력</div>
+        </div>
+        <div onClick="{{ goReviews }}" style="flex:1;background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer">
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">5</div>
+          <div style="font-size:11.5px;color:#59503E;margin-top:4px">내 후기</div>
+        </div>
+      </div>
+
+      <div onClick="{{ goWrite }}" style="background:#14382A;border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:14px">
+        <div style="width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,0.14);flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">작성할 후기 1건</div>
+          <div style="font-size:11.5px;color:#DDC497">성수 와인 로테이션 소개팅 · 8/2 참여</div>
+        </div>
+        <span style="color:#F5EEDD;font-size:16px;flex-shrink:0">›</span>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;overflow:hidden;margin-bottom:12px">
+        <div onClick="{{ goReviews }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">찜한 소개팅 <span style="color:#59503E">›</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">신청 이력 <span style="color:#59503E">›</span></div>
+        <div onClick="{{ goReviews }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">내가 쓴 후기 <span style="color:#59503E">›</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;font-size:13.5px;cursor:pointer">비교함 <span style="color:#59503E">›</span></div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;overflow:hidden">
+        <div onClick="{{ goNotis }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">
+          알림함
+          <span style="display:flex;align-items:center;gap:7px">
+            <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#F5EEDD;color:#14382A">{{ unreadCount }}</span>
+            </sc-if>
+            <span style="color:#59503E">›</span>
+          </span>
+        </div>
+        <div onClick="{{ goNotiSettings }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">알림 설정 <span style="color:#59503E">›</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #FBFAF6;font-size:13.5px;cursor:pointer">약관 및 개인정보 <span style="color:#59503E">›</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;font-size:13.5px;color:#59503E;cursor:pointer">로그아웃</div>
+      </div>
+    </main>
+  </sc-if>
+
+  
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NOTIS = [
+  { id: 2, tag: '신규', kind: 'new', title: '관심지역에 새 소개팅이 등록됐어요', body: '강남 · 90~96년생 · 8/12(화) 19:30 디너', time: '2시간 전' },
+  { id: 3, tag: '후기', kind: 'review', title: '후기를 작성해주세요', body: '성수 와인 로테이션 소개팅 참여 인증이 완료됐어요', time: '어제' },
+  { id: 5, tag: '신규', kind: 'new', title: '성수동 심야 소개팅이 늘었어요', body: '이번 주 신규 3건 · 지도에서 확인해보세요', time: '2일 전' },
+  { id: 6, tag: '안내', kind: 'info', title: '알림 설정이 변경되었습니다', body: '방해 금지 시간 23시–08시 적용 중', time: '3일 전' },
+];
+const NOTI_STYLE = {
+  new: { bg: '#14382A', fg: '#FFFFFF', icon: 'rgba(20,56,42,0.12)' },
+  review: { bg: '#A86D58', fg: '#FFFFFF', icon: 'rgba(168,109,88,0.16)' },
+  info: { bg: '#C9C2AE', fg: '#FFFFFF', icon: 'rgba(201,194,174,0.35)' },
+};
+
+const SETTINGS = [
+  { label: '관심지역 신규 소개팅', desc: '설정한 지역에 새 소개팅이 등록되면' },
+  { label: '후기 작성 요청', desc: '참여 인증 완료 후 후기 작성 안내' },
+  { label: '추천 소개팅 소식', desc: '주 1회, 내 조건에 맞는 소개팅 큐레이션' },
+];
+
+const RATING_DIST = [
+  { star: 5, count: 78 }, { star: 4, count: 32 }, { star: 3, count: 11 }, { star: 2, count: 5 }, { star: 1, count: 2 },
+];
+const TOP_TAGS = [
+  { label: '분위기 좋아요', count: 64, cat: '분위기' },
+  { label: '진행이 매끄러워요', count: 51, cat: '진행' },
+  { label: '접근성이 좋아요', count: 43, cat: '장소' },
+  { label: '대화하기 편했어요', count: 38, cat: '분위기' },
+  { label: '시간 관리가 좋아요', count: 26, cat: '진행' },
+];
+const REVIEWS = [
+  { id: 1, author: '민서', date: '8/3', eventTitle: '성수 와인 로테이션', rating: 5, body: '테이블 로테이션이 30분 간격이라 어색할 틈이 없었어요. 소믈리에 설명도 짧고 재미있게 해주셔서 좋았습니다.', tags: ['분위기 좋아요', '진행이 매끄러워요'], cats: ['분위기', '진행'] },
+  { id: 2, author: '준호', date: '8/2', eventTitle: '성수 와인 로테이션', rating: 4, body: '와인 종류가 다양해서 만족했습니다. 다만 인원이 조금 많아서 후반부엔 소음이 있었어요.', tags: ['분위기 좋아요'], cats: ['분위기'] },
+  { id: 3, author: '하윤', date: '7/29', eventTitle: '홍대 하이볼 나이트', rating: 5, body: '역에서 3분 거리라 이동이 편했어요. 진행자분이 대화 주제를 계속 던져주셔서 처음 온 사람도 편하게 어울렸습니다.', tags: ['접근성이 좋아요', '진행이 매끄러워요'], cats: ['장소', '진행'] },
+  { id: 4, author: '서연', date: '7/27', eventTitle: '강남 보드게임 소개팅', rating: 4, body: '공간이 넓고 조명이 아늑했어요. 게임 룰 설명이 조금만 더 자세했으면 좋겠습니다.', tags: ['접근성이 좋아요'], cats: ['장소'] },
+];
+
+const MOOD_TAGS = ['분위기 좋아요', '대화하기 편했어요', '조용한 편이에요'];
+const HOST_TAGS = ['진행이 매끄러워요', '시간 관리가 좋아요', '진행자가 친절해요'];
+const PLACE_TAGS = ['접근성이 좋아요', '공간이 쾌적해요', '주차가 편해요'];
+
+const COMPLETION = [
+  { label: '닉네임 등록', done: true },
+  { label: '출생연도 · 성별 등록', done: true },
+  { label: '선호 지역 등록', done: true },
+  { label: '프로필 사진 등록', done: false },
+];
+
+function tabStyle(active) {
+  return { padding: '8px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#14382A' : 'transparent', color: active ? '#fff' : '#59503E' };
+}
+function chip(active) {
+  return { padding: '8px 14px', borderRadius: '11px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#59503E', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function tagChip(active) {
+  return { padding: '9px 14px', borderRadius: '999px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#14382A', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function stars(n) { return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n); }
+
+class Component extends DCLogic {
+  state = {
+    screen: 'settings',
+    notiFilter: 'ALL',
+    readIds: [3, 5, 6],
+    settings: [true, true, false],
+    quiet: 1,
+    rvFilter: '전체',
+    rating: 0,
+    reviewTags: [],
+    reviewText: '',
+    reviewDone: false,
+  };
+
+  settingVal(i) {
+    const on = this.state.settings[i];
+    return {
+      label: SETTINGS[i].label,
+      desc: SETTINGS[i].desc,
+      rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '15px 0', cursor: 'pointer', borderTop: i === 0 ? 'none' : '1px solid #FBFAF6' },
+      trackStyle: { width: '44px', height: '26px', borderRadius: '999px', flexShrink: 0, padding: '3px', boxSizing: 'border-box', display: 'flex', justifyContent: on ? 'flex-end' : 'flex-start', background: on ? '#96A377' : '#EDE7D6' },
+      knobStyle: { width: '20px', height: '20px', borderRadius: '50%', background: '#fff' },
+      toggle: () => this.setState(s => { const n = [...s.settings]; n[i] = !n[i]; return { settings: n }; }),
+    };
+  }
+
+  tagVal(name) {
+    const active = this.state.reviewTags.includes(name);
+    return {
+      label: name,
+      style: tagChip(active),
+      toggle: () => this.setState(s => ({ reviewTags: active ? s.reviewTags.filter(t => t !== name) : [...s.reviewTags, name], reviewDone: false })),
+    };
+  }
+
+  starVal(n) {
+    const on = this.state.rating >= n;
+    return {
+      style: { fontSize: '30px', lineHeight: 1, cursor: 'pointer', color: on ? '#A86D58' : '#EDE7D6' },
+      set: () => this.setState({ rating: n, reviewDone: false }),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const unread = NOTIS.filter(n => !s.readIds.includes(n.id));
+    const shown = s.notiFilter === 'UNREAD' ? unread : NOTIS;
+    const maxCount = Math.max(...RATING_DIST.map(r => r.count));
+    const reviewList = REVIEWS.filter(r => s.rvFilter === '전체' || r.cats.includes(s.rvFilter));
+
+    const titles = { notis: '알림함', settings: '알림 설정', reviews: '후기', write: '후기 작성', my: '마이페이지' };
+    const actions = { notis: '모두 읽음', settings: '', reviews: '', write: '', my: '설정' };
+
+    const doneCount = COMPLETION.filter(c => c.done).length;
+    const completionPct = Math.round((doneCount / COMPLETION.length) * 100);
+
+    const textOk = s.reviewText.trim().length >= 10;
+    const canSubmit = s.rating > 0 && textOk;
+
+    return {
+      isNotis: s.screen === 'notis', isNotiSettings: s.screen === 'settings',
+      isReviews: s.screen === 'reviews', isWrite: s.screen === 'write', isMy: s.screen === 'my',
+      headerTitle: titles[s.screen],
+      headerAction: actions[s.screen],
+      headerActionFn: () => { if (s.screen === 'notis') this.setState({ readIds: NOTIS.map(n => n.id) }); if (s.screen === 'my') this.setState({ screen: 'settings' }); },
+      goNotis: () => this.setState({ screen: 'notis' }),
+      goNotiSettings: () => this.setState({ screen: 'settings' }),
+      goReviews: () => this.setState({ screen: 'reviews' }),
+      goWrite: () => this.setState({ screen: 'write' }),
+      goMy: () => this.setState({ screen: 'my' }),
+      tabNotisStyle: tabStyle(s.screen === 'notis'),
+      tabSettingsStyle: tabStyle(s.screen === 'settings'),
+      tabReviewsStyle: tabStyle(s.screen === 'reviews'),
+      tabWriteStyle: tabStyle(s.screen === 'write'),
+      tabMyStyle: tabStyle(s.screen === 'my'),
+
+      notiTotal: NOTIS.length,
+      unreadCount: unread.length,
+      hasUnread: unread.length > 0,
+      notiAllStyle: chip(s.notiFilter === 'ALL'),
+      notiUnreadStyle: chip(s.notiFilter === 'UNREAD'),
+      setNotiAll: () => this.setState({ notiFilter: 'ALL' }),
+      setNotiUnread: () => this.setState({ notiFilter: 'UNREAD' }),
+      hasNotis: shown.length > 0,
+      noNotis: shown.length === 0,
+      notiList: shown.map(n => {
+        const isUnread = !s.readIds.includes(n.id);
+        const st = NOTI_STYLE[n.kind];
+        return {
+          ...n,
+          unread: isUnread,
+          cardStyle: { display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '15px', borderRadius: '16px', cursor: 'pointer', background: isUnread ? '#fff' : '#FBFAF6', border: isUnread ? '1px solid #EDE7D6' : '1px solid #FBFAF6' },
+          iconStyle: { width: '34px', height: '34px', borderRadius: '12px', flexShrink: 0, background: st.icon },
+          tagStyle: { fontSize: '10.5px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: st.bg, color: st.fg },
+          titleStyle: { fontSize: '13.5px', fontWeight: isUnread ? 700 : 600, color: isUnread ? '#14382A' : '#59503E', lineHeight: 1.4 },
+          read: () => this.setState(st2 => ({ readIds: st2.readIds.includes(n.id) ? st2.readIds : [...st2.readIds, n.id] })),
+        };
+      }),
+
+      set0: this.settingVal(0), set1: this.settingVal(1), set2: this.settingVal(2),
+      quiet0Style: chip(s.quiet === 0), quiet1Style: chip(s.quiet === 1), quiet2Style: chip(s.quiet === 2),
+      setQuiet0: () => this.setState({ quiet: 0 }),
+      setQuiet1: () => this.setState({ quiet: 1 }),
+      setQuiet2: () => this.setState({ quiet: 2 }),
+
+      ratingBars: RATING_DIST.map(r => ({
+        star: r.star,
+        count: r.count,
+        barStyle: { height: '100%', width: Math.round((r.count / maxCount) * 100) + '%', background: r.star >= 4 ? '#96A377' : '#C9C2AE' },
+      })),
+      topTags: TOP_TAGS.map(t => ({
+        label: t.label,
+        count: t.count,
+        style: { fontSize: '11.5px', fontWeight: 600, padding: '6px 11px', borderRadius: '999px', background: '#F5EEDD', color: '#14382A' },
+      })),
+      rvAllStyle: chip(s.rvFilter === '전체'),
+      rvMoodStyle: chip(s.rvFilter === '분위기'),
+      rvHostStyle: chip(s.rvFilter === '진행'),
+      rvPlaceStyle: chip(s.rvFilter === '장소'),
+      setRvAll: () => this.setState({ rvFilter: '전체' }),
+      setRvMood: () => this.setState({ rvFilter: '분위기' }),
+      setRvHost: () => this.setState({ rvFilter: '진행' }),
+      setRvPlace: () => this.setState({ rvFilter: '장소' }),
+      reviewList: reviewList.map((r, i) => ({
+        ...r,
+        stars: stars(r.rating),
+        avatarStyle: { width: '34px', height: '34px', borderRadius: '12px', flexShrink: 0, background: ['#EFEADA', '#DDD9C4', '#F1EDDF', '#F5EEDD'][i % 4] },
+      })),
+
+      star1: this.starVal(1), star2: this.starVal(2), star3: this.starVal(3),
+      star4: this.starVal(4), star5: this.starVal(5),
+      ratingLabel: ['별점을 선택해주세요', '아쉬웠어요', '그저 그랬어요', '괜찮았어요', '좋았어요', '아주 좋았어요'][s.rating],
+      ratingLabelStyle: { fontSize: '12.5px', fontWeight: 600, color: s.rating > 0 ? '#14382A' : '#59503E' },
+      tagM0: this.tagVal(MOOD_TAGS[0]), tagM1: this.tagVal(MOOD_TAGS[1]), tagM2: this.tagVal(MOOD_TAGS[2]),
+      tagH0: this.tagVal(HOST_TAGS[0]), tagH1: this.tagVal(HOST_TAGS[1]), tagH2: this.tagVal(HOST_TAGS[2]),
+      tagP0: this.tagVal(PLACE_TAGS[0]), tagP1: this.tagVal(PLACE_TAGS[1]), tagP2: this.tagVal(PLACE_TAGS[2]),
+      reviewText: s.reviewText,
+      reviewLen: s.reviewText.length,
+      onReviewText: (e) => this.setState({ reviewText: e.target.value.slice(0, 500), reviewDone: false }),
+      submitStyle: { textAlign: 'center', padding: '15px', borderRadius: '13px', fontSize: '14.5px', fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', background: canSubmit ? '#14382A' : '#EDE7D6', color: canSubmit ? '#fff' : '#59503E' },
+      submitLabel: s.rating === 0 ? '별점을 선택해주세요' : !textOk ? '후기를 10자 이상 작성해주세요' : '후기 등록하기',
+      submitReview: () => canSubmit && this.setState({ reviewDone: true }),
+      reviewDone: s.reviewDone,
+
+      completionPct,
+      completionBarStyle: { height: '100%', width: completionPct + '%', background: '#96A377' },
+      completionItems: COMPLETION.map(c => ({
+        label: c.label,
+        mark: c.done ? '✓' : '',
+        dotStyle: { width: '17px', height: '17px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10.5px', fontWeight: 700, background: c.done ? '#14382A' : '#fff', color: '#fff', border: c.done ? '1px solid #14382A' : '1px solid #EDE7D6' },
+        labelStyle: { fontSize: '12px', color: c.done ? '#59503E' : '#14382A', fontWeight: c.done ? 500 : 700 },
+      })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

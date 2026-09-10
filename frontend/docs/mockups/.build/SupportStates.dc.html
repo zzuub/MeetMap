@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    input{font-family:'Pretendard',sans-serif}
+    input:focus{outline:2px solid #DDC497;outline-offset:-1px}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;padding-bottom:96px;background:#FFFFFF;box-shadow:0 0 0 1px #EDE7D6">
+
+  <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ true }}">
+    <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;padding:10px 18px;display:flex;align-items:center;gap:11px">
+      <span style="font-size:19px;color:#59503E;cursor:pointer;line-height:1;flex-shrink:0">←</span>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:9px;background:#F5EEDD;border-radius:12px;padding:0 13px;height:42px">
+        <svg width="16" height="16" viewBox="0 0 20 20" style="flex-shrink:0"><circle cx="9" cy="9" r="6" fill="none" stroke="#59503E" stroke-width="1.7"/><line x1="13.5" y1="13.5" x2="18" y2="18" stroke="#59503E" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <input type="text" value="{{ query }}" onChange="{{ onQuery }}" placeholder="소개팅명, 지역, 주최사 검색" style="flex:1;min-width:0;border:none;background:transparent;font-size:14px;color:#14382A">
+        <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+          <span onClick="{{ clearQuery }}" style="width:18px;height:18px;border-radius:50%;background:#59503E;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">✕</span>
+        </sc-if>
+      </div>
+    </header>
+
+    <main style="padding:18px 18px 24px">
+      <sc-if value="{{ showIdle }}" hint-placeholder-val="{{ true }}">
+        <section style="margin-bottom:28px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+            <h2 style="font-size:15px;font-weight:700;margin:0">최근 검색어</h2>
+            <span onClick="{{ clearRecents }}" style="font-size:12px;color:#59503E;cursor:pointer">전체 삭제</span>
+          </div>
+          <sc-if value="{{ hasRecents }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ recents }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #EDE7D6">
+                  <span onClick="{{ r.search }}" style="font-size:12.5px;font-weight:500;cursor:pointer">{{ r.label }}</span>
+                  <span onClick="{{ r.remove }}" style="font-size:11px;color:#59503E;cursor:pointer">✕</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px;color:#59503E;padding:14px 0">최근 검색 기록이 없습니다</div>
+          </sc-if>
+        </section>
+
+        <section>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px">
+            <h2 style="font-size:15px;font-weight:700;margin:0">인기 검색어</h2>
+            <span style="font-size:11px;color:#59503E">8/9 10:00 기준</span>
+          </div>
+          <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;overflow:hidden">
+            <sc-for list="{{ trending }}" as="t" hint-placeholder-count="6">
+              <div onClick="{{ t.search }}" style="{{ t.rowStyle }}">
+                <span style="{{ t.rankStyle }}">{{ t.rank }}</span>
+                <span style="flex:1;min-width:0;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.label }}</span>
+                <span style="{{ t.deltaStyle }}">{{ t.delta }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span style="font-size:12.5px;color:#59503E">검색 결과 {{ resultCount }}건</span>
+          <span style="font-size:12.5px;font-weight:600;color:#14382A;cursor:pointer">필터</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ results }}" as="ev" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:13px;display:flex;gap:13px;cursor:pointer">
+              <div style="{{ ev.thumbStyle }}"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;gap:5px;margin-bottom:6px">
+                  <span style="{{ ev.statusStyle }}">{{ ev.status }}</span>
+                  <span style="font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:#FBFAF6;color:#59503E">{{ ev.slot }}</span>
+                </div>
+                <div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:4px">
+                  <span>{{ ev.pre }}</span><span style="{{ ev.markStyle }}">{{ ev.hit }}</span><span>{{ ev.post }}</span>
+                </div>
+                <div style="font-size:11.5px;color:#59503E;margin-bottom:7px">{{ ev.provider }} · {{ ev.date }} · {{ ev.area }}</div>
+                <div style="font-family:Georgia,serif;font-size:15px;font-weight:700">{{ ev.priceLabel }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showNoResults }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:70px 20px">
+          <div style="width:54px;height:54px;border-radius:19px;background:#FBFAF6;margin:0 auto 18px"></div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px">'{{ query }}' 검색 결과가 없어요</div>
+          <div style="font-size:12.5px;color:#59503E;line-height:1.7;margin-bottom:22px">철자를 확인하거나 다른 키워드로<br>검색해보세요</div>
+          <div style="font-size:12px;font-weight:700;color:#14382A;margin-bottom:10px">이런 검색은 어때요?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+            <sc-for list="{{ suggestions }}" as="sg" hint-placeholder-count="4">
+              <div onClick="{{ sg.search }}" style="padding:9px 15px;border-radius:999px;background:#fff;border:1px solid #EDE7D6;font-size:12.5px;font-weight:600;cursor:pointer">{{ sg.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isLocation }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ locAsking }}" hint-placeholder-val="{{ true }}">
+      <main style="padding:40px 22px 24px;display:flex;flex-direction:column;min-height:calc(100vh - 96px);box-sizing:border-box">
+        <div style="flex:1">
+          <div style="height:200px;border-radius:20px;background:linear-gradient(150deg, #0A2119 0%, #2E4A34 58%, #96A377 100%);position:relative;overflow:hidden;margin-bottom:28px">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, rgba(255,255,255,0.55) 0 1px, transparent 1px 50px), repeating-linear-gradient(0deg, rgba(255,255,255,0.55) 0 1px, transparent 1px 50px)"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:rgba(221,196,151,0.28);display:flex;align-items:center;justify-content:center">
+              <div style="width:34px;height:34px;border-radius:50%;background:rgba(221,196,151,0.55);display:flex;align-items:center;justify-content:center">
+                <div style="width:13px;height:13px;border-radius:50%;background:#A86D58;border:2.5px solid #fff"></div>
+              </div>
+            </div>
+          </div>
+
+          <h1 style="font-size:22px;font-weight:800;margin:0 0 12px;line-height:1.4">내 주변 소개팅을<br>먼저 보여드릴게요</h1>
+          <p style="font-size:13.5px;color:#59503E;margin:0 0 24px;line-height:1.75">위치 정보를 허용하면 현재 위치에서 가까운 순으로 소개팅을 정렬하고, 지도에서 거리와 이동 시간을 함께 보여드립니다.</p>
+
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+            <div style="display:flex;gap:12px;align-items:center;background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+              <div style="width:28px;height:28px;border-radius:10px;background:#F5EEDD;flex-shrink:0"></div>
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:700">거리순 정렬</div>
+                <div style="font-size:11.5px;color:#59503E;margin-top:3px">가까운 소개팅부터 자동 정렬</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+              <div style="width:28px;height:28px;border-radius:10px;background:#F5EEDD;flex-shrink:0"></div>
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:700">지도 중심 자동 설정</div>
+                <div style="font-size:11.5px;color:#59503E;margin-top:3px">현재 위치 기준으로 지도 시작</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#F5EEDD;border-radius:13px;padding:13px 14px;font-size:11.5px;color:#14382A;line-height:1.7">
+            위치 정보는 소개팅 추천에만 사용되며 저장되지 않습니다. 설정에서 언제든 변경할 수 있어요.
+          </div>
+        </div>
+
+        <div style="margin-top:24px">
+          <div onClick="{{ allowLocation }}" style="text-align:center;padding:16px;border-radius:14px;background:#14382A;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">위치 정보 허용하기</div>
+          <div onClick="{{ denyLocation }}" style="text-align:center;padding:13px;font-size:13px;font-weight:600;color:#59503E;cursor:pointer">지역 직접 선택할게요</div>
+        </div>
+      </main>
+    </sc-if>
+
+    <sc-if value="{{ locGranted }}" hint-placeholder-val="{{ false }}">
+      <main style="padding:70px 22px 24px;text-align:center">
+        <div style="width:56px;height:56px;border-radius:19px;background:#F5EEDD;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#14382A">✓</div>
+        <h1 style="font-size:20px;font-weight:800;margin:0 0 10px">현재 위치를 확인했어요</h1>
+        <p style="font-size:13.5px;color:#59503E;margin:0 0 26px;line-height:1.7">서울 성동구 성수동 기준으로<br>주변 소개팅 12건을 찾았습니다</p>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:16px;text-align:left;margin-bottom:22px;display:flex;align-items:center;gap:13px">
+          <div style="width:36px;height:36px;border-radius:12px;background:#F5EEDD;flex-shrink:0"></div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:700">성수동 · 반경 3km</div>
+            <div style="font-size:11.5px;color:#59503E;margin-top:3px">오늘 디너 소개팅 5건 · 심야 3건</div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:15px;border-radius:14px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;margin-bottom:10px">주변 소개팅 보기</div>
+        <div onClick="{{ resetLocation }}" style="text-align:center;padding:12px;font-size:13px;font-weight:600;color:#59503E;cursor:pointer">권한 요청 화면 다시 보기</div>
+      </main>
+    </sc-if>
+
+    <sc-if value="{{ locDenied }}" hint-placeholder-val="{{ false }}">
+      <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;height:56px;display:flex;align-items:center;gap:11px;padding:0 18px">
+        <span onClick="{{ resetLocation }}" style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+        <span style="font-size:15px;font-weight:700">지역 선택</span>
+      </header>
+      <main style="padding:18px 18px 24px">
+        <div style="background:#F5EEDD;border-radius:14px;padding:15px;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:#14382A;margin-bottom:6px">위치 권한이 꺼져 있어요</div>
+          <div style="font-size:11.5px;color:#14382A;line-height:1.7">거리순 정렬과 지도 자동 이동은 사용할 수 없습니다. 아래에서 지역을 직접 선택하거나, 기기 설정에서 권한을 허용해주세요.</div>
+        </div>
+
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 4px">활동 지역 선택</h2>
+        <p style="font-size:12px;color:#59503E;margin:0 0 14px">최대 3개 · {{ areaCount }}개 선택됨</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+          <div onClick="{{ area0.toggle }}" style="{{ area0.style }}">{{ area0.label }}</div>
+          <div onClick="{{ area1.toggle }}" style="{{ area1.style }}">{{ area1.label }}</div>
+          <div onClick="{{ area2.toggle }}" style="{{ area2.style }}">{{ area2.label }}</div>
+          <div onClick="{{ area3.toggle }}" style="{{ area3.style }}">{{ area3.label }}</div>
+          <div onClick="{{ area4.toggle }}" style="{{ area4.style }}">{{ area4.label }}</div>
+          <div onClick="{{ area5.toggle }}" style="{{ area5.style }}">{{ area5.label }}</div>
+          <div onClick="{{ area6.toggle }}" style="{{ area6.style }}">{{ area6.label }}</div>
+          <div onClick="{{ area7.toggle }}" style="{{ area7.style }}">{{ area7.label }}</div>
+        </div>
+
+        <div style="{{ areaBtnStyle }}">{{ areaBtnLabel }}</div>
+        <div onClick="{{ allowLocation }}" style="text-align:center;padding:13px;font-size:13px;font-weight:600;color:#14382A;cursor:pointer;margin-top:6px">위치 권한 다시 허용하기</div>
+      </main>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ isStates }}" hint-placeholder-val="{{ false }}">
+    <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;height:56px;display:flex;align-items:center;justify-content:center;padding:0 18px">
+      <span style="font-size:15px;font-weight:700">빈 상태 · 에러</span>
+    </header>
+    <main style="padding:18px 18px 24px">
+      <div style="display:flex;gap:7px;margin-bottom:18px">
+        <div onClick="{{ setStSearch }}" style="{{ stSearchStyle }}">검색결과 없음</div>
+        <div onClick="{{ setStFilter }}" style="{{ stFilterStyle }}">필터결과 없음</div>
+        <div onClick="{{ setStNetwork }}" style="{{ stNetworkStyle }}">네트워크 오류</div>
+      </div>
+
+      <sc-if value="{{ stIsSearch }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:20px;padding:44px 24px;text-align:center">
+          <div style="width:56px;height:56px;border-radius:19px;background:#FBFAF6;margin:0 auto 20px;display:flex;align-items:center;justify-content:center">
+            <svg width="24" height="24" viewBox="0 0 20 20"><circle cx="9" cy="9" r="6" fill="none" stroke="#14382A" stroke-width="1.7"/><line x1="13.5" y1="13.5" x2="18" y2="18" stroke="#14382A" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:9px">'와인바 소개팅' 결과가 없어요</div>
+          <div style="font-size:12.5px;color:#59503E;line-height:1.75;margin-bottom:24px">철자가 맞는지 확인하거나<br>더 짧은 키워드로 검색해보세요</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:22px">
+            <div style="padding:9px 15px;border-radius:999px;background:#FBFAF6;font-size:12.5px;font-weight:600">강남</div>
+            <div style="padding:9px 15px;border-radius:999px;background:#FBFAF6;font-size:12.5px;font-weight:600">성수</div>
+            <div style="padding:9px 15px;border-radius:999px;background:#FBFAF6;font-size:12.5px;font-weight:600">홍대</div>
+            <div style="padding:9px 15px;border-radius:999px;background:#FBFAF6;font-size:12.5px;font-weight:600">심야</div>
+          </div>
+          <div onClick="{{ goSearch }}" style="display:inline-block;padding:13px 24px;border-radius:13px;background:#14382A;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer">다시 검색하기</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stIsFilter }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:20px;padding:44px 24px;text-align:center">
+          <div style="width:56px;height:56px;border-radius:19px;background:#FBFAF6;margin:0 auto 20px;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 14 14"><line x1="1" y1="3" x2="13" y2="3" stroke="#14382A" stroke-width="1.6"/><line x1="1" y1="7" x2="9" y2="7" stroke="#14382A" stroke-width="1.6"/><line x1="1" y1="11" x2="6" y2="11" stroke="#14382A" stroke-width="1.6"/></svg>
+          </div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:9px">조건에 맞는 소개팅이 없어요</div>
+          <div style="font-size:12.5px;color:#59503E;line-height:1.75;margin-bottom:20px">적용한 필터를 하나씩 풀어보면<br>더 많은 소개팅을 볼 수 있어요</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:22px">
+            <div style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;background:#FBFAF6;font-size:12px;font-weight:600;color:#14382A">심야 <span style="color:#14382A">✕</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;background:#FBFAF6;font-size:12px;font-weight:600;color:#14382A">소수정예 <span style="color:#14382A">✕</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;background:#FBFAF6;font-size:12px;font-weight:600;color:#14382A">2만원 이하 <span style="color:#14382A">✕</span></div>
+          </div>
+          <div style="display:flex;gap:9px">
+            <div style="flex:1;text-align:center;padding:13px;border-radius:13px;border:1px solid #EDE7D6;background:#fff;font-size:13.5px;font-weight:700;cursor:pointer">필터 초기화</div>
+            <div style="flex:1;text-align:center;padding:13px;border-radius:13px;background:#14382A;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer">조건 넓혀 보기</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ stIsNetwork }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:20px;padding:44px 24px;text-align:center">
+          <div style="width:56px;height:56px;border-radius:19px;background:#FBFAF6;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#14382A">!</div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:9px">연결이 불안정해요</div>
+          <div style="font-size:12.5px;color:#59503E;line-height:1.75;margin-bottom:20px">네트워크 상태를 확인한 뒤<br>다시 시도해주세요</div>
+          <div style="background:#F5EEDD;border-radius:13px;padding:14px;text-align:left;margin-bottom:22px">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0"><span style="color:#59503E">오류 코드</span><span style="font-weight:600;font-family:monospace">NET_TIMEOUT_504</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0"><span style="color:#59503E">발생 시각</span><span style="font-weight:600">8/9 10:42</span></div>
+          </div>
+          <div onClick="{{ retry }}" style="{{ retryStyle }}">{{ retryLabel }}</div>
+          <div style="text-align:center;padding:12px;font-size:13px;font-weight:600;color:#59503E;cursor:pointer;margin-top:4px">고객센터 문의</div>
+        </div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const EVENTS = [
+  { id: 1, title: '성수 와인 로테이션 소개팅', provider: '소셜테이블', date: '8/14(목) 19:30', area: '성수동', price: 30000, slot: '디너', status: '신청 가능' },
+  { id: 2, title: '성수 심야 재즈바 소개팅', provider: '테이블나인', date: '8/9(토) 23:00', area: '성수동', price: 28000, slot: '심야', status: '신청 가능' },
+  { id: 3, title: '홍대 하이볼 나이트 소개팅', provider: '테이블나인', date: '8/16(토) 20:00', area: '홍대', price: 35000, slot: '디너', status: '신청 가능' },
+  { id: 4, title: '이태원 쿠킹클래스 소개팅', provider: '클럽쿠킹', date: '8/11(월) 19:00', area: '이태원', price: 48000, slot: '디너', status: '신청 가능' },
+  { id: 5, title: '강남 보드게임 소개팅', provider: '보드나잇', date: '8/17(일) 14:00', area: '강남', price: 18000, slot: '오후', status: '신청 가능' },
+  { id: 6, title: '연남 브런치 피크닉 소개팅', provider: '소셜테이블', date: '8/10(일) 11:30', area: '연남동', price: 20000, slot: '오전', status: '마감' },
+];
+const THUMBS = [
+  '#F5EEDD',
+  '#E6E3D2',
+  '#EFEADA',
+  '#DDD9C4',
+];
+const STATUS_STYLE = {
+  '신청 가능': { background: '#4E7B54', color: '#FFFFFF' },
+  '마감': { background: '#C9C2AE', color: '#FFFFFF' },
+};
+const TRENDING = [
+  { label: '성수 와인', delta: '+2' }, { label: '소개팅파티', delta: '—' },
+  { label: '심야 소개팅', delta: '+5' }, { label: '보드게임', delta: '-1' },
+  { label: '홍대 저녁', delta: '+1' }, { label: '러닝 크루', delta: 'new' },
+];
+const SUGGESTIONS = ['강남', '성수', '홍대', '심야'];
+const AREAS = ['성수·건대', '강남·역삼', '홍대·연남', '을지로·종로', '이태원·한남', '잠실·송파', '여의도·영등포', '신촌·이대'];
+
+function tabStyle(active) {
+  return { padding: '8px 12px', borderRadius: '10px', fontSize: '11.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#14382A' : 'transparent', color: active ? '#fff' : '#59503E' };
+}
+function chip(active) {
+  return { flex: 1, textAlign: 'center', padding: '9px 6px', borderRadius: '11px', fontSize: '12px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#59503E', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function tagChip(active) {
+  return { padding: '9px 14px', borderRadius: '999px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#14382A', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'states',
+    query: '',
+    recents: ['성수 와인', '소개팅파티', '심야 다트', '강남 보드게임', '러닝'],
+    locState: 'asking',
+    areas: [],
+    stTab: 'search',
+    retrying: false,
+  };
+
+  areaVal(name) {
+    const active = this.state.areas.includes(name);
+    return {
+      label: name,
+      style: tagChip(active),
+      toggle: () => this.setState(s => {
+        if (active) return { areas: s.areas.filter(a => a !== name) };
+        if (s.areas.length >= 3) return {};
+        return { areas: [...s.areas, name] };
+      }),
+    };
+  }
+
+  doSearch(q) { this.setState({ query: q, screen: 'search' }); }
+
+  renderVals() {
+    const s = this.state;
+    const q = s.query.trim();
+    const matched = q ? EVENTS.filter(e => (e.title + ' ' + e.area + ' ' + e.slot + ' ' + e.provider).includes(q)) : [];
+
+    const split = (title) => {
+      const i = q ? title.indexOf(q) : -1;
+      if (i < 0) return { pre: title, hit: '', post: '' };
+      return { pre: title.slice(0, i), hit: title.slice(i, i + q.length), post: title.slice(i + q.length) };
+    };
+
+    const areasOk = s.areas.length > 0;
+
+    return {
+      isSearch: s.screen === 'search', isLocation: s.screen === 'location', isStates: s.screen === 'states',
+      goSearch: () => this.setState({ screen: 'search' }),
+      goLocation: () => this.setState({ screen: 'location' }),
+      goStates: () => this.setState({ screen: 'states' }),
+      tabSearchStyle: tabStyle(s.screen === 'search'),
+      tabLocationStyle: tabStyle(s.screen === 'location'),
+      tabStatesStyle: tabStyle(s.screen === 'states'),
+
+      query: s.query,
+      hasQuery: q.length > 0,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      clearQuery: () => this.setState({ query: '' }),
+      showIdle: q.length === 0,
+      showResults: q.length > 0 && matched.length > 0,
+      showNoResults: q.length > 0 && matched.length === 0,
+      resultCount: matched.length,
+      results: matched.map((e, i) => {
+        const p = split(e.title);
+        return {
+          ...e,
+          ...p,
+          priceLabel: e.price.toLocaleString('ko-KR') + '원',
+          statusStyle: { ...STATUS_STYLE[e.status], fontSize: '10.5px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px' },
+          markStyle: { background: '#F5EEDD', borderRadius: '4px', padding: '0 2px' },
+          thumbStyle: { width: '84px', height: '84px', borderRadius: '13px', flexShrink: 0, background: THUMBS[(e.id - 1) % THUMBS.length] },
+        };
+      }),
+      recents: s.recents.map(r => ({
+        label: r,
+        search: () => this.doSearch(r),
+        remove: () => this.setState(st => ({ recents: st.recents.filter(x => x !== r) })),
+      })),
+      hasRecents: s.recents.length > 0,
+      noRecents: s.recents.length === 0,
+      clearRecents: () => this.setState({ recents: [] }),
+      trending: TRENDING.map((t, i) => ({
+        label: t.label,
+        rank: i + 1,
+        delta: t.delta,
+        rowStyle: { display: 'flex', alignItems: 'center', gap: '13px', padding: '14px 18px', cursor: 'pointer', borderTop: i === 0 ? 'none' : '1px solid #FBFAF6' },
+        rankStyle: { fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: 700, width: '15px', flexShrink: 0, color: i < 3 ? '#A86D58' : '#59503E' },
+        deltaStyle: { fontSize: '11px', fontWeight: 600, flexShrink: 0, color: t.delta === 'new' ? '#14382A' : t.delta.startsWith('+') ? '#14382A' : '#59503E' },
+        search: () => this.doSearch(t.label),
+      })),
+      suggestions: SUGGESTIONS.map(sg => ({ label: sg, search: () => this.doSearch(sg) })),
+
+      locAsking: s.locState === 'asking',
+      locGranted: s.locState === 'granted',
+      locDenied: s.locState === 'denied',
+      allowLocation: () => this.setState({ locState: 'granted' }),
+      denyLocation: () => this.setState({ locState: 'denied' }),
+      resetLocation: () => this.setState({ locState: 'asking' }),
+      area0: this.areaVal(AREAS[0]), area1: this.areaVal(AREAS[1]), area2: this.areaVal(AREAS[2]),
+      area3: this.areaVal(AREAS[3]), area4: this.areaVal(AREAS[4]), area5: this.areaVal(AREAS[5]),
+      area6: this.areaVal(AREAS[6]), area7: this.areaVal(AREAS[7]),
+      areaCount: s.areas.length,
+      areaBtnStyle: { textAlign: 'center', padding: '15px', borderRadius: '14px', fontSize: '14.5px', fontWeight: 700, cursor: areasOk ? 'pointer' : 'not-allowed', background: areasOk ? '#14382A' : '#EDE7D6', color: areasOk ? '#fff' : '#59503E' },
+      areaBtnLabel: areasOk ? s.areas.length + '개 지역으로 시작하기' : '지역을 1개 이상 선택해주세요',
+
+      stIsSearch: s.stTab === 'search', stIsFilter: s.stTab === 'filter', stIsNetwork: s.stTab === 'network',
+      stSearchStyle: chip(s.stTab === 'search'),
+      stFilterStyle: chip(s.stTab === 'filter'),
+      stNetworkStyle: chip(s.stTab === 'network'),
+      setStSearch: () => this.setState({ stTab: 'search' }),
+      setStFilter: () => this.setState({ stTab: 'filter' }),
+      setStNetwork: () => this.setState({ stTab: 'network', retrying: false }),
+      retryLabel: s.retrying ? '다시 시도하는 중...' : '다시 시도',
+      retryStyle: { textAlign: 'center', padding: '14px', borderRadius: '13px', background: s.retrying ? '#F5EEDD' : '#14382A', color: s.retrying ? '#14382A' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' },
+      retry: () => {
+        this.setState({ retrying: true });
+        clearTimeout(this._r);
+        this._r = setTimeout(() => this.setState({ retrying: false }), 1400);
+      },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    input{font-family:'Pretendard',sans-serif}
+    input:focus,select:focus{outline:2px solid #DDC497;outline-offset:-1px}
+    @keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;display:flex;flex-direction:column">
+
+  <div style="flex:1;padding:28px 22px 0;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:26px">
+      <div style="width:28px;height:28px;border-radius:10px;background:#F5EEDD;display:flex;align-items:center;justify-content:center">
+        <span style="width:7px;height:7px;border-radius:50%;background:#14382A"></span>
+      </div>
+      <span style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#14382A">MeetMap</span>
+    </div>
+
+    <h1 style="font-size:24px;line-height:1.4;font-weight:800;margin:0 0 10px;letter-spacing:-0.5px">오늘 갈 소개팅,<br>지도에서 골라요</h1>
+    <p style="font-size:13.5px;color:#59503E;margin:0 0 24px;line-height:1.6">내 주변 로테이션 소개팅을 위치와 조건으로<br>한눈에 비교하세요</p>
+
+    <div style="flex:1;min-height:120px;border-radius:18px;background:linear-gradient(150deg, #0A2119 0%, #2E4A34 58%, #96A377 100%);position:relative;overflow:hidden;margin-bottom:8px">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, rgba(255,255,255,0.55) 0 1px, transparent 1px 52px), repeating-linear-gradient(0deg, rgba(255,255,255,0.55) 0 1px, transparent 1px 52px)"></div>
+      <div style="position:absolute;top:34%;left:32%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:9px;padding:4px 9px;font-size:10.5px;font-weight:600;white-space:nowrap;margin-bottom:3px">19:30 와인 로테이션</div>
+        <div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#14382A;border:2px solid #fff;rotate:-45deg"></div>
+      </div>
+      <div style="position:absolute;top:62%;left:66%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:9px;padding:4px 9px;font-size:10.5px;font-weight:600;white-space:nowrap;margin-bottom:3px">22:30 심야 라운지</div>
+        <div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#DDC497;border:2px solid #fff;rotate:-45deg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="{{ sheetStyle }}">
+    <div style="width:38px;height:4px;border-radius:2px;background:#EDE7D6;margin:0 auto 18px"></div>
+
+    <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+      <h2 style="font-size:19px;font-weight:800;margin:0 0 6px">3초 만에 시작하기</h2>
+      <p style="font-size:12.5px;color:#59503E;margin:0 0 22px">별도 가입 없이 소셜 계정으로 로그인하세요</p>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <div onClick="{{ goTerms }}" style="display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:14px;background:#FEE500;cursor:pointer">
+          <div style="width:20px;height:20px;border-radius:6px;background:#17170F;flex-shrink:0"></div>
+          <span style="font-size:14.5px;font-weight:700;color:#17170F">카카오로 계속하기</span>
+        </div>
+        <div onClick="{{ goTerms }}" style="display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:14px;background:#03C75A;cursor:pointer">
+          <div style="width:20px;height:20px;border-radius:6px;background:#fff;flex-shrink:0"></div>
+          <span style="font-size:14.5px;font-weight:700;color:#fff">네이버로 계속하기</span>
+        </div>
+        <div onClick="{{ goTerms }}" style="display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:14px;background:#fff;border:1px solid #EDE7D6;cursor:pointer">
+          <div style="width:20px;height:20px;border-radius:50%;background:#EDE7D6;flex-shrink:0"></div>
+          <span style="font-size:14.5px;font-weight:700;color:#14382A">Google로 계속하기</span>
+        </div>
+      </div>
+
+      <p style="font-size:11.5px;color:#59503E;text-align:center;line-height:1.7;margin:0">로그인 시 <span style="color:#14382A;font-weight:600">이용약관</span> 및 <span style="color:#14382A;font-weight:600">개인정보 처리방침</span>에<br>동의하는 것으로 간주됩니다</p>
+    </sc-if>
+
+    <sc-if value="{{ isTerms }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span onClick="{{ goLogin }}" style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+        <h2 style="font-size:19px;font-weight:800;margin:0">약관 동의</h2>
+      </div>
+      <p style="font-size:12.5px;color:#59503E;margin:0 0 20px;padding-left:29px">서비스 이용을 위해 아래 약관에 동의해주세요</p>
+
+      <div onClick="{{ toggleAll }}" style="{{ allRowStyle }}">
+        <div style="{{ allBoxStyle }}">{{ allMark }}</div>
+        <span style="font-size:14.5px;font-weight:700">전체 동의</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:22px">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 4px">
+          <div onClick="{{ term0.toggle }}" style="{{ term0.boxStyle }}">{{ term0.mark }}</div>
+          <div onClick="{{ term0.toggle }}" style="flex:1;min-width:0;cursor:pointer">
+            <span style="{{ term0.tagStyle }}">{{ term0.tag }}</span>
+            <span style="font-size:13.5px;margin-left:7px">{{ term0.label }}</span>
+          </div>
+          <span style="font-size:12px;color:#59503E;text-decoration:underline;cursor:pointer;flex-shrink:0">자세히 보기</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 4px">
+          <div onClick="{{ term1.toggle }}" style="{{ term1.boxStyle }}">{{ term1.mark }}</div>
+          <div onClick="{{ term1.toggle }}" style="flex:1;min-width:0;cursor:pointer">
+            <span style="{{ term1.tagStyle }}">{{ term1.tag }}</span>
+            <span style="font-size:13.5px;margin-left:7px">{{ term1.label }}</span>
+          </div>
+          <span style="font-size:12px;color:#59503E;text-decoration:underline;cursor:pointer;flex-shrink:0">자세히 보기</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 4px">
+          <div onClick="{{ term2.toggle }}" style="{{ term2.boxStyle }}">{{ term2.mark }}</div>
+          <div onClick="{{ term2.toggle }}" style="flex:1;min-width:0;cursor:pointer">
+            <span style="{{ term2.tagStyle }}">{{ term2.tag }}</span>
+            <span style="font-size:13.5px;margin-left:7px">{{ term2.label }}</span>
+          </div>
+          <span style="font-size:12px;color:#59503E;text-decoration:underline;cursor:pointer;flex-shrink:0">자세히 보기</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 4px">
+          <div onClick="{{ term3.toggle }}" style="{{ term3.boxStyle }}">{{ term3.mark }}</div>
+          <div onClick="{{ term3.toggle }}" style="flex:1;min-width:0;cursor:pointer">
+            <span style="{{ term3.tagStyle }}">{{ term3.tag }}</span>
+            <span style="font-size:13.5px;margin-left:7px">{{ term3.label }}</span>
+          </div>
+          <span style="font-size:12px;color:#59503E;text-decoration:underline;cursor:pointer;flex-shrink:0">자세히 보기</span>
+        </div>
+      </div>
+
+      <div onClick="{{ submitTerms }}" style="{{ termsBtnStyle }}">{{ termsBtnLabel }}</div>
+    </sc-if>
+
+    <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ false }}">
+      <div style="width:46px;height:46px;border-radius:16px;background:rgba(168,109,88,0.14);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+        <div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#14382A;rotate:-45deg"></div>
+      </div>
+      <h2 style="font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.4">맞춤 추천을 위해<br>몇 가지만 알려주세요</h2>
+      <p style="font-size:13px;color:#59503E;margin:0 0 20px;line-height:1.7">출생연도와 지역을 등록하면 홈에서<br>내 조건에 맞는 소개팅을 먼저 보여드려요</p>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <div style="display:flex;gap:11px;align-items:center;background:#F5EEDD;border-radius:13px;padding:13px 14px">
+          <div style="width:26px;height:26px;border-radius:9px;background:#F5EEDD;flex-shrink:0"></div>
+          <span style="font-size:13px;font-weight:600">내 지역의 이번 주 소개팅을 홈 상단에</span>
+        </div>
+        <div style="display:flex;gap:11px;align-items:center;background:#F5EEDD;border-radius:13px;padding:13px 14px">
+          <div style="width:26px;height:26px;border-radius:9px;background:#F5EEDD;flex-shrink:0"></div>
+          <span style="font-size:13px;font-weight:600">내 출생연도로 신청 가능한 소개팅만 필터링</span>
+        </div>
+        <div style="display:flex;gap:11px;align-items:center;background:#F5EEDD;border-radius:13px;padding:13px 14px">
+          <div style="width:26px;height:26px;border-radius:9px;background:#F5EEDD;flex-shrink:0"></div>
+          <span style="font-size:13px;font-weight:600">관심 지역에 새 소개팅이 등록되면 알려드려요</span>
+        </div>
+      </div>
+
+      <div onClick="{{ goProfile }}" style="text-align:center;padding:15px;border-radius:13px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;margin-bottom:10px">1분 만에 설정하기</div>
+      <div onClick="{{ skip }}" style="text-align:center;padding:12px;font-size:13px;font-weight:600;color:#59503E;cursor:pointer">나중에 할래요</div>
+    </sc-if>
+
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span onClick="{{ goIntro }}" style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+        <h2 style="font-size:19px;font-weight:800;margin:0">프로필 설정</h2>
+        <div style="flex:1"></div>
+        <span onClick="{{ skip }}" style="font-size:12.5px;font-weight:600;color:#59503E;cursor:pointer">건너뛰기</span>
+      </div>
+      <p style="font-size:12.5px;color:#59503E;margin:0 0 20px;padding-left:29px">언제든 마이페이지에서 수정할 수 있어요</p>
+
+      <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:8px">닉네임</label>
+      <input type="text" value="{{ nickname }}" onChange="{{ onNickname }}" placeholder="소개팅에서 보여질 이름" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:13px;font-size:14px;background:#FBFAF6;margin-bottom:6px">
+      <div style="font-size:11.5px;color:#59503E;margin-bottom:20px">{{ nicknameLen }}/12자</div>
+
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <div style="flex:1;min-width:0">
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:8px">출생연도</label>
+          <select value="{{ birthYear }}" onChange="{{ onBirthYear }}" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:13px;font-size:14px;background:#FBFAF6">
+            <sc-for list="{{ years }}" as="y" hint-placeholder-count="6">
+              <option value="{{ y.value }}">{{ y.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <div style="flex:1;min-width:0">
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:8px">성별</label>
+          <div style="display:flex;gap:7px">
+            <div onClick="{{ setFemale }}" style="{{ femaleStyle }}">여성</div>
+            <div onClick="{{ setMale }}" style="{{ maleStyle }}">남성</div>
+          </div>
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:4px">선호 지역</label>
+      <div style="font-size:11.5px;color:#59503E;margin-bottom:10px">최대 3개 선택 · {{ areaCount }}개 선택됨</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px">
+        <div onClick="{{ area0.toggle }}" style="{{ area0.style }}">{{ area0.label }}</div>
+        <div onClick="{{ area1.toggle }}" style="{{ area1.style }}">{{ area1.label }}</div>
+        <div onClick="{{ area2.toggle }}" style="{{ area2.style }}">{{ area2.label }}</div>
+        <div onClick="{{ area3.toggle }}" style="{{ area3.style }}">{{ area3.label }}</div>
+        <div onClick="{{ area4.toggle }}" style="{{ area4.style }}">{{ area4.label }}</div>
+        <div onClick="{{ area5.toggle }}" style="{{ area5.style }}">{{ area5.label }}</div>
+      </div>
+
+      <div onClick="{{ complete }}" style="{{ profileBtnStyle }}">{{ profileBtnLabel }}</div>
+    </sc-if>
+
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center;padding:20px 0 10px">
+        <div style="width:52px;height:52px;border-radius:18px;background:#F5EEDD;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#14382A;font-weight:700">✓</div>
+        <h2 style="font-size:19px;font-weight:800;margin:0 0 8px">설정이 끝났어요</h2>
+        <p style="font-size:13px;color:#59503E;margin:0 0 24px;line-height:1.7">{{ doneSummary }}</p>
+        <div onClick="{{ goLogin }}" style="text-align:center;padding:15px;border-radius:13px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">홈으로 이동</div>
+      </div>
+    </sc-if>
+  </div>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TERMS = [
+  { tag: '필수', label: '만 19세 이상입니다', required: true },
+  { tag: '필수', label: '서비스 이용약관', required: true },
+  { tag: '필수', label: '개인정보 수집 및 이용', required: true },
+  { tag: '선택', label: '마케팅 정보 수신 동의', required: false },
+];
+const AREAS = ['성수·건대', '강남·역삼', '홍대·연남', '을지로·종로', '이태원·한남', '잠실·송파'];
+
+function tagChip(active) {
+  return { padding: '9px 15px', borderRadius: '999px', fontSize: '13px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#14382A', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function checkBox(on) {
+  return { width: '22px', height: '22px', borderRadius: '7px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', background: on ? '#14382A' : '#fff', color: '#fff', border: on ? '1px solid #14382A' : '1px solid #EDE7D6' };
+}
+function primaryBtn(enabled) {
+  return { textAlign: 'center', padding: '15px', borderRadius: '13px', fontSize: '14.5px', fontWeight: 700, cursor: enabled ? 'pointer' : 'not-allowed', background: enabled ? '#14382A' : '#EDE7D6', color: enabled ? '#fff' : '#59503E' };
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'profile',
+    terms: [false, false, false, false],
+    nickname: '',
+    birthYear: '1996',
+    gender: null,
+    areas: [],
+  };
+
+  termVal(i) {
+    const on = this.state.terms[i];
+    const t = TERMS[i];
+    return {
+      tag: t.tag,
+      label: t.label,
+      mark: on ? '✓' : '',
+      boxStyle: checkBox(on),
+      tagStyle: { fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: t.required ? '#F5EEDD' : '#EDE7D6', color: t.required ? '#14382A' : '#59503E' },
+      toggle: () => this.setState(s => { const c = [...s.terms]; c[i] = !c[i]; return { terms: c }; }),
+    };
+  }
+
+  tagVal(list, key, name, max) {
+    const active = this.state[key].includes(name);
+    return {
+      label: name,
+      style: tagChip(active),
+      toggle: () => this.setState(s => {
+        const cur = s[key];
+        if (active) return { [key]: cur.filter(x => x !== name) };
+        if (cur.length >= max) return {};
+        return { [key]: [...cur, name] };
+      }),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const requiredOk = TERMS.every((t, i) => !t.required || s.terms[i]);
+    const allOn = s.terms.every(Boolean);
+    const profileOk = s.nickname.trim().length > 0 && !!s.gender;
+
+    const years = [];
+    for (let y = 2007; y >= 1975; y--) years.push({ value: String(y), label: y + '년' });
+
+    return {
+      isLogin: s.screen === 'login', isTerms: s.screen === 'terms',
+      isIntro: s.screen === 'intro', isProfile: s.screen === 'profile', isDone: s.screen === 'done',
+      sheetStyle: {
+        background: '#fff', borderRadius: '24px 24px 0 0', padding: '18px 22px 30px',
+        boxShadow: '0 -6px 24px rgba(16,28,38,0.08)', animation: 'sheetUp 0.24s ease',
+        maxHeight: s.screen === 'profile' ? '70vh' : 'none',
+        overflowY: s.screen === 'profile' ? 'auto' : 'visible',
+      },
+      goLogin: () => this.setState({ screen: 'login' }),
+      goTerms: () => this.setState({ screen: 'terms' }),
+      goIntro: () => this.setState({ screen: 'intro' }),
+      goProfile: () => this.setState({ screen: 'profile' }),
+      skip: () => this.setState({ screen: 'done' }),
+
+      term0: this.termVal(0), term1: this.termVal(1), term2: this.termVal(2), term3: this.termVal(3),
+      allMark: allOn ? '✓' : '',
+      allBoxStyle: checkBox(allOn),
+      allRowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '15px 14px', borderRadius: '14px', cursor: 'pointer', marginBottom: '6px', background: allOn ? '#FBFAF6' : '#FBFAF6', border: allOn ? '1px solid #F5EEDD' : '1px solid #EDE7D6' },
+      toggleAll: () => this.setState(st => ({ terms: st.terms.every(Boolean) ? [false, false, false, false] : [true, true, true, true] })),
+      termsBtnStyle: primaryBtn(requiredOk),
+      termsBtnLabel: requiredOk ? '동의하고 계속하기' : '필수 약관에 동의해주세요',
+      submitTerms: () => requiredOk && this.setState({ screen: 'intro' }),
+
+      nickname: s.nickname,
+      nicknameLen: s.nickname.length,
+      onNickname: (e) => this.setState({ nickname: e.target.value.slice(0, 12) }),
+      birthYear: s.birthYear,
+      onBirthYear: (e) => this.setState({ birthYear: e.target.value }),
+      years,
+      femaleStyle: { flex: 1, textAlign: 'center', padding: '13px 0', borderRadius: '13px', fontSize: '13.5px', fontWeight: s.gender === 'F' ? 700 : 500, cursor: 'pointer', background: s.gender === 'F' ? '#F5EEDD' : '#fff', color: s.gender === 'F' ? '#14382A' : '#59503E', border: s.gender === 'F' ? '1px solid #F5EEDD' : '1px solid #EDE7D6' },
+      maleStyle: { flex: 1, textAlign: 'center', padding: '13px 0', borderRadius: '13px', fontSize: '13.5px', fontWeight: s.gender === 'M' ? 700 : 500, cursor: 'pointer', background: s.gender === 'M' ? '#F5EEDD' : '#fff', color: s.gender === 'M' ? '#14382A' : '#59503E', border: s.gender === 'M' ? '1px solid #F5EEDD' : '1px solid #EDE7D6' },
+      setFemale: () => this.setState({ gender: 'F' }),
+      setMale: () => this.setState({ gender: 'M' }),
+
+      area0: this.tagVal(AREAS, 'areas', AREAS[0], 3), area1: this.tagVal(AREAS, 'areas', AREAS[1], 3),
+      area2: this.tagVal(AREAS, 'areas', AREAS[2], 3), area3: this.tagVal(AREAS, 'areas', AREAS[3], 3),
+      area4: this.tagVal(AREAS, 'areas', AREAS[4], 3), area5: this.tagVal(AREAS, 'areas', AREAS[5], 3),
+      areaCount: s.areas.length,
+
+      profileBtnStyle: primaryBtn(profileOk),
+      profileBtnLabel: profileOk ? '완료하고 시작하기' : '닉네임과 성별을 입력해주세요',
+      complete: () => profileOk && this.setState({ screen: 'done' }),
+      doneSummary: (s.areas.length ? s.areas.join(', ') : '전 지역') + '의 ' + s.birthYear.slice(2) + '년생 소개팅을 먼저 보여드릴게요',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

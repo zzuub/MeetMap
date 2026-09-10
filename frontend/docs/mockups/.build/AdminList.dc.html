@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    input,select,textarea{font-family:'Pretendard',sans-serif}
+    input:focus,select:focus,textarea:focus{outline:2px solid #DDC497;outline-offset:-1px}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;box-shadow:0 0 0 1px #EDE7D6;background:rgba(255,255,255,0.4)">
+
+  
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+      <div style="width:100%;max-width:400px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:30px">
+          <div style="width:30px;height:30px;border-radius:10px;background:#14382A;display:flex;align-items:center;justify-content:center">
+            <span style="width:8px;height:8px;border-radius:50%;background:#F5EEDD"></span>
+          </div>
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#14382A">MeetMap</span>
+          <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#14382A;color:#F5EEDD">ADMIN</span>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:28px 24px">
+          <h1 style="font-size:19px;font-weight:800;margin:0 0 6px">운영자 로그인</h1>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 24px">내부 운영 계정으로만 접근할 수 있습니다</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">이메일</label>
+          <input type="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="admin@meetmap.kr" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:16px">
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">비밀번호</label>
+          <input type="password" value="{{ pw }}" onChange="{{ onPw }}" placeholder="비밀번호 입력" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:20px">
+
+          <div onClick="{{ goDash }}" style="text-align:center;padding:14px;border-radius:12px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">로그인</div>
+
+          <div style="margin-top:18px;padding-top:18px;border-top:1px solid #FBFAF6;font-size:11.5px;color:#59503E;line-height:1.7">
+            운영자 계정은 시스템 관리자가 직접 등록합니다. 접속 기록은 감사 로그에 저장됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showChrome }}" hint-placeholder-val="{{ false }}">
+    <header style="background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;position:sticky;top:0;z-index:20">
+      <div style="padding:0 18px;height:56px;display:flex;align-items:center;gap:9px">
+        <div style="width:24px;height:24px;border-radius:8px;background:#14382A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="width:6px;height:6px;border-radius:50%;background:#F5EEDD"></span>
+        </div>
+        <span style="font-family:Georgia,serif;font-size:16px;font-weight:700">MeetMap</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;background:#14382A;color:#F5EEDD;flex-shrink:0">ADMIN</span>
+        <div style="flex:1"></div>
+        <span style="font-size:11px;color:#59503E;white-space:nowrap">검수대기 {{ pendingCount }}</span>
+      </div>
+      <div style="padding:0 18px;display:flex;flex-wrap:wrap;gap:16px">
+        <div onClick="{{ goDash }}" style="{{ navDashStyle }}">대시보드</div>
+        <div onClick="{{ goReviewList }}" style="{{ navReviewStyle }}">소개팅 검수</div>
+        <div onClick="{{ goInvite }}" style="{{ navInviteStyle }}">계정 관리</div>
+      </div>
+    </header>
+  </sc-if>
+
+  <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <h1 style="font-size:19px;font-weight:800;margin:0 0 5px">운영 대시보드</h1>
+      <p style="font-size:11.5px;color:#59503E;margin:0 0 18px">8/9 기준 · 최근 30일</p>
+
+      <section style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">전체 조회수</div>
+          <div style="font-family:Georgia,serif;font-size:19px;font-weight:700">148,290</div>
+          <div style="font-size:10.5px;color:#14382A;font-weight:600;margin-top:4px">+11.4%</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">신청 전환율</div>
+          <div style="font-family:Georgia,serif;font-size:19px;font-weight:700">7.4%</div>
+          <div style="font-size:10.5px;color:#59503E;font-weight:600;margin-top:4px">10,973건</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">등록 소개팅</div>
+          <div style="font-family:Georgia,serif;font-size:19px;font-weight:700">312</div>
+          <div style="font-size:10.5px;color:#59503E;font-weight:600;margin-top:4px">주최사 48곳</div>
+        </div>
+        <div onClick="{{ goReviewList }}" style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px;cursor:pointer">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">검수 대기</div>
+          <div style="font-family:Georgia,serif;font-size:19px;font-weight:700;color:#14382A">{{ pendingCount }}</div>
+          <div style="font-size:10.5px;color:#14382A;font-weight:600;margin-top:4px">검수하러 가기 &gt;</div>
+        </div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:16px;margin-bottom:12px">
+        <h2 style="font-size:14px;font-weight:700;margin:0 0 3px">시간대별 신청 분포</h2>
+        <p style="font-size:11px;color:#59503E;margin:0 0 16px">전체 신청 대비 비중</p>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <sc-for list="{{ slotStats }}" as="row" hint-placeholder-count="3">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+                <span style="font-weight:600">{{ row.label }}</span>
+                <span style="color:#59503E">{{ row.countLabel }} · {{ row.pctLabel }}</span>
+              </div>
+              <div style="height:7px;border-radius:4px;background:#F0E7D0;overflow:hidden">
+                <div style="{{ row.barStyle }}"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;overflow:hidden">
+        <div style="padding:16px 16px 4px">
+          <h2 style="font-size:14px;font-weight:700;margin:0 0 3px">인기 소개팅 TOP 5</h2>
+          <p style="font-size:11px;color:#59503E;margin:0">조회수 기준</p>
+        </div>
+        <sc-for list="{{ topEvents }}" as="row" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:11px;padding:12px 16px;border-top:1px solid #FBFAF6">
+            <div style="font-family:Georgia,serif;font-weight:700;font-size:13px;color:#14382A;width:14px;flex-shrink:0">{{ row.rank }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.title }}</div>
+              <div style="font-size:11px;color:#59503E;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.provider }} · {{ row.viewsLabel }} 조회</div>
+            </div>
+            <div style="font-size:12px;font-weight:600;flex-shrink:0">{{ row.cvr }}</div>
+          </div>
+        </sc-for>
+      </section>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <h1 style="font-size:19px;font-weight:800;margin:0 0 5px">PROVIDER 계정 발급</h1>
+      <p style="font-size:11.5px;color:#59503E;margin:0 0 18px">계약이 완료된 주최사에 초대 링크를 발송합니다</p>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:18px;margin-bottom:12px">
+        <h2 style="font-size:15.5px;font-weight:700;margin:0 0 18px">사업자 정보</h2>
+
+        <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">상호명 <span style="color:#14382A">*</span></label>
+        <input type="text" value="{{ company }}" onChange="{{ onCompany }}" placeholder="예) 테이블나인" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:18px">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">사업자등록번호 <span style="color:#14382A">*</span></label>
+            <input type="text" placeholder="000-00-00000" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">대표자명 <span style="color:#14382A">*</span></label>
+            <input type="text" placeholder="홍길동" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">사업장 주소</label>
+        <input type="text" placeholder="서울 성동구 성수이로 00" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:22px;margin-bottom:14px">
+        <h2 style="font-size:15.5px;font-weight:700;margin:0 0 18px">담당자 연락처</h2>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">담당자명 <span style="color:#14382A">*</span></label>
+            <input type="text" placeholder="김담당" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">연락처 <span style="color:#14382A">*</span></label>
+            <input type="tel" placeholder="010-0000-0000" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">계정 이메일 <span style="color:#14382A">*</span></label>
+        <input type="email" value="{{ inviteEmail }}" onChange="{{ onInviteEmail }}" placeholder="partner@company.com" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:6px">
+        <div style="font-size:11.5px;color:#59503E">이 주소로 초대 링크와 임시 비밀번호가 발송됩니다</div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:22px;margin-bottom:14px">
+        <h2 style="font-size:15.5px;font-weight:700;margin:0 0 18px">계약 정보</h2>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">계약 시작일 <span style="color:#14382A">*</span></label>
+            <input type="date" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">계약 종료일 <span style="color:#14382A">*</span></label>
+            <input type="date" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+          </div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">이미지 사용 계약 범위 <span style="color:#14382A">*</span></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+          <div onClick="{{ setScopeBasic }}" style="{{ scopeBasicStyle }}">서비스 내 노출만</div>
+          <div onClick="{{ setScopeMarketing }}" style="{{ scopeMarketingStyle }}">마케팅 활용 포함</div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">비고</label>
+        <textarea placeholder="특약 사항, 정산 조건 등" style="width:100%;box-sizing:border-box;min-height:88px;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;resize:vertical;line-height:1.6"></textarea>
+      </div>
+
+      <div onClick="{{ sendInvite }}" style="text-align:center;padding:15px;border-radius:12px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">초대 링크 발송</div>
+      <sc-if value="{{ inviteSent }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px;background:#F5EEDD;border-radius:12px;padding:14px;font-size:12.5px;color:#14382A;font-weight:600;text-align:center">{{ inviteEmail }} 로 초대 링크를 발송했습니다</div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isReviewList }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <h1 style="font-size:19px;font-weight:800;margin:0 0 5px">소개팅 검수</h1>
+      <p style="font-size:11.5px;color:#59503E;margin:0 0 16px">승인 시 사용자 화면에 즉시 노출됩니다</p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+        <div onClick="{{ setFilterPending }}" style="{{ fPendingStyle }}">승인대기 {{ pendingCount }}</div>
+        <div onClick="{{ setFilterApproved }}" style="{{ fApprovedStyle }}">승인</div>
+        <div onClick="{{ setFilterRejected }}" style="{{ fRejectedStyle }}">반려</div>
+        <div onClick="{{ setFilterAll }}" style="{{ fAllStyle }}">전체</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ reviewRows }}" as="row" hint-placeholder-count="4">
+          <div onClick="{{ row.open }}" style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:14px;display:flex;gap:13px;cursor:pointer;align-items:center">
+            <div style="{{ row.thumbStyle }}"></div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+                <span style="{{ row.badgeStyle }}">{{ row.status }}</span>
+                <span style="font-size:11px;color:#59503E">{{ row.submittedAt }} 접수</span>
+              </div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.title }}</div>
+              <div style="font-size:11.5px;color:#59503E">{{ row.provider }} · {{ row.date }} · {{ row.priceLabel }}</div>
+            </div>
+            <span style="font-size:16px;color:#59503E;flex-shrink:0">›</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ reviewEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:56px 20px;text-align:center;font-size:13px;color:#59503E">해당 상태의 소개팅이 없습니다</div>
+        </sc-if>
+      </div>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isReviewDetail }}" hint-placeholder-val="{{ false }}">
+    <main style="padding:18px 18px 24px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span onClick="{{ goReviewList }}" style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+        <span style="{{ detail.badgeStyle }}">{{ detail.status }}</span>
+        <span style="font-size:11px;color:#59503E">{{ detail.submittedAt }} 접수</span>
+      </div>
+
+      <h1 style="font-size:18px;font-weight:800;margin:0 0 6px;line-height:1.4">{{ detail.title }}</h1>
+      <p style="font-size:12px;color:#59503E;margin:0 0 18px">{{ detail.provider }} · {{ detail.date }} · {{ detail.priceLabel }}</p>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:20px;margin-bottom:14px">
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 14px">등록 이미지</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px">
+          <div style="aspect-ratio:4/3;border-radius:12px;background:#F5EEDD;position:relative">
+            <span style="position:absolute;bottom:7px;left:8px;font-size:10px;font-weight:700;color:#17170F;background:rgba(255,255,255,0.85);padding:3px 7px;border-radius:6px">대표</span>
+          </div>
+          <div style="aspect-ratio:4/3;border-radius:12px;background:#E6E3D2"></div>
+          <div style="aspect-ratio:4/3;border-radius:12px;background:#EFEADA"></div>
+        </div>
+        <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;font-size:11.5px;color:#14382A;line-height:1.7">
+          계약 범위: 서비스 내 노출만 · 계약 기간 2026.03.01 ~ 2027.02.28
+        </div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:20px;margin-bottom:14px">
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 14px">등록 문구</h2>
+        <div style="font-size:13px;line-height:1.75;color:#14382A;background:#F5EEDD;border-radius:12px;padding:14px">
+          와인 5종을 테이블별로 로테이션하며 자연스럽게 대화를 나누는 소개팅입니다. 소믈리에 진행으로 와인 설명이 함께 제공되며, 안주와 논알콜 옵션도 준비되어 있습니다. 90~96년생, 남 7 · 여 7 정원으로 모집하며 지원자 중 선발합니다.
+        </div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:20px;margin-bottom:14px">
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 5px">계약 범위 위반 여부</h2>
+        <p style="font-size:11.5px;color:#59503E;margin:0 0 16px">모든 항목을 확인해야 승인할 수 있습니다</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div onClick="{{ check0.toggle }}" style="{{ check0.rowStyle }}">
+            <div style="{{ check0.boxStyle }}">{{ check0.mark }}</div>
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:600">{{ check0.label }}</div>
+              <div style="font-size:11.5px;color:#59503E;margin-top:3px">{{ check0.desc }}</div>
+            </div>
+          </div>
+          <div onClick="{{ check1.toggle }}" style="{{ check1.rowStyle }}">
+            <div style="{{ check1.boxStyle }}">{{ check1.mark }}</div>
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:600">{{ check1.label }}</div>
+              <div style="font-size:11.5px;color:#59503E;margin-top:3px">{{ check1.desc }}</div>
+            </div>
+          </div>
+          <div onClick="{{ check2.toggle }}" style="{{ check2.rowStyle }}">
+            <div style="{{ check2.boxStyle }}">{{ check2.mark }}</div>
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:600">{{ check2.label }}</div>
+              <div style="font-size:11.5px;color:#59503E;margin-top:3px">{{ check2.desc }}</div>
+            </div>
+          </div>
+          <div onClick="{{ check3.toggle }}" style="{{ check3.rowStyle }}">
+            <div style="{{ check3.boxStyle }}">{{ check3.mark }}</div>
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:600">{{ check3.label }}</div>
+              <div style="font-size:11.5px;color:#59503E;margin-top:3px">{{ check3.desc }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="{{ checkStatusStyle }}">{{ checkStatusMsg }}</div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:20px;margin-bottom:14px">
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 5px">반려 사유</h2>
+        <p style="font-size:11.5px;color:#59503E;margin:0 0 14px">반려 시 주최사에게 그대로 전달됩니다</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <div onClick="{{ reason0.pick }}" style="{{ reason0.style }}">{{ reason0.label }}</div>
+          <div onClick="{{ reason1.pick }}" style="{{ reason1.style }}">{{ reason1.label }}</div>
+          <div onClick="{{ reason2.pick }}" style="{{ reason2.style }}">{{ reason2.label }}</div>
+          <div onClick="{{ reason3.pick }}" style="{{ reason3.style }}">{{ reason3.label }}</div>
+        </div>
+        <textarea value="{{ rejectNote }}" onChange="{{ onRejectNote }}" placeholder="상세 사유를 입력하세요" style="width:100%;box-sizing:border-box;min-height:96px;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:13.5px;background:#FBFAF6;resize:vertical;line-height:1.6"></textarea>
+      </section>
+
+      <div style="display:flex;gap:10px">
+        <div onClick="{{ doReject }}" style="flex:1;text-align:center;padding:15px;border-radius:12px;border:1px solid #F5EEDD;background:#fff;color:#14382A;font-size:14.5px;font-weight:700;cursor:pointer">반려</div>
+        <div onClick="{{ doApprove }}" style="{{ approveBtnStyle }}">승인</div>
+      </div>
+      <sc-if value="{{ actionMsg }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ actionMsgStyle }}">{{ actionMsg }}</div>
+      </sc-if>
+    </main>
+  </sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUS_BADGE = {
+  '승인대기': { background: '#AD6A2E', color: '#FFFFFF' },
+  '승인': { background: '#4E7B54', color: '#FFFFFF' },
+  '반려': { background: '#C9C2AE', color: '#FFFFFF' },
+};
+const THUMBS = [
+  '#DDD9C4',
+  '#F1EDDF',
+  '#F5EEDD',
+  '#E6E3D2',
+  '#EFEADA',
+];
+
+const REVIEWS = [
+  { id: 1, title: '성수 와인 로테이션 소개팅', provider: '소셜테이블', date: '8/14(목) 19:30', priceM: 42000, priceF: 30000, status: '승인대기', submittedAt: '8/8 14:22' },
+  { id: 2, title: '연남 브런치 피크닉 소개팅', provider: '소셜테이블', date: '8/16(토) 11:30', priceM: 28000, priceF: 20000, status: '승인대기', submittedAt: '8/8 11:05' },
+  { id: 3, title: '강남 보드게임 소개팅 2기', provider: '보드나잇', date: '8/12(화) 19:30', priceM: 25000, priceF: 18000, status: '승인대기', submittedAt: '8/7 18:40' },
+  { id: 4, title: '을지로 심야 다트 소개팅', provider: '나이트캡소셜', date: '8/15(금) 22:30', priceM: 30000, priceF: 22000, status: '승인대기', submittedAt: '8/7 09:12' },
+  { id: 5, title: '홍대 하이볼 나이트 소개팅', provider: '테이블나인', date: '8/9(토) 20:00', priceM: 48000, priceF: 35000, status: '승인', submittedAt: '8/5 16:30' },
+  { id: 6, title: '성수 심야 재즈바 소개팅', provider: '테이블나인', date: '8/9(토) 23:00', priceM: 38000, priceF: 28000, status: '승인', submittedAt: '8/4 10:18' },
+  { id: 7, title: '이태원 루프탑 와인 소개팅', provider: '클럽쿠킹', date: '8/14(목) 19:00', priceM: 65000, priceF: 48000, status: '반려', submittedAt: '8/3 15:47' },
+];
+
+const TOP_EVENTS = [
+  { rank: 1, title: '홍대 하이볼 나이트 소개팅', provider: '테이블나인', views: 12480, cvr: '9.1%' },
+  { rank: 2, title: '성수 심야 재즈바 소개팅', provider: '테이블나인', views: 9840, cvr: '8.4%' },
+  { rank: 3, title: '이태원 쿠킹클래스 소개팅', provider: '클럽쿠킹', views: 8260, cvr: '7.7%' },
+  { rank: 4, title: '성수 와인 로테이션 소개팅', provider: '소셜테이블', views: 7130, cvr: '6.9%' },
+  { rank: 5, title: '강남 보드게임 소개팅', provider: '보드나잇', views: 5920, cvr: '5.8%' },
+];
+
+const SLOTS = [
+  { label: '오전 (07–12시)', count: 1180, pct: 9, color: '#96A377' },
+  { label: '오후 (12–17시)', count: 1940, pct: 15, color: '#96A377' },
+  { label: '디너 (17–22시)', count: 6480, pct: 51, color: '#14382A' },
+  { label: '심야 (22시 이후)', count: 3170, pct: 25, color: '#14382A' },
+];
+
+const CHECKS = [
+  { label: '이미지 저작권 확인', desc: '계약 범위 내 제공된 이미지인지 확인' },
+  { label: '초상권 동의 확인', desc: '식별 가능한 인물 사진의 동의 여부' },
+  { label: '문구 과장·허위 표현 없음', desc: '참가 조건, 제공 항목과 실제 내용 일치' },
+  { label: '신청 URL 정상 연결', desc: '주최사 신청 페이지로 정상 이동하는지 확인' },
+];
+const REASONS = ['이미지 계약 범위 초과', '초상권 미확인', '문구 과장 표현', '신청 URL 오류'];
+
+function tabStyle(active) {
+  return { padding: '8px 12px', borderRadius: '10px', fontSize: '11.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#14382A' : 'transparent', color: active ? '#fff' : '#59503E' };
+}
+function navStyle(active) {
+  return { fontSize: '13px', fontWeight: active ? 700 : 500, padding: '12px 0', cursor: 'pointer', whiteSpace: 'nowrap', color: active ? '#14382A' : '#59503E', borderBottom: active ? '2px solid #14382A' : '2px solid transparent' };
+}
+function filterStyle(active) {
+  return { padding: '8px 14px', borderRadius: '11px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#59503E', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function chipStyle(active) {
+  return { padding: '8px 13px', borderRadius: '11px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#FBFAF6' : '#fff', color: active ? '#14382A' : '#59503E', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function scopeChipStyle(active) {
+  return { padding: '9px 15px', borderRadius: '12px', fontSize: '13px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#14382A', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6' };
+}
+function badge(status) {
+  return { ...STATUS_BADGE[status], fontSize: '11px', fontWeight: 700, padding: '4px 9px', borderRadius: '7px', whiteSpace: 'nowrap' };
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'list',
+    email: '', pw: '',
+    company: '', inviteEmail: '', scope: 'BASIC', inviteSent: false,
+    filter: '승인대기',
+    detailId: 1,
+    checks: [false, false, false, false],
+    reason: null,
+    rejectNote: '',
+    actionMsg: '',
+    actionKind: '',
+  };
+
+  checkVal(i) {
+    const on = this.state.checks[i];
+    return {
+      label: CHECKS[i].label,
+      desc: CHECKS[i].desc,
+      mark: on ? '✓' : '',
+      rowStyle: { display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '13px 14px', borderRadius: '12px', cursor: 'pointer', background: on ? '#FBFAF6' : '#FBFAF6', border: on ? '1px solid #F5EEDD' : '1px solid #EDE7D6' },
+      boxStyle: { width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, marginTop: '1px', background: on ? '#14382A' : '#fff', color: '#fff', border: on ? '1px solid #14382A' : '1px solid #EDE7D6' },
+      toggle: () => this.setState(s => { const c = [...s.checks]; c[i] = !c[i]; return { checks: c, actionMsg: '' }; }),
+    };
+  }
+
+  reasonVal(i) {
+    const active = this.state.reason === REASONS[i];
+    return {
+      label: REASONS[i],
+      style: chipStyle(active),
+      pick: () => this.setState({ reason: active ? null : REASONS[i] }),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pending = REVIEWS.filter(r => r.status === '승인대기');
+    const rows = REVIEWS.filter(r => s.filter === 'ALL' || r.status === s.filter).map((r, i) => ({
+      ...r,
+      priceLabel: '남 ' + r.priceM.toLocaleString('ko-KR') + ' / 여 ' + r.priceF.toLocaleString('ko-KR') + '원',
+      badgeStyle: badge(r.status),
+      thumbStyle: { width: '68px', height: '68px', borderRadius: '13px', flexShrink: 0, background: THUMBS[(r.id - 1) % THUMBS.length] },
+      open: () => this.setState({ screen: 'detail', detailId: r.id, checks: [false, false, false, false], reason: null, rejectNote: '', actionMsg: '' }),
+    }));
+
+    const d = REVIEWS.find(r => r.id === s.detailId) || REVIEWS[0];
+    const allChecked = s.checks.every(Boolean);
+
+    return {
+      isLogin: s.screen === 'login', isDash: s.screen === 'dash', isInvite: s.screen === 'invite',
+      isReviewList: s.screen === 'list', isReviewDetail: s.screen === 'detail',
+      showChrome: s.screen !== 'login',
+      goLogin: () => this.setState({ screen: 'login' }),
+      goDash: () => this.setState({ screen: 'dash' }),
+      goInvite: () => this.setState({ screen: 'invite' }),
+      goReviewList: () => this.setState({ screen: 'list' }),
+      goReviewDetail: () => this.setState({ screen: 'detail' }),
+      tabLoginStyle: tabStyle(s.screen === 'login'),
+      tabDashStyle: tabStyle(s.screen === 'dash'),
+      tabInviteStyle: tabStyle(s.screen === 'invite'),
+      tabListStyle: tabStyle(s.screen === 'list'),
+      tabDetailStyle: tabStyle(s.screen === 'detail'),
+      navDashStyle: navStyle(s.screen === 'dash'),
+      navReviewStyle: navStyle(s.screen === 'list' || s.screen === 'detail'),
+      navInviteStyle: navStyle(s.screen === 'invite'),
+
+      email: s.email, pw: s.pw,
+      onEmail: (e) => this.setState({ email: e.target.value }),
+      onPw: (e) => this.setState({ pw: e.target.value }),
+
+      pendingCount: pending.length,
+      slotStats: SLOTS.map(x => ({
+        label: x.label,
+        countLabel: x.count.toLocaleString('ko-KR') + '건',
+        pctLabel: x.pct + '%',
+        barStyle: { height: '100%', width: x.pct + '%', background: x.color },
+      })),
+      topEvents: TOP_EVENTS.map(x => ({ ...x, viewsLabel: x.views.toLocaleString('ko-KR') })),
+
+      company: s.company,
+      onCompany: (e) => this.setState({ company: e.target.value }),
+      inviteEmail: s.inviteEmail,
+      onInviteEmail: (e) => this.setState({ inviteEmail: e.target.value, inviteSent: false }),
+      scopeBasicStyle: scopeChipStyle(s.scope === 'BASIC'),
+      scopeMarketingStyle: scopeChipStyle(s.scope === 'MARKETING'),
+      setScopeBasic: () => this.setState({ scope: 'BASIC' }),
+      setScopeMarketing: () => this.setState({ scope: 'MARKETING' }),
+      sendInvite: () => this.setState({ inviteSent: true }),
+      inviteSent: s.inviteSent && s.inviteEmail.length > 0,
+
+      filter: s.filter,
+      fPendingStyle: filterStyle(s.filter === '승인대기'),
+      fApprovedStyle: filterStyle(s.filter === '승인'),
+      fRejectedStyle: filterStyle(s.filter === '반려'),
+      fAllStyle: filterStyle(s.filter === 'ALL'),
+      setFilterPending: () => this.setState({ filter: '승인대기' }),
+      setFilterApproved: () => this.setState({ filter: '승인' }),
+      setFilterRejected: () => this.setState({ filter: '반려' }),
+      setFilterAll: () => this.setState({ filter: 'ALL' }),
+      reviewRows: rows,
+      reviewEmpty: rows.length === 0,
+
+      detail: { ...d, priceLabel: '남 ' + d.priceM.toLocaleString('ko-KR') + ' / 여 ' + d.priceF.toLocaleString('ko-KR') + '원', badgeStyle: badge(d.status) },
+      check0: this.checkVal(0), check1: this.checkVal(1), check2: this.checkVal(2), check3: this.checkVal(3),
+      checkStatusMsg: allChecked ? '모든 항목 확인 완료 · 승인할 수 있습니다' : (4 - s.checks.filter(Boolean).length) + '개 항목이 미확인 상태입니다',
+      checkStatusStyle: { marginTop: '14px', fontSize: '12px', fontWeight: 600, color: allChecked ? '#14382A' : '#14382A' },
+
+      reason0: this.reasonVal(0), reason1: this.reasonVal(1), reason2: this.reasonVal(2), reason3: this.reasonVal(3),
+      rejectNote: s.rejectNote,
+      onRejectNote: (e) => this.setState({ rejectNote: e.target.value }),
+
+      approveBtnStyle: { flex: 2, textAlign: 'center', padding: '15px', borderRadius: '12px', fontSize: '14.5px', fontWeight: 700, cursor: allChecked ? 'pointer' : 'not-allowed', background: allChecked ? '#14382A' : '#EDE7D6', color: allChecked ? '#fff' : '#59503E' },
+      doApprove: () => allChecked && this.setState({ actionMsg: '승인 처리되었습니다. 사용자 화면에 노출됩니다.', actionKind: 'ok' }),
+      doReject: () => this.setState({ actionMsg: s.reason ? '반려 처리되었습니다. 사유: ' + s.reason : '반려 사유를 선택해주세요.', actionKind: s.reason ? 'warn' : 'warn' }),
+      actionMsg: s.actionMsg,
+      actionMsgStyle: { marginTop: '12px', borderRadius: '12px', padding: '14px', fontSize: '12.5px', fontWeight: 600, textAlign: 'center', background: s.actionKind === 'ok' ? '#FBFAF6' : '#FBFAF6', color: s.actionKind === 'ok' ? '#14382A' : '#14382A' },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

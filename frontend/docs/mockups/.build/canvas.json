@@ -1,0 +1,490 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "USER"
+    },
+    {
+      "id": "page-2",
+      "name": "ADMIN · PROVIDER"
+    },
+    {
+      "id": "page-3",
+      "name": "공통"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "OnboardingLogin.dc.html",
+      "title": "온보딩 — 로그인",
+      "page": "page-1",
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "OnboardingTerms.dc.html",
+      "title": "온보딩 — 약관 동의",
+      "page": "page-1",
+      "x": 550,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "OnboardingIntro.dc.html",
+      "title": "온보딩 — 인트로",
+      "page": "page-1",
+      "x": 1100,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "OnboardingProfile.dc.html",
+      "title": "온보딩 — 프로필 설정",
+      "page": "page-1",
+      "x": 1650,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "OnboardingDone.dc.html",
+      "title": "온보딩 — 완료",
+      "page": "page-1",
+      "x": 2200,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "UserV2Home.dc.html",
+      "title": "홈",
+      "page": "page-1",
+      "x": 2750,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "UserV2Explore.dc.html",
+      "title": "탐색",
+      "page": "page-1",
+      "x": 0,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "UserV2Saved.dc.html",
+      "title": "찜",
+      "page": "page-1",
+      "x": 550,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "UserV2My.dc.html",
+      "title": "마이",
+      "page": "page-1",
+      "x": 1100,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ActionsDetail.dc.html",
+      "title": "소개팅 상세",
+      "page": "page-1",
+      "x": 1650,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ActionsCompare.dc.html",
+      "title": "비교함",
+      "page": "page-1",
+      "x": 2200,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ActionsSaved.dc.html",
+      "title": "찜 목록",
+      "page": "page-1",
+      "x": 2750,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "MyNotis.dc.html",
+      "title": "알림함",
+      "page": "page-1",
+      "x": 0,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "MySettings.dc.html",
+      "title": "알림 설정",
+      "page": "page-1",
+      "x": 550,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "MyReviews.dc.html",
+      "title": "내 후기",
+      "page": "page-1",
+      "x": 1100,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "MyWrite.dc.html",
+      "title": "후기 작성",
+      "page": "page-1",
+      "x": 1650,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "MyMy.dc.html",
+      "title": "마이페이지",
+      "page": "page-1",
+      "x": 2200,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "SupportSearch.dc.html",
+      "title": "검색",
+      "page": "page-1",
+      "x": 2750,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "SupportLocation.dc.html",
+      "title": "위치 권한",
+      "page": "page-1",
+      "x": 0,
+      "y": 5910,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "SupportStates.dc.html",
+      "title": "빈 상태 · 에러",
+      "page": "page-1",
+      "x": 550,
+      "y": 5910,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "Main.dc.html",
+      "title": "주최사 소개 /providers/[id]",
+      "page": "page-1",
+      "x": 1100,
+      "y": 5910,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderReviews.dc.html",
+      "title": "주최사 후기 /providers/[id]/reviews",
+      "page": "page-1",
+      "x": 1650,
+      "y": 5910,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminLogin.dc.html",
+      "title": "ADMIN — 로그인",
+      "page": "page-2",
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminDash.dc.html",
+      "title": "ADMIN — 대시보드",
+      "page": "page-2",
+      "x": 550,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminInvite.dc.html",
+      "title": "ADMIN — 계정 발급",
+      "page": "page-2",
+      "x": 1100,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminList.dc.html",
+      "title": "ADMIN — 검수 목록",
+      "page": "page-2",
+      "x": 1650,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminDetail.dc.html",
+      "title": "ADMIN — 검수 상세",
+      "page": "page-2",
+      "x": 2200,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminManageProviders.dc.html",
+      "title": "ADMIN — 주최사",
+      "page": "page-2",
+      "x": 2750,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminManageMembers.dc.html",
+      "title": "ADMIN — 멤버",
+      "page": "page-2",
+      "x": 0,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminManageReviews.dc.html",
+      "title": "ADMIN — 후기",
+      "page": "page-2",
+      "x": 550,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminManageReport.dc.html",
+      "title": "ADMIN — 신고",
+      "page": "page-2",
+      "x": 1100,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "AdminManageLogs.dc.html",
+      "title": "ADMIN — 로그",
+      "page": "page-2",
+      "x": 1650,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderLogin.dc.html",
+      "title": "PROVIDER — 로그인",
+      "page": "page-2",
+      "x": 2200,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderSetpw.dc.html",
+      "title": "PROVIDER — 비밀번호 설정",
+      "page": "page-2",
+      "x": 2750,
+      "y": 1970,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderDash.dc.html",
+      "title": "PROVIDER — 대시보드",
+      "page": "page-2",
+      "x": 0,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderCreate.dc.html",
+      "title": "PROVIDER — 소개팅 등록",
+      "page": "page-2",
+      "x": 550,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderManageEdit.dc.html",
+      "title": "PROVIDER — 수정",
+      "page": "page-2",
+      "x": 1100,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderManageSeats.dc.html",
+      "title": "PROVIDER — 정원",
+      "page": "page-2",
+      "x": 1650,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderManageStats.dc.html",
+      "title": "PROVIDER — 통계",
+      "page": "page-2",
+      "x": 2200,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderManageContract.dc.html",
+      "title": "PROVIDER — 계약",
+      "page": "page-2",
+      "x": 2750,
+      "y": 3940,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "ProviderManageAccount.dc.html",
+      "title": "PROVIDER — 계정",
+      "page": "page-2",
+      "x": 0,
+      "y": 5910,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "CommonSplash.dc.html",
+      "title": "스플래시",
+      "page": "page-3",
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "CommonRedirect.dc.html",
+      "title": "리다이렉트",
+      "page": "page-3",
+      "x": 550,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "CommonError.dc.html",
+      "title": "에러",
+      "page": "page-3",
+      "x": 1100,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    },
+    {
+      "file": "CommonMaintenance.dc.html",
+      "title": "점검",
+      "page": "page-3",
+      "x": 1650,
+      "y": 0,
+      "w": 430,
+      "h": 1820,
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-user",
+      "page": "page-1",
+      "x": 0,
+      "y": -190,
+      "w": 1600,
+      "text": "화면 하나에 아트보드 하나다. 원본 .dc.html 은 파일 하나에 3~5화면을 담고 우하단 플로팅 탭바로 전환하는데, 그 탭바는 프로토타입 장치이지 제품 기능이 아니라(00-index 2번) 여기서는 떼어냈다.\n\n예외 — 홈·탐색·찜·마이의 하단 4탭은 제품의 실제 내비게이션이라 남겼다.\n\n⚠️ 사양과 어긋난 자리: 탐색 카드가 삭제된 축인 category(와인·전시·러닝…)를 사진 라벨로 아직 쓴다 · 탐색 정렬에 '평점 높은순'·'가격 높은순'이 없다 · 내 후기에 평점 요약 블록이 붙어 있다(10.4 에서 /my/reviews 는 요약 없음으로 갈렸다)."
+    },
+    {
+      "id": "note-admin",
+      "page": "page-2",
+      "x": 0,
+      "y": -190,
+      "w": 1600,
+      "text": "이 화면들의 기능정의는 아직 spec/ 에 없다 — 기능정의서가 USER 한정 문서라서다. 백엔드 기능정의서의 쓰기 경로(주최사 등록·검수·계정 발급·정원·계약)가 여기 다 들어 있다."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    input,select,textarea{font-family:'Pretendard',sans-serif}
+    input:focus,select:focus,textarea:focus{outline:2px solid #DDC497;outline-offset:-1px}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;box-shadow:0 0 0 1px #EDE7D6;background:rgba(255,255,255,0.4)">
+
+  
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+      <div style="width:100%;max-width:400px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:30px">
+          <div style="width:30px;height:30px;border-radius:10px;background:#F5EEDD;display:flex;align-items:center;justify-content:center">
+            <span style="width:8px;height:8px;border-radius:50%;background:#14382A"></span>
+          </div>
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#14382A">MeetMap</span>
+          <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#F5EEDD;color:#14382A">PROVIDER</span>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:28px 24px">
+          <h1 style="font-size:19px;font-weight:800;margin:0 0 6px">파트너 로그인</h1>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 24px">발급받은 계정으로 로그인하세요</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">이메일</label>
+          <input type="email" value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" placeholder="partner@company.com" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:16px">
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">비밀번호</label>
+          <input type="password" value="{{ loginPw }}" onChange="{{ onLoginPw }}" placeholder="비밀번호 입력" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:14px">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+            <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#59503E;cursor:pointer">
+              <input type="checkbox" style="width:15px;height:15px;accent-color:#14382A">
+              로그인 상태 유지
+            </label>
+            <span style="font-size:12.5px;color:#14382A;cursor:pointer">비밀번호 찾기</span>
+          </div>
+
+          <div onClick="{{ goDash }}" style="text-align:center;padding:14px;border-radius:12px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">로그인</div>
+
+          <div style="margin-top:18px;padding-top:18px;border-top:1px solid #FBFAF6;font-size:12px;color:#59503E;line-height:1.6">
+            계정은 MeetMap 관리자가 직접 발급합니다. 초대 메일을 받으셨다면
+            <span onClick="{{ goSetPw }}" style="color:#14382A;font-weight:600;cursor:pointer">최초 비밀번호 설정</span>을 먼저 진행하세요.
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSetPw }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+      <div style="width:100%;max-width:400px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:30px">
+          <div style="width:30px;height:30px;border-radius:10px;background:#F5EEDD;display:flex;align-items:center;justify-content:center">
+            <span style="width:8px;height:8px;border-radius:50%;background:#14382A"></span>
+          </div>
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#14382A">MeetMap</span>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:28px 24px">
+          <h1 style="font-size:19px;font-weight:800;margin:0 0 6px">최초 비밀번호 설정</h1>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 20px;line-height:1.6">계정 활성화를 위해 임시 비밀번호를 확인하고 새 비밀번호를 설정해주세요</p>
+
+          <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;margin-bottom:22px">
+            <div style="font-size:11.5px;color:#59503E;margin-bottom:4px">초대 계정</div>
+            <div style="font-size:13.5px;font-weight:700">partner@tablenine.co.kr</div>
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">임시 비밀번호</label>
+          <input type="password" placeholder="메일로 받은 임시 비밀번호" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:18px">
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">새 비밀번호</label>
+          <input type="password" value="{{ newPw }}" onChange="{{ onNewPw }}" placeholder="영문·숫자·특수문자 조합 8자 이상" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:10px">
+
+          <div style="display:flex;gap:6px;margin-bottom:18px">
+            <div style="{{ pwBar1 }}"></div>
+            <div style="{{ pwBar2 }}"></div>
+            <div style="{{ pwBar3 }}"></div>
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">새 비밀번호 확인</label>
+          <input type="password" value="{{ newPw2 }}" onChange="{{ onNewPw2 }}" placeholder="다시 한 번 입력" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:8px">
+          <div style="{{ pwMatchStyle }}">{{ pwMatchMsg }}</div>
+
+          <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;margin:18px 0 20px;font-size:11.5px;color:#59503E;line-height:1.7">
+            · 영문 대소문자, 숫자, 특수문자 중 3종류 이상 조합<br>
+            · 8자 이상 20자 이하<br>
+            · 이전에 사용한 비밀번호는 재사용할 수 없습니다
+          </div>
+
+          <div onClick="{{ goDash }}" style="text-align:center;padding:14px;border-radius:12px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">설정 완료하고 시작하기</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+    <header style="background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:10px;padding:0 18px">
+      <div style="width:26px;height:26px;border-radius:9px;background:#F5EEDD;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="width:7px;height:7px;border-radius:50%;background:#14382A"></span>
+      </div>
+      <span style="font-family:Georgia,serif;font-size:16px;font-weight:700">MeetMap</span>
+      <span style="font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;background:#F5EEDD;color:#14382A;flex-shrink:0">PROVIDER</span>
+      <div style="flex:1"></div>
+      <span style="font-size:11.5px;color:#59503E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">테이블나인</span>
+    </header>
+
+    <main style="padding:18px 18px 24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-size:19px;font-weight:800;margin:0 0 5px">대시보드</h1>
+          <p style="font-size:11.5px;color:#59503E;margin:0">8/9 기준 · 최근 30일</p>
+        </div>
+        <div onClick="{{ goCreate }}" style="padding:11px 16px;border-radius:12px;background:#14382A;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">＋ 소개팅 등록</div>
+      </div>
+
+      <section style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:16px">
+          <div style="font-size:12px;color:#59503E;margin-bottom:8px">승인 대기</div>
+          <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#14382A">3</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:16px">
+          <div style="font-size:12px;color:#59503E;margin-bottom:8px">승인 완료</div>
+          <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#14382A">18</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:16px">
+          <div style="font-size:12px;color:#59503E;margin-bottom:8px">반려</div>
+          <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#59503E">2</div>
+        </div>
+      </section>
+
+      <section style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">총 조회수</div>
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">12,480</div>
+          <div style="font-size:10.5px;color:#14382A;font-weight:600;margin-top:4px">+8.2%</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">찜 수</div>
+          <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">1,932</div>
+          <div style="font-size:10.5px;color:#14382A;font-weight:600;margin-top:4px">+14.6%</div>
+        </div>
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px;grid-column:span 2">
+          <div style="font-size:11px;color:#59503E;margin-bottom:7px">신청 URL 이동</div>
+          <div style="display:flex;align-items:baseline;gap:9px">
+            <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">864</div>
+            <div style="font-size:11px;color:#59503E;font-weight:600">전환율 6.9%</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 style="font-size:15px;font-weight:700;margin:0 0 12px">최근 등록 소개팅</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px">
+          <div onClick="{{ setDashAll }}" style="{{ dashAllStyle }}">전체</div>
+          <div onClick="{{ setDashPending }}" style="{{ dashPendingStyle }}">승인대기</div>
+          <div onClick="{{ setDashApproved }}" style="{{ dashApprovedStyle }}">승인</div>
+          <div onClick="{{ setDashRejected }}" style="{{ dashRejectedStyle }}">반려</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ dashRows }}" as="row" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:14px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+                <div style="font-size:13.5px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.title }}</div>
+                <span style="{{ row.badgeStyle }}">{{ row.status }}</span>
+              </div>
+              <div style="font-size:11.5px;color:#59503E;margin-bottom:9px">{{ row.date }} · {{ row.priceLabel }}</div>
+              <div style="display:flex;gap:14px;font-size:11.5px;color:#59503E">
+                <span>조회 {{ row.views }}</span><span>찜 {{ row.likes }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ dashEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border:1px solid #EDE7D6;border-radius:14px;padding:50px 20px;text-align:center;font-size:13px;color:#59503E">해당 상태의 소개팅이 없습니다</div>
+          </sc-if>
+        </div>
+      </section>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+    <header style="background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;position:sticky;top:0;z-index:20">
+      <div style="padding:0 18px;height:56px;display:flex;align-items:center;gap:12px">
+        <span onClick="{{ goDash }}" style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+        <span style="font-size:15px;font-weight:700">소개팅 등록</span>
+        <div style="flex:1"></div>
+        <span style="font-size:12px;color:#59503E">{{ stepLabel }}</span>
+      </div>
+      <div style="height:3px;background:#EDE7D6">
+        <div style="{{ progressStyle }}"></div>
+      </div>
+    </header>
+
+    <main style="padding:18px 18px 24px">
+      <div style="display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap">
+        <div onClick="{{ setStep1 }}" style="{{ step1Style }}">1 기본 정보</div>
+        <div onClick="{{ setStep2 }}" style="{{ step2Style }}">2 일정·가격</div>
+        <div onClick="{{ setStep3 }}" style="{{ step3Style }}">3 참가 조건</div>
+        <div onClick="{{ setStep4 }}" style="{{ step4Style }}">4 신청 URL</div>
+      </div>
+
+      <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:24px">
+          <h2 style="font-size:17px;font-weight:800;margin:0 0 4px">기본 정보</h2>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 24px">사용자에게 노출되는 소개팅 대표 정보입니다</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">소개팅명 <span style="color:#14382A">*</span></label>
+          <input type="text" value="{{ title }}" onChange="{{ onTitle }}" placeholder="예) 성수 와인 로테이션 소개팅" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:6px">
+          <div style="font-size:11.5px;color:#59503E;margin-bottom:20px">{{ titleLen }}/40자</div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">대표 이미지 <span style="color:#14382A">*</span></label>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:12px">
+            <div style="aspect-ratio:4/3;border-radius:12px;background:#F5EEDD;position:relative">
+              <span style="position:absolute;bottom:7px;left:8px;font-size:10px;font-weight:700;color:#17170F;background:rgba(255,255,255,0.85);padding:3px 7px;border-radius:6px">대표</span>
+            </div>
+            <div style="aspect-ratio:4/3;border-radius:12px;background:#E6E3D2"></div>
+            <div style="aspect-ratio:4/3;border-radius:12px;border:1.5px dashed #F5EEDD;background:#FBFAF6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer">
+              <span style="font-size:19px;color:#14382A;line-height:1">＋</span>
+              <span style="font-size:11.5px;color:#59503E;font-weight:600">이미지 추가</span>
+            </div>
+          </div>
+          <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;font-size:11.5px;color:#14382A;line-height:1.7;margin-bottom:22px">
+            등록 이미지는 MeetMap과 체결한 계약 범위 내에서만 사용됩니다. 계약 범위를 벗어난 저작물·초상권 침해 소지가 있는 이미지는 등록할 수 없으며, 이에 대한 책임은 등록 주최사에 있습니다.
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">소개팅 소개</label>
+          <textarea value="{{ desc }}" onChange="{{ onDesc }}" placeholder="분위기, 진행 방식, 준비물 등을 적어주세요" style="width:100%;box-sizing:border-box;min-height:110px;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;resize:vertical;line-height:1.6"></textarea>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:24px">
+          <h2 style="font-size:17px;font-weight:800;margin:0 0 4px">일정 · 가격</h2>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 24px">시간대는 사용자 탐색 필터에 그대로 반영됩니다</p>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px">
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">소개팅 일자 <span style="color:#14382A">*</span></label>
+              <input type="date" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            </div>
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">시작 시각 <span style="color:#14382A">*</span></label>
+              <input type="time" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            </div>
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">시간대 구분 <span style="color:#14382A">*</span></label>
+          <div style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap">
+            <div onClick="{{ setSlotMorning }}" style="{{ slotMorningStyle }}">오전 (07–12시)</div>
+            <div onClick="{{ setSlotAfternoon }}" style="{{ slotAfternoonStyle }}">오후 (12–17시)</div>
+            <div onClick="{{ setSlotDinner }}" style="{{ slotDinnerStyle }}">디너 (17–22시)</div>
+            <div onClick="{{ setSlotLate }}" style="{{ slotLateStyle }}">심야 (22시 이후)</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px">
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">남성 참가비 <span style="color:#14382A">*</span></label>
+              <input type="number" value="{{ priceM }}" onChange="{{ onPriceM }}" placeholder="42000" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+              <div style="font-size:11.5px;color:#59503E;margin-top:6px">{{ priceMLabel }}</div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">여성 참가비 <span style="color:#14382A">*</span></label>
+              <input type="number" value="{{ priceF }}" onChange="{{ onPriceF }}" placeholder="30000" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+              <div style="font-size:11.5px;color:#59503E;margin-top:6px">{{ priceFLabel }}</div>
+            </div>
+          </div>
+
+          <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;font-size:11.5px;color:#14382A;line-height:1.7">
+            신청은 선착순이 아니라 주최사 심사로 선발되며, 별도 마감일 없이 모집을 마감할 때까지 지원을 받습니다.
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:24px">
+          <h2 style="font-size:17px;font-weight:800;margin:0 0 4px">참가 조건</h2>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 24px">사용자 필터 조건과 매칭되는 항목입니다</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">참가 가능 출생연도 <span style="color:#14382A">*</span></label>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <input type="number" value="{{ minYear }}" onChange="{{ onMinYear }}" style="flex:1;min-width:0;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            <span style="font-size:13px;color:#59503E">~</span>
+            <input type="number" value="{{ maxYear }}" onChange="{{ onMaxYear }}" style="flex:1;min-width:0;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            <span style="font-size:13px;color:#59503E;white-space:nowrap">년생</span>
+          </div>
+          <div style="font-size:11.5px;color:#59503E;margin-bottom:22px">{{ birthLabel }}</div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">성별 조건 <span style="color:#14382A">*</span></label>
+          <div style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap">
+            <div onClick="{{ setGenderAny }}" style="{{ genderAnyStyle }}">성별 무관</div>
+            <div onClick="{{ setGenderBalanced }}" style="{{ genderBalancedStyle }}">남녀 균형 모집</div>
+            <div onClick="{{ setGenderSingle }}" style="{{ genderSingleStyle }}">단일 성별</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px">
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">남성 정원</label>
+              <input type="number" value="{{ capM }}" onChange="{{ onCapM }}" placeholder="7" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            </div>
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">여성 정원</label>
+              <input type="number" value="{{ capF }}" onChange="{{ onCapF }}" placeholder="7" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6">
+            </div>
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">장소 <span style="color:#14382A">*</span></label>
+          <input type="text" placeholder="서울 성동구 성수이로 00" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:10px">
+          <input type="text" placeholder="상세 주소 (건물명, 층수)" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:12px">
+          <div style="height:130px;border-radius:12px;background:#F3F1E6;position:relative;overflow:hidden">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 48px), repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0 1px, transparent 1px 48px)"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50% 50% 50% 0;background:#14382A;border:2px solid #fff;rotate:-45deg"></div>
+            <div style="position:absolute;bottom:10px;left:12px;font-family:monospace;font-size:10.5px;color:#59503E;background:rgba(255,255,255,0.9);padding:4px 8px;border-radius:7px">주소 입력 시 지도에 자동 표시</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:24px;margin-bottom:14px">
+          <h2 style="font-size:17px;font-weight:800;margin:0 0 4px">신청 URL</h2>
+          <p style="font-size:12.5px;color:#59503E;margin:0 0 20px">사용자가 신청 버튼을 누르면 이동할 주소입니다</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:7px">신청 페이지 URL <span style="color:#14382A">*</span></label>
+          <input type="url" value="{{ applyUrl }}" onChange="{{ onApplyUrl }}" placeholder="https://" style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #EDE7D6;border-radius:12px;font-size:14px;background:#FBFAF6;margin-bottom:10px">
+          <div style="font-size:11.5px;color:#59503E;line-height:1.7">MeetMap은 결제를 대행하지 않으며, 신청·결제는 위 URL의 주최사 페이지에서 진행됩니다. URL 이동 수는 대시보드 통계에 집계됩니다.</div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #EDE7D6;border-radius:16px;padding:24px">
+          <h2 style="font-size:17px;font-weight:800;margin:0 0 16px">최종 확인</h2>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #FBFAF6;font-size:13px">
+              <span style="color:#59503E">소개팅명</span><span style="font-weight:600;text-align:right">{{ summaryTitle }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #FBFAF6;font-size:13px">
+              <span style="color:#59503E">시간대</span><span style="font-weight:600;text-align:right">{{ summarySlot }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #FBFAF6;font-size:13px">
+              <span style="color:#59503E">참가비</span><span style="font-weight:600;text-align:right">{{ summaryPrice }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #FBFAF6;font-size:13px">
+              <span style="color:#59503E">참가 조건</span><span style="font-weight:600;text-align:right">{{ summaryCondition }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;font-size:13px">
+              <span style="color:#59503E">신청 URL</span><span style="font-weight:600;text-align:right;word-break:break-all">{{ summaryUrl }}</span>
+            </div>
+          </div>
+          <div style="background:#F5EEDD;border-radius:12px;padding:13px 14px;margin-top:18px;font-size:11.5px;color:#14382A;line-height:1.7">
+            등록 요청 후 MeetMap 관리자 검수를 거쳐 승인되면 사용자 화면에 노출됩니다. 검수는 영업일 기준 1~2일 소요됩니다.
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <div onClick="{{ prevStep }}" style="{{ prevBtnStyle }}">이전</div>
+        <div onClick="{{ nextStep }}" style="flex:2;text-align:center;padding:14px;border-radius:12px;background:#14382A;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer">{{ nextLabel }}</div>
+      </div>
+    </main>
+  </sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SLOT_LABEL = { MORNING: '오전', AFTERNOON: '오후', DINNER: '디너', LATE: '심야' };
+const GENDER_LABEL = { ANY: '성별 무관', BALANCED: '남녀 균형 모집', SINGLE: '단일 성별' };
+const STATUS_BADGE = {
+  '승인대기': { background: '#AD6A2E', color: '#FFFFFF' },
+  '승인': { background: '#4E7B54', color: '#FFFFFF' },
+  '반려': { background: '#C9C2AE', color: '#FFFFFF' },
+};
+
+const ROWS = [
+  { id: 1, title: '홍대 하이볼 나이트 소개팅', date: '8/9(토) 20:00', priceM: 48000, priceF: 35000, views: 3120, likes: 486, status: '승인' },
+  { id: 2, title: '성수 심야 재즈바 소개팅', date: '8/9(토) 23:00', priceM: 38000, priceF: 28000, views: 2480, likes: 402, status: '승인' },
+  { id: 3, title: '연남 브런치 피크닉 소개팅', date: '8/10(일) 11:30', priceM: 28000, priceF: 20000, views: 1840, likes: 265, status: '승인대기' },
+  { id: 4, title: '강남 보드게임 소개팅 2기', date: '8/12(화) 19:30', priceM: 25000, priceF: 18000, views: 960, likes: 118, status: '승인대기' },
+  { id: 5, title: '이태원 루프탑 와인 소개팅', date: '8/14(목) 19:00', priceM: 65000, priceF: 48000, views: 720, likes: 94, status: '반려' },
+  { id: 6, title: '잠실 러닝+맥주 소개팅', date: '8/11(월) 18:30', priceM: 25000, priceF: 18000, views: 1360, likes: 173, status: '승인' },
+];
+
+function chipStyle(active) {
+  return { padding: '9px 15px', borderRadius: '12px', fontSize: '13px', fontWeight: active ? 700 : 500, background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#14382A', border: active ? '1px solid #F5EEDD' : '1px solid #EDE7D6', cursor: 'pointer', whiteSpace: 'nowrap' };
+}
+function tabStyle(active) {
+  return { padding: '8px 13px', borderRadius: '10px', fontSize: '12px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#14382A' : 'transparent', color: active ? '#fff' : '#59503E' };
+}
+function filterStyle(active) {
+  return { padding: '7px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#F5EEDD' : '#fff', color: active ? '#14382A' : '#59503E', border: '1px solid #EDE7D6' };
+}
+function stepChipStyle(active, done) {
+  return { padding: '9px 14px', borderRadius: '12px', fontSize: '12.5px', fontWeight: active ? 700 : 500, cursor: 'pointer', whiteSpace: 'nowrap', background: active ? '#14382A' : done ? '#F5EEDD' : '#fff', color: active ? '#fff' : done ? '#14382A' : '#59503E', border: active ? '1px solid #14382A' : '1px solid #EDE7D6' };
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'login',
+    loginEmail: '', loginPw: '',
+    newPw: '', newPw2: '',
+    dashFilter: 'ALL',
+    step: 1,
+    title: '성수 와인 로테이션 소개팅',
+    desc: '',
+    slot: 'DINNER',
+    priceM: 42000, priceF: 30000,
+    capM: 7, capF: 7,
+    minYear: 1990, maxYear: 1996,
+    gender: 'BALANCED',
+    applyUrl: 'https://tablenine.co.kr/party/seongsu-wine',
+  };
+
+  renderVals() {
+    const s = this.state;
+    const pwLen = s.newPw.length;
+    const strength = pwLen === 0 ? 0 : pwLen < 8 ? 1 : pwLen < 12 ? 2 : 3;
+    const bar = (on, color) => ({ flex: 1, height: '4px', borderRadius: '2px', background: on ? color : '#EDE7D6' });
+    const matched = s.newPw2.length > 0 && s.newPw === s.newPw2;
+    const mismatched = s.newPw2.length > 0 && s.newPw !== s.newPw2;
+
+    const rows = ROWS.filter(r => s.dashFilter === 'ALL' || r.status === s.dashFilter).map(r => ({
+      ...r,
+      priceLabel: '남 ' + r.priceM.toLocaleString('ko-KR') + ' / 여 ' + r.priceF.toLocaleString('ko-KR') + '원',
+      views: r.views.toLocaleString('ko-KR'),
+      badgeStyle: { ...STATUS_BADGE[r.status], fontSize: '11px', fontWeight: 700, padding: '4px 9px', borderRadius: '7px', whiteSpace: 'nowrap' },
+    }));
+
+    const won = (v) => (Number(v) > 0 ? Number(v).toLocaleString('ko-KR') + '원' : '미입력');
+    const yr = (v) => String(v).slice(2);
+
+    return {
+      isLogin: s.screen === 'login', isSetPw: s.screen === 'setpw',
+      isDash: s.screen === 'dash', isCreate: s.screen === 'create',
+      goLogin: () => this.setState({ screen: 'login' }),
+      goSetPw: () => this.setState({ screen: 'setpw' }),
+      goDash: () => this.setState({ screen: 'dash' }),
+      goCreate: () => this.setState({ screen: 'create', step: 1 }),
+      tabLoginStyle: tabStyle(s.screen === 'login'),
+      tabSetPwStyle: tabStyle(s.screen === 'setpw'),
+      tabDashStyle: tabStyle(s.screen === 'dash'),
+      tabCreateStyle: tabStyle(s.screen === 'create'),
+
+      loginEmail: s.loginEmail, loginPw: s.loginPw,
+      onLoginEmail: (e) => this.setState({ loginEmail: e.target.value }),
+      onLoginPw: (e) => this.setState({ loginPw: e.target.value }),
+
+      newPw: s.newPw, newPw2: s.newPw2,
+      onNewPw: (e) => this.setState({ newPw: e.target.value }),
+      onNewPw2: (e) => this.setState({ newPw2: e.target.value }),
+      pwBar1: bar(strength >= 1, '#DDC497'),
+      pwBar2: bar(strength >= 2, '#DDC497'),
+      pwBar3: bar(strength >= 3, '#14382A'),
+      pwMatchMsg: matched ? '비밀번호가 일치합니다' : mismatched ? '비밀번호가 일치하지 않습니다' : '',
+      pwMatchStyle: { fontSize: '11.5px', fontWeight: 600, minHeight: '16px', color: matched ? '#14382A' : '#14382A' },
+
+      dashRows: rows,
+      dashEmpty: rows.length === 0,
+      dashAllStyle: filterStyle(s.dashFilter === 'ALL'),
+      dashPendingStyle: filterStyle(s.dashFilter === '승인대기'),
+      dashApprovedStyle: filterStyle(s.dashFilter === '승인'),
+      dashRejectedStyle: filterStyle(s.dashFilter === '반려'),
+      setDashAll: () => this.setState({ dashFilter: 'ALL' }),
+      setDashPending: () => this.setState({ dashFilter: '승인대기' }),
+      setDashApproved: () => this.setState({ dashFilter: '승인' }),
+      setDashRejected: () => this.setState({ dashFilter: '반려' }),
+
+      stepLabel: s.step + ' / 4 단계',
+      progressStyle: { height: '100%', width: (s.step / 4 * 100) + '%', background: '#14382A' },
+      isStep1: s.step === 1, isStep2: s.step === 2, isStep3: s.step === 3, isStep4: s.step === 4,
+      step1Style: stepChipStyle(s.step === 1, s.step > 1),
+      step2Style: stepChipStyle(s.step === 2, s.step > 2),
+      step3Style: stepChipStyle(s.step === 3, s.step > 3),
+      step4Style: stepChipStyle(s.step === 4, false),
+      setStep1: () => this.setState({ step: 1 }),
+      setStep2: () => this.setState({ step: 2 }),
+      setStep3: () => this.setState({ step: 3 }),
+      setStep4: () => this.setState({ step: 4 }),
+      prevStep: () => (s.step === 1 ? this.setState({ screen: 'dash' }) : this.setState({ step: s.step - 1 })),
+      nextStep: () => (s.step === 4 ? this.setState({ screen: 'dash' }) : this.setState({ step: s.step + 1 })),
+      nextLabel: s.step === 4 ? '등록 요청하기' : '다음 단계',
+      prevBtnStyle: { flex: 1, textAlign: 'center', padding: '14px', borderRadius: '12px', border: '1px solid #EDE7D6', background: '#fff', fontSize: '14.5px', fontWeight: 600, cursor: 'pointer' },
+
+      title: s.title,
+      titleLen: s.title.length,
+      onTitle: (e) => this.setState({ title: e.target.value }),
+      desc: s.desc,
+      onDesc: (e) => this.setState({ desc: e.target.value }),
+      slotMorningStyle: chipStyle(s.slot === 'MORNING'),
+      slotAfternoonStyle: chipStyle(s.slot === 'AFTERNOON'),
+      slotDinnerStyle: chipStyle(s.slot === 'DINNER'),
+      slotLateStyle: chipStyle(s.slot === 'LATE'),
+      setSlotMorning: () => this.setState({ slot: 'MORNING' }),
+      setSlotAfternoon: () => this.setState({ slot: 'AFTERNOON' }),
+      setSlotDinner: () => this.setState({ slot: 'DINNER' }),
+      setSlotLate: () => this.setState({ slot: 'LATE' }),
+
+      priceM: s.priceM, priceF: s.priceF,
+      onPriceM: (e) => this.setState({ priceM: e.target.value }),
+      onPriceF: (e) => this.setState({ priceF: e.target.value }),
+      priceMLabel: won(s.priceM),
+      priceFLabel: won(s.priceF),
+
+      capM: s.capM, capF: s.capF,
+      onCapM: (e) => this.setState({ capM: e.target.value }),
+      onCapF: (e) => this.setState({ capF: e.target.value }),
+
+      minYear: s.minYear, maxYear: s.maxYear,
+      onMinYear: (e) => this.setState({ minYear: e.target.value }),
+      onMaxYear: (e) => this.setState({ maxYear: e.target.value }),
+      birthLabel: yr(s.minYear) + '~' + yr(s.maxYear) + '년생 참가 가능',
+      genderAnyStyle: chipStyle(s.gender === 'ANY'),
+      genderBalancedStyle: chipStyle(s.gender === 'BALANCED'),
+      genderSingleStyle: chipStyle(s.gender === 'SINGLE'),
+      setGenderAny: () => this.setState({ gender: 'ANY' }),
+      setGenderBalanced: () => this.setState({ gender: 'BALANCED' }),
+      setGenderSingle: () => this.setState({ gender: 'SINGLE' }),
+
+      applyUrl: s.applyUrl,
+      onApplyUrl: (e) => this.setState({ applyUrl: e.target.value }),
+      summaryTitle: s.title || '미입력',
+      summarySlot: SLOT_LABEL[s.slot],
+      summaryPrice: '남 ' + won(s.priceM) + ' / 여 ' + won(s.priceF),
+      summaryCondition: yr(s.minYear) + '~' + yr(s.maxYear) + '년생 · 남 ' + s.capM + ' · 여 ' + s.capF,
+      summaryUrl: s.applyUrl || '미입력',
+    };
+  }
+}
+
+</script>
+</body>
+</html>
