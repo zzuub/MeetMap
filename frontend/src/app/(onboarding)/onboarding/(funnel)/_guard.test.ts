@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { NO_SESSION_ENTRIES } from "./_guard";
@@ -38,8 +38,26 @@ const MIN_STEPS = 5;
 /** 페이지 다섯 + 액션 넷. 진입점을 못 찾으면 단언이 공허해진다 */
 const MIN_ENTRIES = 9;
 
+/**
+ * **서버 진입점이 아닌 export** — Next 라우트 세그먼트 설정. 값이지 함수가 아니다.
+ *
+ * 이 목록이 있는 이유는 아래 `스캔이 못 본 export 가 없다` 단언 때문이다. 그 단언은
+ * **분류되지 않은 export 를 전부 실패로 만든다** — 그래야 스캐너가 **못 보는 모양**을
+ * 조용히 통과시키지 않는다 (4.57 의 교훈: 휴리스틱은 자기가 못 보는 것을 신고해야 한다).
+ */
+const SEGMENT_CONFIG = new Set([
+  "dynamic",
+  "dynamicParams",
+  "revalidate",
+  "fetchCache",
+  "runtime",
+  "preferredRegion",
+  "maxDuration",
+  "metadata",
+]);
+
 describe("퍼널 세션 가드 (4.49 · 4.51 · 4.57)", () => {
-  const entries = funnelEntries();
+  const { entries, unclassified } = scanFunnel();
 
   it("단계와 진입점을 실제로 찾는다 — 못 찾으면 통과시키지 않는다", () => {
     // `assert-dynamic-routes.mjs` 와 같은 자기 점검이다. 스캔이 0건을 돌려주면
@@ -50,11 +68,27 @@ describe("퍼널 세션 가드 (4.49 · 4.51 · 4.57)", () => {
     expect(entries.length).toBeGreaterThanOrEqual(MIN_ENTRIES);
   });
 
+  /**
+   * ⚠️ **하한선(`MIN_ENTRIES`)만으로는 부족하다.** 그건 "있던 것이 사라지는" 변이는
+   * 잡지만 **"새로 생긴 것이 안 보이는"** 변이는 못 잡는다 — 화살표 액션을 하나 더
+   * 붙이면 개수가 줄지 않으므로 하한선을 그대로 통과한다 (PR #36 3차 리뷰).
+   *
+   * 그래서 스캐너가 **분류하지 못한 export 를 신고**하게 한다. 이쪽이 방향이 맞다 —
+   * 기본이 `세었다` 가 아니라 `못 세면 실패` 다 (`NO_SESSION_ENTRIES` 의 판정 방향과 같다).
+   */
+  it("스캔이 못 본 export 가 없다 — 휴리스틱이 자기 한계를 신고한다", () => {
+    expect(
+      unclassified,
+      "서버 진입점 파일에 스캐너가 분류하지 못한 export 가 있다. " +
+        "진입점이면 스캔 규칙을 넓히고, 아니면 `SEGMENT_CONFIG` 에 더한다",
+    ).toEqual([]);
+  });
+
   it("레이아웃이 가드를 부른다 — 진입 경로의 기본선이다", () => {
     expect(sourceOf(join(FUNNEL_DIR, "layout.tsx"))).toContain(GUARD_CALL);
   });
 
-  it.each(funnelEntries().map((entry) => [entry.key, entry] as const))(
+  it.each(scanFunnel().entries.map((entry) => [entry.key, entry] as const))(
     "`%s` 는 가드를 부르거나 사유가 적혀 있다",
     (key, entry) => {
       const calls = entry.source.includes(GUARD_CALL);
@@ -88,63 +122,101 @@ describe("퍼널 세션 가드 (4.49 · 4.51 · 4.57)", () => {
 /* ── 폴더 훑기 ─────────────────────────────────────────── */
 
 interface FunnelEntry {
-  /** `terms/page` · `location/savePreferredAreasAction` */
+  /** `terms/page` · `location/savePreferredAreasAction` · `location/generateMetadata` */
   key: string;
   /** 라우트 세그먼트 이름 */
   step: string;
-  /** 그 진입점 **하나의** 소스. 액션은 자기 함수 블록만이다 */
+  /** 그 진입점 **하나의** 소스. 파일 전체가 아니라 자기 export 블록이다 */
   source: string;
+}
+
+interface Scan {
+  entries: FunnelEntry[];
+  /** 분류하지 못한 export. **하나라도 있으면 스캔을 믿지 않는다** */
+  unclassified: string[];
 }
 
 /**
  * 레이아웃 재실행 없이 서버에 닿는 자리를 센다 (4.49).
  *
- * 둘뿐이다 — **페이지 렌더**와 **Server Action 하나하나**. `_components/*` 는
- * 클라이언트라 세지 않는다(가드를 부를 수도 없다).
+ * 둘뿐이다 — **페이지 파일의 export** 와 **Server Action 하나하나**. `_components/*`
+ * 는 클라이언트라 아예 훑지 않는다(가드를 부를 수도 없다).
+ *
+ * ⚠️ **페이지도 액션과 같은 단위로 자른다** (PR #36 3차 리뷰). 처음엔 `page.tsx`
+ * **파일 전체**를 한 진입점의 소스로 썼는데, `generateMetadata` 는 새 파일이 아니라
+ * **기존 `page.tsx` 안에 두 번째 export 로** 붙는 것이 Next 관례다. 그러면 default
+ * export 가 부르는 가드 덕에 가드 없는 `generateMetadata` 가 조용히 통과한다 —
+ * 이번 판에서 폴더→진입점으로 좁힌 것과 **같은 단위 실수가 한 단계 안쪽에** 남아
+ * 있었다.
  *
  * 라우트 그룹(`(...)`)은 URL 을 만들지 않으므로 건너뛴다.
  */
-function funnelEntries(): FunnelEntry[] {
-  return readdirSync(FUNNEL_DIR, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith("("))
-    .flatMap((dirent) => entriesUnder(dirent.name, join(FUNNEL_DIR, dirent.name)));
+function scanFunnel(): Scan {
+  const steps = readdirSync(FUNNEL_DIR, { withFileTypes: true }).filter(
+    (dirent) => dirent.isDirectory() && !dirent.name.startsWith("("),
+  );
+
+  const scans = steps.flatMap((dirent) =>
+    filesUnder(join(FUNNEL_DIR, dirent.name)).flatMap((path) =>
+      scanFile(dirent.name, path),
+    ),
+  );
+
+  return {
+    entries: scans.flatMap((scan) => scan.entries),
+    unclassified: scans.flatMap((scan) => scan.unclassified),
+  };
 }
 
-function entriesUnder(step: string, dir: string): FunnelEntry[] {
+function filesUnder(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((dirent) => {
     const path = join(dir, dirent.name);
-    if (dirent.isDirectory()) return entriesUnder(step, path);
-
-    if (dirent.name === "page.tsx") {
-      return [{ key: `${step}/page`, step, source: sourceOf(path) }];
-    }
-
-    const source = sourceOf(path);
-    if (!/\.tsx?$/.test(dirent.name) || !source.includes("use server")) return [];
-
-    return serverActions(source).map(({ name, body }) => ({
-      key: `${step}/${name}`,
-      step,
-      source: body,
-    }));
+    if (dirent.isDirectory()) return filesUnder(path);
+    return /\.tsx?$/.test(dirent.name) ? [path] : [];
   });
 }
 
-/**
- * `"use server"` 파일의 export 된 async 함수를 이름 + **자기 블록**으로 자른다.
- *
- * 블록으로 자르는 것이 이 테스트의 요점이다 — 파일 전체를 보면 한 파일 안의
- * 액션 둘 중 하나만 가드를 불러도 둘 다 통과한다 (`location/_actions.ts` 가 실제로
- * 그 모양이다). 다음 `export` 직전까지를 그 함수의 몸으로 본다.
- */
-function serverActions(source: string): { name: string; body: string }[] {
-  const marker = /export\s+async\s+function\s+(\w+)/g;
-  const found = [...source.matchAll(marker)];
+/** 서버 진입점을 담을 수 있는 파일만 훑는다 — 페이지와 `"use server"` 파일 */
+function scanFile(step: string, path: string): Scan[] {
+  const isPage = path.endsWith(`${sep}page.tsx`);
+  const source = sourceOf(path);
 
-  return found.map((match, index) => ({
-    name: match[1],
-    body: source.slice(match.index, found[index + 1]?.index ?? source.length),
-  }));
+  if (!isPage && !source.includes("use server")) return [];
+  return [exportedEntries(step, source, isPage)];
+}
+
+/**
+ * 파일의 top-level export 를 **하나씩** 분류하고 자기 블록으로 자른다.
+ *
+ * 분류하지 못한 export 를 `unclassified` 로 돌려주는 것이 핵심이다 — 스캐너가
+ * **못 보는 모양**(화살표 액션 `export const x = async () => {}` · re-export 등)을
+ * 만나면 조용히 넘기지 않고 신고한다. 휴리스틱이 자기 한계를 스스로 드러내야
+ * "통과했다"가 뜻을 갖는다 (4.57).
+ */
+function exportedEntries(step: string, source: string, isPage: boolean): Scan {
+  const marks = [...source.matchAll(/^export\s.*$/gm)];
+  const entries: FunnelEntry[] = [];
+  const unclassified: string[] = [];
+
+  marks.forEach((mark, index) => {
+    const body = source.slice(mark.index, marks[index + 1]?.index ?? source.length);
+    const line = mark[0];
+
+    const fn = /^export\s+(?:default\s+)?(?:async\s+)?function\s+(\w+)/.exec(line);
+    if (fn) {
+      const name = line.includes("export default") && isPage ? "page" : fn[1];
+      entries.push({ key: `${step}/${name}`, step, source: body });
+      return;
+    }
+
+    // 라우트 세그먼트 설정은 값이라 진입점이 아니다
+    const value = /^export\s+(?:const|let|var)\s+(\w+)/.exec(line);
+    if (value && SEGMENT_CONFIG.has(value[1])) return;
+
+    unclassified.push(`${step}: ${line.trim()}`);
+  });
+
+  return { entries, unclassified };
 }
 
 /**
