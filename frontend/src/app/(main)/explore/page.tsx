@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
 import {
@@ -7,6 +6,8 @@ import {
   parseExploreParams,
   type RawSearchParams,
 } from "@/features/event-filter";
+import { loadOrError } from "@/shared/api";
+import { ActionLink, ApiErrorScreen } from "@/shared/ui";
 import { ExploreBoard } from "@/widgets/explore-board";
 import { PhasePlaceholder } from "../../_components/PhasePlaceholder";
 
@@ -38,23 +39,37 @@ export default async function ExplorePage({
         phase="Phase 3 · P3-1"
         spec="6.6"
         action={
-          <Link
-            href={exploreHref({ ...params, view: "list" })}
-            replace
-            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-chip border border-border bg-surface px-4 text-[14px] font-semibold text-text"
-          >
+          <ActionLink href={exploreHref({ ...params, view: "list" })} replace>
             리스트로 보기
-          </Link>
+          </ActionLink>
         }
       />
     );
   }
 
-  // 시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 목록과 함께 받는다
-  const [page, facets] = await Promise.all([
-    eventApi.getList({ ...params.query, limit: PAGE_SIZE }),
-    exploreFacets(params.query),
-  ]);
+  /*
+    시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 목록과 함께 받는다.
+
+    **둘을 한 덩어리로 잡는다.** 목록만 오고 패싯이 죽으면 컨트롤이 있는 값을 감추고,
+    반대면 결과 없이 컨트롤만 남는다 — 어느 쪽도 화면으로 성립하지 않는다. 부분
+    성공을 그리느니 코드가 붙은 에러 카드 하나가 낫다 (11.2 / `decisions.md` 4.40).
+  */
+  const loaded = await loadOrError(() =>
+    Promise.all([
+      eventApi.getList({ ...params.query, limit: PAGE_SIZE }),
+      exploreFacets(params.query),
+    ]),
+  );
+
+  if (!loaded.ok) {
+    return (
+      <div className="px-5 py-16">
+        <ApiErrorScreen error={loaded.error} resource="collection" />
+      </div>
+    );
+  }
+
+  const [page, facets] = loaded.data;
 
   // viewer 는 프로필에서 온다. 목 세션에 출생연도·성별이 없어 P2-4 까지 null 이다
   return (

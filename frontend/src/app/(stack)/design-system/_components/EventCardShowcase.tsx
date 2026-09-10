@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   EventCard,
+  EventCardSkeleton,
   type EventCardVariant,
   type EventSummary,
 } from "@/entities/event";
@@ -10,7 +11,7 @@ import { IconButton, PrimaryButton, SegmentedControl, useToast } from "@/shared/
 import { BoundarySection } from "./BoundarySection";
 import { PieceSection } from "./PieceSection";
 import { VariantSection } from "./VariantSection";
-import { VIEWERS, type CardShowcaseContext } from "./cardShowcase";
+import { ALL_VARIANTS, VIEWERS, type CardShowcaseContext } from "./cardShowcase";
 import { Section } from "./layout";
 
 /**
@@ -97,6 +98,20 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
         note="P1-2 — 배지 · 정원 · 가격. 카드 밖에서도 쓸 수 있게 나눠 둔 단위다"
       >
         <PieceSection />
+      </Section>
+
+      <Section
+        title="카드 스켈레톤 — variant 5종"
+        note="11.3 — 진짜 카드와 같은 높이여야 한다. 낮으면 응답이 온 순간 아래가 밀린다"
+      >
+        <div className="-mx-5 flex items-start gap-3 overflow-x-auto px-5 pb-1">
+          {ALL_VARIANTS.map((variant) => (
+            <div key={variant} className="flex w-[280px] shrink-0 flex-col gap-1">
+              <span className="text-[11px] text-text-sub">{variant}</span>
+              <EventCardSkeleton variant={variant} />
+            </div>
+          ))}
+        </div>
       </Section>
 
       <Section
