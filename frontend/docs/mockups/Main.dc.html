@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    body{margin:0;background:#FBFAF6;}
+    a{color:#14382A;text-decoration:none}
+    a:hover{color:#17170F}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  </style>
+</helmet>
+
+<div style="font-family:'Pretendard',sans-serif;color:#14382A;min-height:100vh;background:#FBFAF6;display:flex;justify-content:center">
+<div style="width:100%;max-width:430px;min-height:100vh;position:relative;background:#FFFFFF;box-shadow:0 0 0 1px #EDE7D6">
+
+  <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border-bottom:1px solid #EDE7D6;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px">
+    <span style="font-size:19px;color:#59503E;cursor:pointer;line-height:1">←</span>
+    <span style="font-size:14.5px;font-weight:700">소셜테이블</span>
+    <span style="width:19px"></span>
+  </header>
+
+  <main style="padding:0 0 32px">
+
+    <div style="padding:22px 18px 18px;display:flex;gap:15px;align-items:flex-start">
+      <div style="width:66px;height:66px;border-radius:22px;background:#F5EEDD;flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <h1 style="font-size:18px;font-weight:800;margin:0 0 5px;line-height:1.35">소셜테이블</h1>
+        <p style="font-size:12.5px;color:#59503E;margin:0;line-height:1.65">성수·홍대에서 와인과 함께하는 로테이션 소개팅을 매주 엽니다</p>
+      </div>
+    </div>
+
+    <div style="padding:0 18px 18px">
+      <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;box-sizing:border-box;padding:12px;border-radius:13px;border:1px solid #EDE7D6;background:#fff;font-size:13px;font-weight:700;color:#14382A">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14382A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+          <circle cx="12" cy="12" r="4"></circle>
+          <circle cx="17.2" cy="6.8" r="1.1" fill="#14382A" stroke="none"></circle>
+        </svg>
+        <span>@socialtable_official</span>
+        <span style="font-size:12px;color:#59503E">↗</span>
+      </a>
+    </div>
+
+    <div style="padding:0 18px 22px">
+      <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:18px 20px">
+        <sc-if value="{{ showRating }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:18px">
+            <div style="text-align:center;flex-shrink:0">
+              <div style="font-family:Georgia,serif;font-size:32px;font-weight:700;line-height:1">{{ ratingLabel }}</div>
+              <div style="font-size:12px;color:#96A377;margin-top:5px;letter-spacing:1px">{{ ratingStars }}</div>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ ratingBars }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:10.5px;color:#59503E;width:20px;flex-shrink:0">{{ r.star }}점</span>
+                  <div style="flex:1;height:6px;border-radius:3px;background:#F0E7D0;overflow:hidden"><div style="{{ r.barStyle }}"></div></div>
+                  <span style="font-size:10.5px;color:#59503E;width:26px;text-align:right;flex-shrink:0">{{ r.count }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ hideRating }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:13px">
+            <div style="width:44px;height:44px;border-radius:15px;background:#FBFAF6;flex-shrink:0"></div>
+            <div style="flex:1;min-width:0;font-size:12.5px;color:#59503E;line-height:1.7">후기가 5건 이상 모이면<br>평균 평점을 보여드려요</div>
+          </div>
+        </sc-if>
+        <div style="border-top:1px solid #FBFAF6;margin-top:16px;padding-top:14px;font-size:12px;color:#59503E">{{ reviewCountLabel }}</div>
+      </div>
+    </div>
+
+    <div style="padding:0 18px 22px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:14.5px;font-weight:800;margin:0">진행 중인 소개팅</h2>
+        <span style="font-size:11.5px;color:#59503E">{{ openCountLabel }}</span>
+      </div>
+
+      <sc-if value="{{ hasOpen }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ openEvents }}" as="ev" hint-placeholder-count="2">
+            <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:13px;display:flex;gap:13px;align-items:center;cursor:pointer">
+              <div style="{{ ev.thumbStyle }}"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+                  <span style="font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;background:#4E7B54;color:#FFFFFF">신청 가능</span>
+                  <span style="font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:#FBFAF6;color:#59503E">{{ ev.slot }}</span>
+                </div>
+                <div style="font-size:13.5px;font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ev.title }}</div>
+                <div style="font-size:11.5px;color:#59503E">{{ ev.date }} · {{ ev.priceLabel }} · {{ ev.distance }}</div>
+                <div style="font-size:11.5px;color:#59503E;margin-top:3px">{{ ev.birthLabel }} · {{ ev.capacityLabel }}</div>
+              </div>
+              <span style="font-size:14px;color:#59503E;flex-shrink:0">›</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:44px 20px;color:#59503E;background:#fff;border:1px solid #EDE7D6;border-radius:18px">
+          <div style="width:52px;height:52px;border-radius:18px;background:#FBFAF6;margin:0 auto 16px"></div>
+          <div style="font-size:14px;font-weight:700;color:#14382A;margin-bottom:7px">지금 모집 중인 소개팅이 없어요</div>
+          <div style="font-size:12.5px;line-height:1.7">새 회차가 열리면 여기에 표시됩니다</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="padding:0 18px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:14.5px;font-weight:800;margin:0">후기</h2>
+        <span style="font-size:11.5px;font-weight:600;color:#59503E;cursor:pointer">후기 전체보기 ›</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ recentReviews }}" as="rv" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid #EDE7D6;border-radius:18px;padding:16px">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+              <div style="{{ rv.avatarStyle }}"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700">{{ rv.author }}</div>
+                <div style="font-size:11px;color:#59503E;margin-top:2px">{{ rv.date }} · {{ rv.eventTitle }}</div>
+              </div>
+              <div style="font-size:11.5px;color:#A86D58;letter-spacing:0.5px;flex-shrink:0">{{ rv.stars }}</div>
+            </div>
+            <div style="font-size:13px;line-height:1.7;color:#14382A;margin-bottom:11px">{{ rv.body }}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ rv.tags }}" as="tg" hint-placeholder-count="2">
+                <span style="font-size:11px;padding:4px 9px;border-radius:7px;background:#F5EEDD;color:#14382A;font-weight:600">{{ tg }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"reviewCount":{"editor":"int","default":23,"min":0,"max":300,"section":"주최사 상태"},"openCount":{"editor":"int","default":2,"min":0,"max":3,"section":"주최사 상태"}}'>
+const THUMBS = ['#E6E3D2', '#EFEADA', '#DDD9C4', '#F1EDDF'];
+
+const OPEN_EVENTS = [
+  { id: 1, title: '성수 와인 로테이션 소개팅', slot: '디너', date: '8/14(목) 19:30', priceF: 30000, distanceKm: 1.2, capM: 7, capF: 7, minYear: 90, maxYear: 96 },
+  { id: 2, title: '홍대 하이볼 나이트 소개팅', slot: '디너', date: '8/16(토) 20:00', priceF: 35000, distanceKm: 5.8, capM: 5, capF: 5, minYear: 92, maxYear: 97 },
+  { id: 4, title: '성수 브런치 로테이션 소개팅', slot: '오전', date: '8/23(토) 11:00', priceF: null, distanceKm: 1.4, capM: 6, capF: 6, minYear: 91, maxYear: 97 },
+];
+
+const RATING_DIST = [
+  { star: 5, count: 78 },
+  { star: 4, count: 34 },
+  { star: 3, count: 11 },
+  { star: 2, count: 3 },
+  { star: 1, count: 2 },
+];
+
+const REVIEWS = [
+  { id: 1, author: '민서', date: '8/3', eventTitle: '성수 와인 로테이션', rating: 5, body: '테이블 로테이션이 30분 간격이라 어색할 틈이 없었어요. 소믈리에 설명도 짧고 재미있게 해주셔서 좋았습니다.', tags: ['분위기 좋아요', '진행이 매끄러워요'] },
+  { id: 2, author: '준호', date: '8/2', eventTitle: '성수 와인 로테이션', rating: 4, body: '와인 종류가 다양해서 만족했습니다. 다만 인원이 조금 많아서 후반부엔 소음이 있었어요.', tags: ['분위기 좋아요'] },
+  { id: 3, author: '하윤', date: '7/29', eventTitle: '홍대 하이볼 나이트', rating: 5, body: '역에서 3분 거리라 이동이 편했어요. 진행자분이 대화 주제를 계속 던져주셔서 처음 온 사람도 편하게 어울렸습니다.', tags: ['접근성이 좋아요', '진행이 매끄러워요'] },
+];
+
+const RATING = 4.6;
+
+function stars(n) { return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n); }
+
+class Component extends DCLogic {
+  renderVals() {
+    const reviewCount = this.props.reviewCount ?? 23;
+    const openCount = this.props.openCount ?? 2;
+
+    // 7.4 평점 표시 임계 — 후기 5건 미만이면 평점을 숨기고 '후기 N건'만 쓴다
+    const showRating = reviewCount >= 5;
+    const maxCount = Math.max.apply(null, RATING_DIST.map(r => r.count));
+    const openEvents = OPEN_EVENTS.slice(0, openCount);
+
+    return {
+      showRating,
+      hideRating: !showRating,
+      ratingLabel: RATING.toFixed(1),
+      ratingStars: stars(Math.round(RATING)),
+      reviewCountLabel: '후기 ' + reviewCount + '건',
+      ratingBars: RATING_DIST.map(r => ({
+        star: r.star,
+        count: r.count,
+        barStyle: { height: '100%', width: Math.round((r.count / maxCount) * 100) + '%', background: r.star >= 4 ? '#96A377' : '#C9C2AE' },
+      })),
+
+      hasOpen: openEvents.length > 0,
+      noOpen: openEvents.length === 0,
+      openCountLabel: openEvents.length + '개',
+      openEvents: openEvents.map(e => ({
+        title: e.title,
+        slot: e.slot,
+        date: e.date,
+        priceLabel: e.priceF == null ? '링크 확인' : e.priceF.toLocaleString('ko-KR') + '원',
+        distance: e.distanceKm + 'km',
+        birthLabel: e.minYear + '~' + e.maxYear + '년생',
+        capacityLabel: '남 ' + e.capM + ' · 여 ' + e.capF,
+        thumbStyle: { width: '66px', height: '66px', borderRadius: '13px', flexShrink: 0, background: THUMBS[(e.id - 1) % THUMBS.length] },
+      })),
+
+      recentReviews: REVIEWS.map((r, i) => ({
+        author: r.author,
+        date: r.date,
+        eventTitle: r.eventTitle,
+        body: r.body,
+        tags: r.tags,
+        stars: stars(r.rating),
+        avatarStyle: { width: '34px', height: '34px', borderRadius: '12px', flexShrink: 0, background: THUMBS[i % THUMBS.length] },
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>
