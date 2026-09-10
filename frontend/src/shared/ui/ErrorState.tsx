@@ -17,6 +17,15 @@ interface ErrorStateProps {
    */
   occurredAt?: Date;
   onRetry?: () => void | Promise<void>;
+  /**
+   * **제어형 진행 상태.** 넘기면 내부 상태 대신 이 값을 쓴다.
+   *
+   * 기본(미지정)은 `onRetry` 가 돌려주는 프로미스가 끝날 때까지를 진행 중으로 본다.
+   * 그런데 **완료를 프로미스로 알려주지 않는 재시도**가 있다 — `router.refresh()` 와
+   * `error.tsx` 의 `retry` 는 동기 함수이고, 끝나는 시점은 `useTransition` 의
+   * `pending` 이 내려가는 순간이다. 그 자리에서 이 prop 을 쓴다 (`RetryErrorCard`).
+   */
+  retrying?: boolean;
   onContactSupport?: () => void;
   className?: string;
 }
@@ -35,10 +44,12 @@ export function ErrorState({
   code,
   occurredAt,
   onRetry,
+  retrying,
   onContactSupport,
   className,
 }: ErrorStateProps) {
-  const [retrying, setRetrying] = useState(false);
+  const [selfRetrying, setSelfRetrying] = useState(false);
+  const busy = retrying ?? selfRetrying;
 
   // 재시도 중 화면을 벗어나면(라우팅·조건부 언마운트) 응답이 돌아왔을 때
   // 사라진 컴포넌트에 setState 하게 된다. 마운트 여부를 확인하고 넘긴다.
@@ -51,12 +62,12 @@ export function ErrorState({
   }, []);
 
   const handleRetry = async () => {
-    if (!onRetry || retrying) return;
-    setRetrying(true);
+    if (!onRetry || busy) return;
+    setSelfRetrying(true);
     try {
       await onRetry();
     } finally {
-      if (mountedRef.current) setRetrying(false);
+      if (mountedRef.current) setSelfRetrying(false);
     }
   };
 
@@ -87,10 +98,10 @@ export function ErrorState({
         {onRetry ? (
           <PrimaryButton
             onClick={handleRetry}
-            disabled={retrying}
-            variant={retrying ? "ghost" : "primary"}
+            disabled={busy}
+            variant={busy ? "ghost" : "primary"}
           >
-            {retrying ? "다시 시도하는 중..." : "다시 시도"}
+            {busy ? "다시 시도하는 중..." : "다시 시도"}
           </PrimaryButton>
         ) : null}
 

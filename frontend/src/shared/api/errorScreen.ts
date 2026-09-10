@@ -1,7 +1,12 @@
 import type { ApiError, ApiErrorKind } from "./ApiError";
 
 /**
- * 조회 실패가 **어느 화면으로 떨어지는지** (11.2).
+ * **화면 진입의** 조회 실패가 어느 화면으로 떨어지는지 (11.2).
+ *
+ * ⚠️ **이 표가 실패 전부는 아니다.** 다루는 것은 페이지 함수가 `loadOrError` 로 잡는
+ * 서버 조회뿐이고, 나머지 둘은 각자의 자리가 있다 — 렌더 중 예외는 `error.tsx`,
+ * 목록의 증분 로딩(`더 보기`)은 `explore-board` 의 `LoadMoreError` 다. 셋 다 코드·
+ * 발생 시각을 노출하고 `ApiError.retryable` 로 재시도를 정한다 (`decisions.md` 4.40).
  *
  * `ApiErrorKind` 는 8종인데 화면은 2종이다 — **1:1 이 아니다.** 그 사실을 화면마다
  * 다시 판단하게 두면 언젠가 한 화면만 다르게 떨어진다. 여기 한 함수로 모으고,

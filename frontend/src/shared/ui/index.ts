@@ -3,6 +3,7 @@ export { ApiErrorScreen } from "./ApiErrorScreen";
 export { Checkbox } from "./Checkbox";
 export { Chip } from "./Chip";
 export { EmptyState } from "./EmptyState";
+export { ERROR_COPY } from "./errorCopy";
 export { ErrorState } from "./ErrorState";
 export { IconButton } from "./IconButton";
 export { Modal } from "./Modal";
