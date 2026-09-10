@@ -1,12 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  MOCK_ROLE_COOKIE,
-  SESSION_COOKIE,
-  checkAccess,
-  readMockSession,
-  readSessionFromToken,
-} from "@/entities/account";
-import { USE_MOCK } from "@/shared/config";
+import { checkAccess, readSession } from "@/entities/account";
 
 /**
  * 라우트 가드 (dev-plan 3.5 / P0-7).
@@ -22,9 +15,7 @@ import { USE_MOCK } from "@/shared/config";
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const session = USE_MOCK
-    ? readMockSession(request.cookies.get(MOCK_ROLE_COOKIE)?.value)
-    : readSessionFromToken(request.cookies.get(SESSION_COOKIE)?.value);
+  const session = readSession((name) => request.cookies.get(name)?.value);
 
   const decision = checkAccess(pathname, session);
   if (decision.allowed) return NextResponse.next();

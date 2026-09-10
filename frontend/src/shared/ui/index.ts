@@ -1,3 +1,4 @@
+export { toActionFailure, type ActionFailure } from "./actionFailure";
 export { ActionLink } from "./ActionLink";
 export { ApiErrorScreen } from "./ApiErrorScreen";
 export { Checkbox } from "./Checkbox";
@@ -5,6 +6,7 @@ export { Chip } from "./Chip";
 export { EmptyState } from "./EmptyState";
 export { ERROR_COPY } from "./errorCopy";
 export { ErrorState } from "./ErrorState";
+export { FormErrorNotice } from "./FormErrorNotice";
 export { IconButton } from "./IconButton";
 export { Modal } from "./Modal";
 export { Numeric } from "./Numeric";

@@ -10,8 +10,8 @@ import {
  * URL 이 필터 상태의 원본이므로(2.4) 이 변환이 탐색 화면의 계약이다.
  * 값을 하나하나 나열하지 않고 **규칙**을 본다 — 마스터가 늘어도 안 깨지도록.
  */
-const asUser = (params: RawSearchParams) => parseExploreParams(params, { isGuest: false });
-const asGuest = (params: RawSearchParams) => parseExploreParams(params, { isGuest: true });
+const asUser = (params: RawSearchParams) => parseExploreParams(params, { hasViewer: true });
+const asGuest = (params: RawSearchParams) => parseExploreParams(params, { hasViewer: false });
 
 describe("parseExploreParams", () => {
   it("빈 쿼리는 기본값이다", () => {
@@ -171,7 +171,7 @@ describe("serializeExploreParams", () => {
     const once = asUser(original);
     const twice = parseExploreParams(
       Object.fromEntries(new URLSearchParams(serializeExploreParams(once))),
-      { isGuest: false },
+      { hasViewer: true },
     );
 
     expect(twice).toEqual(once);

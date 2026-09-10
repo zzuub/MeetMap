@@ -1,4 +1,3 @@
-import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
 import {
   exploreFacets,
@@ -10,12 +9,17 @@ import { loadOrError } from "@/shared/api";
 import { ActionLink, ApiErrorScreen } from "@/shared/ui";
 import { ExploreBoard } from "@/widgets/explore-board";
 import { PhasePlaceholder } from "../../_components/PhasePlaceholder";
+import { loadViewerContext } from "../../_lib/viewer";
 
 /**
  * 탐색 `/explore` (기능정의서 6장).
  *
  * **URL 이 필터 상태의 원본이다** (2.4). 페이지는 쿼리스트링을 조회 파라미터로
  * 옮기기만 하고 상태를 들지 않는다 — 새로고침·뒤로가기·공유가 그래서 그냥 된다.
+ *
+ * ⚠️ **인증 축의 게이트는 세션이 아니라 프로필(`viewer`)이다** — 로그인만 하고
+ * 프로필을 건너뛴 사용자에게 가격 정렬·자격 필터를 열면 판정 근거가 없다
+ * (`decisions.md` 4.44).
  */
 export default async function ExplorePage({
   searchParams,
@@ -23,8 +27,8 @@ export default async function ExplorePage({
   // Next 16 에서 Promise 다 (session-handoff 4장)
   searchParams: Promise<RawSearchParams>;
 }) {
-  const [session, raw] = await Promise.all([getServerSession(), searchParams]);
-  const params = parseExploreParams(raw, { isGuest: session === null });
+  const [{ viewer }, raw] = await Promise.all([loadViewerContext(), searchParams]);
+  const params = parseExploreParams(raw, { hasViewer: viewer !== null });
 
   /*
     지도는 P3-1 이라 아직 자리표시자다. 뷰 토글을 그리지 않기로 한 이상(4.29) 이
@@ -71,10 +75,7 @@ export default async function ExplorePage({
 
   const [page, facets] = loaded.data;
 
-  // viewer 는 프로필에서 온다. 목 세션에 출생연도·성별이 없어 P2-4 까지 null 이다
-  return (
-    <ExploreBoard page={page} params={params} facets={facets} viewer={null} />
-  );
+  return <ExploreBoard page={page} params={params} facets={facets} viewer={viewer} />;
 }
 
 /**
