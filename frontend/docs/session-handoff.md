@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-5 온보딩 퍼널이 붙어 DoD 앞쪽이 닫혔다. 다음은 P2-6 위치 권한)
+> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-6 온보딩 퍼널 + 위치 권한이 붙어 DoD 앞쪽이 닫혔다. 다음은 P2-7 찜)
 
 ## 어디에 무엇이 있나
 
@@ -78,10 +78,10 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating`) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) |
-| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) **`geo`**(역지오코딩 포트 + `nearestArea` — 좌표를 지역 마스터로 되돌린다, 4.54) |
+| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만, 화면 셋은 순수 컴포넌트) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
 | `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) — **셋 다 자기 스켈레톤을 함께 내보낸다** |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **온보딩 5화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done) + 나머지는 자리표시자 + **error 4개 · loading 4개 · not-found 2개** (4.41·4.47) |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **온보딩 6화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done·location) + 나머지는 자리표시자 + **error 4개 · loading 4개 · not-found 2개** (4.41·4.47) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 `features/` 슬라이스는 둘이고 탐색의 필터 관련은 **전부 `event-filter`** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).

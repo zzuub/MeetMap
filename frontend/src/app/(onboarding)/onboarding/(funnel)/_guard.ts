@@ -3,7 +3,7 @@ import { ONBOARDING_STEPS, type Session } from "@/entities/account";
 import { getServerSession } from "@/entities/account/server";
 
 /**
- * 퍼널 단계는 세션이 있어야 한다 (3.2~3.5).
+ * 퍼널 단계는 세션이 있어야 한다 (3.2~3.5 · 4장).
  *
  * `PUBLIC_PREFIXES` 가 `/onboarding` **전체**를 게스트에게 열어 둔다 — 로그인
  * 화면이 그 안에 있으니 그래야 한다. 그래서 `checkAccess` 는 `/onboarding/profile`
@@ -23,7 +23,7 @@ import { getServerSession } from "@/entities/account/server";
  * 마지막 줄은 두 번 측정해 답이 달랐다 — 한 번은 아예 안 돌았고, 한 번은 (프리페치로
  * 보이는) 호출이 있었다. **타이밍에 기대는 가드는 가드가 아니다.**
  *
- * ## 그래서 어느 단계가 스스로 부르나 — 넷을 다 적는다
+ * ## 그래서 어느 단계가 스스로 부르나 — 다섯을 다 적는다
  *
  * 기준은 **쓰기냐 읽기냐가 아니라 "세션에 딸린 일을 하는가"** 다. 처음에는 쓰기만
  * 세어 `done` 을 빠뜨렸다 (PR #35 2차 리뷰).
@@ -34,6 +34,11 @@ import { getServerSession } from "@/entities/account/server";
  * | `intro` (3.3) | **없다** — 정적 안내 | 없음 (레이아웃만) |
  * | `profile` (3.4) | 프로필 **저장** (폼 자체는 빈 폼이다) | `_actions.ts` |
  * | `done` (3.5) | 프로필 **조회** | `page.tsx` |
+ * | `location` (4장) | 선호 지역 **조회**(초기 선택) + **저장** | `page.tsx` · `_actions.ts` |
+ *
+ * ⚠️ `location` 의 액션 **둘 중 하나만** 부른다. `resolveLocationAction`(좌표→지명·
+ * 건수)이 하는 일은 게스트가 `/explore` 에서 그대로 보는 값이라 세션에 딸려 있지
+ * 않다 — 부르는 것은 저장하는 쪽(`savePreferredAreasAction`)이다.
  *
  * **남는 한계**: 세션에 딸린 일이 없는 화면(`intro`)은 세션이 죽어도 그려진다.
  * 데이터가 없으니 새는 것도 없고, 다음 걸음에서 걸린다.

@@ -78,4 +78,17 @@ describe("signInLanding — `isNewUser` 를 판정하는 유일한 자리 (3.1)"
     expect(signInLanding(session(false), null)).toBe(AFTER_ONBOARDING);
     expect(signInLanding(session(false), "https://evil.com")).toBe(AFTER_ONBOARDING);
   });
+
+  /**
+   * ⚠️ **위 두 줄은 상수끼리 비교한다.** `AFTER_ONBOARDING` 을 무엇으로 바꿔도
+   * 통과하므로, P2-6 이 그 값을 `/onboarding/location` 으로 바꿨다면 **기존 회원이
+   * 로그인할 때마다 위치 권한 화면으로 가는 것을 못 잡았다** (`decisions.md` 4.52).
+   * 3.1 이 못 박은 목적지를 리터럴로 잠근다.
+   */
+  it("기존 회원의 목적지는 온보딩 안이 아니라 홈이다 (3.1)", () => {
+    expect(signInLanding(session(false), null)).toBe("/");
+    expect(Object.values(ONBOARDING_STEPS)).not.toContain(
+      signInLanding(session(false), null),
+    );
+  });
 });

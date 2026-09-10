@@ -33,6 +33,15 @@ const httpUserApi: UserApi = {
       body: input,
       accessToken,
     }),
+
+  // 선호 지역만 바꾼다 (4.3). `PUT profile` 이 아니라 `PATCH` 인 이유와 서버가
+  // 지켜야 할 것 셋은 `ENDPOINTS.user.preferredAreas` 에 적어 뒀다.
+  savePreferredAreas: (areas: string[], { accessToken }: AuthContext) =>
+    fetchClient<void>(ENDPOINTS.user.preferredAreas, {
+      method: "PATCH",
+      body: { preferredAreas: areas },
+      accessToken,
+    }),
 };
 
 export const userApi: UserApi = USE_MOCK ? mockUserApi : httpUserApi;

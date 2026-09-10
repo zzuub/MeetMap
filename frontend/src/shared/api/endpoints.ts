@@ -40,6 +40,23 @@ export const ENDPOINTS = {
      */
     terms: "/users/me/terms",
     profile: "/users/me/profile",
+    /**
+     * 선호 지역만 갱신 (4.3 활동 지역 선택).
+     *
+     * **프로필의 `preferredAreas` 와 같은 값이다** — 지역 마스터도 한도도 같아서
+     * 값을 둘로 두면 어긋난다 (`decisions.md` 4.53). 그래서 새 필드가 아니라
+     * 좁은 쓰기다.
+     *
+     * 요구사항 셋.
+     * 1. `PATCH`, 본문 `{ preferredAreas: string[] }`. 지역 마스터(`AREAS`) 밖의
+     *    값과 3개 초과는 **서버도 거른다** — 프론트의 정규화는 방어선일 뿐이다
+     * 2. **프로필이 없는 계정에도 받아야 한다.** 위치 권한 화면은 3.3·3.4 로
+     *    프로필을 건너뛴 사용자에게도 지역을 묻는다
+     * 3. 그럼에도 `GET /users/me/profile` 은 닉네임·성별이 없는 동안 계속
+     *    `404`(= 프로필 없음)여야 한다. 지역만 든 반쪽 프로필을 내려주면
+     *    화면의 `viewer` 가 근거 없이 살아나 가격 정렬·자격 필터가 열린다 (4.44)
+     */
+    preferredAreas: "/users/me/preferred-areas",
     likes: "/users/me/likes",
     like: (eventId: string) => `/users/me/likes/${eventId}`,
     notifications: "/users/me/notifications",
@@ -77,5 +94,23 @@ export const ENDPOINTS = {
 
   search: {
     trending: "/search/trending",
+  },
+
+  /**
+   * 좌표 → 지명 (4.2 위치 확정 안내).
+   *
+   * `GET /geo/reverse?lat=&lng=` → `{ label: string, area: string | null }`.
+   * - `label` 은 화면에 그대로 쓰는 표시용 지명이다 (`서울 성동구 성수동`)
+   * - `area` 는 **지역 마스터(`AREAS`) 값이거나 `null`** 이다. 화면이 이 값으로
+   *   `/explore?area=…` 를 만들므로 마스터 밖 문자열을 내려주면 조용한 0건이 된다
+   *   (`decisions.md` 4.53 / 6.1 `parseArea` 와 같은 이유)
+   *
+   * ⚠️ **좌표를 저장·로깅하지 않는다.** 4.1 이 `위치 정보는 소개팅 추천에만
+   * 사용되며 저장되지 않습니다` 를 고정 문구로 못 박았다. 프론트는 이 호출을
+   * **서버 액션 안에서만** 하고 URL·쿠키 어디에도 남기지 않는다 — 백엔드도
+   * 접근 로그에 쿼리스트링을 남기지 않아야 계약이 지켜진다 (4.54).
+   */
+  geo: {
+    reverse: "/geo/reverse",
   },
 } as const;

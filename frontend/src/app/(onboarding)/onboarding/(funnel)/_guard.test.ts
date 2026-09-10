@@ -28,8 +28,8 @@ const FUNNEL_DIR = dirname(fileURLToPath(import.meta.url));
  */
 const GUARD_CALL = "requireFunnelSession(";
 
-/** 3.2~3.5 넷. 하나라도 줄면 탐지가 고장 난 것이다 */
-const MIN_STEPS = 4;
+/** 3.2~3.5 넷 + 4장 위치 권한. 하나라도 줄면 탐지가 고장 난 것이다 */
+const MIN_STEPS = 5;
 
 describe("퍼널 세션 가드 (4.49 · 4.51)", () => {
   const steps = funnelSteps();
