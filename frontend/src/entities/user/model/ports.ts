@@ -33,6 +33,27 @@ export interface UserApi {
   /** 약관 동의 (3.2). 선택 항목(마케팅)은 알림 설정과 연동된다 (10.3) */
   saveTerms(agreement: TermsAgreement, auth: AuthContext): Promise<void>;
 
-  /** 프로필 설정 (3.4) */
+  /**
+   * 프로필 설정 (3.4).
+   *
+   * ⚠️ **선호 지역을 통째로 덮어쓴다.** 3.4 가 그 필드를 직접 받으므로 그래야 하지만,
+   * 4.3 의 위치 권한 화면도 **같은 필드**에 쓴다 (`savePreferredAreas` /
+   * `decisions.md` 4.53). 그래서 **프로필 수정 화면(P4-4)이 현재 값을 프리필하지
+   * 않고 제출하면 위치 권한 화면에서 고른 지역이 조용히 지워진다.**
+   */
   saveProfile(input: ProfileInput, auth: AuthContext): Promise<UserProfile>;
+
+  /**
+   * 선호 지역만 갱신 (4.3 활동 지역 선택).
+   *
+   * ⚠️ **`saveProfile` 로 대신할 수 없다.** 위치 권한 화면은 퍼널의 마지막이라
+   * 3.3 `나중에 할래요` · 3.4 `건너뛰기` 로 **프로필이 아예 없는 사용자**도
+   * 도달한다. `ProfileInput` 은 닉네임·성별을 요구하므로 그 사용자에게는 부를 수
+   * 없고, 빈 값으로 채우면 `viewer` 가 근거 없이 살아난다 (`decisions.md` 4.44).
+   *
+   * 그래서 **좁은 쓰기**다. 저장되는 값은 3.4 의 선호 지역과 **같은 필드**이고,
+   * 프로필이 없는 동안에도 값은 남는다 — 다음에 프로필을 채우면 그때 읽힌다
+   * (`decisions.md` 4.53).
+   */
+  savePreferredAreas(areas: string[], auth: AuthContext): Promise<void>;
 }

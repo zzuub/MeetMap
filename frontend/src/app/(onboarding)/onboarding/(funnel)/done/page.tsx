@@ -1,4 +1,4 @@
-import { AFTER_ONBOARDING } from "@/entities/account";
+import { ONBOARDING_STEPS } from "@/entities/account";
 import { getAccessToken } from "@/entities/account/server";
 import { onboardingSummary } from "@/entities/user";
 import { userApi } from "@/entities/user/server";
@@ -17,8 +17,13 @@ import { requireFunnelSession } from "../_guard";
  * 3.3·3.4 로 건너뛴 정상 경로이고, 실패는 실패다. 대신 에러 카드 **아래에 홈으로
  * 가는 버튼을 남긴다**: 실패한 것은 요약 문구 하나이고 가입은 이미 끝났다.
  *
- * `홈으로 이동` 의 목적지는 `AFTER_ONBOARDING` 이다 — 3.5 는 위치 권한 화면을
- * 거치라고 적었지만 그 화면은 P2-6 이고, 지금 링크를 걸면 404 로 간다 (4.29).
+ * `홈으로 이동` 의 목적지는 **위치 권한 화면**이다 — 3.5 가 `위치 권한 화면(4장)을
+ * 거쳐 홈 진입` 이라고 적었고 그 화면이 P2-6 에서 생겼다. 라벨은 3.5 그대로 둔다:
+ * 사용자에게 이 걸음의 끝은 여전히 홈이다.
+ *
+ * ⚠️ **`AFTER_ONBOARDING` 을 바꾸지 않고 링크를 바꿨다.** 그 상수는
+ * `signInLanding` 의 폴백이기도 해서, 값을 바꿨다면 **기존 회원이 로그인할 때마다**
+ * 위치 권한 화면으로 갔다 (`decisions.md` 4.52).
  *
  * ⚠️ **가드를 스스로 부른다.** 인트로의 `나중에 할래요` 와 프로필의 `건너뛰기` 가
  * 둘 다 `<Link>` 라, 레이아웃 재실행이 보장되지 않는 경로로 여기 도달한다 (4.49).
@@ -53,7 +58,7 @@ export default async function OnboardingDonePage() {
         </>
       )}
 
-      <ActionLink href={AFTER_ONBOARDING}>홈으로 이동</ActionLink>
+      <ActionLink href={ONBOARDING_STEPS.location}>홈으로 이동</ActionLink>
     </main>
   );
 }

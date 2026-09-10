@@ -63,6 +63,25 @@ export function isThisWeek(iso: string, now: Date = new Date()): boolean {
 }
 
 /**
+ * **KST 달력 기준 오늘**인가 (4.2 `오늘 저녁 N건 · 심야 N건`).
+ *
+ * `weekRangeKst` 와 같은 이유로 실행 환경의 타임존에 기대지 않는다 — 서버에서
+ * 세도 사용자가 보는 날짜(KST)와 같은 답이 나와야 한다. 로컬 타임존을 읽으면
+ * UTC 로는 통과하고 `America/Los_Angeles` 에서만 하루 어긋난다.
+ *
+ * 시각이 아니라 **날짜**를 비교한다. 오늘 23:00 시작 회차는 지금이 09:00 이어도
+ * `오늘` 이다 — 4.2 가 세는 것은 남은 시간이 아니라 오늘 열리는 회차다.
+ */
+export function isTodayKst(iso: string, now: Date = new Date()): boolean {
+  return kstDateKey(new Date(iso)) === kstDateKey(now);
+}
+
+/** `2026-09-10` — KST 달력 날짜. 비교에만 쓰므로 형식은 정렬 가능하기만 하면 된다 */
+function kstDateKey(at: Date): string {
+  return new Date(at.getTime() + KST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/**
  * 현재 시간대 (5-5 홈 추천 기준 문구).
  *
  * 경계는 **시작 시각** 기준이라 12:00 은 `오후`, 21:00 은 `심야`다 (6.2).

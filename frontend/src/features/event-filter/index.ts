@@ -1,4 +1,9 @@
-export { exploreFacets, type ExploreFacets } from "./api/exploreFacets";
+export {
+  SCAN_LIMIT,
+  exploreFacets,
+  itemsOrNull,
+  type ExploreFacets,
+} from "./api/exploreFacets";
 export {
   ELIGIBILITY_CHIP_LABEL,
   activeFilterCount,

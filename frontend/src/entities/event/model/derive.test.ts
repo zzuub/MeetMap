@@ -5,6 +5,7 @@ import {
   isEligible,
   isOpen,
   isThisWeek,
+  isTodayKst,
   marksIneligible,
   priceFor,
   weekRangeKst,
@@ -93,6 +94,43 @@ describe("isThisWeek", () => {
     expect(isThisWeek("2026-08-31T00:00:00+09:00", now)).toBe(true);
     expect(isThisWeek("2026-08-30T23:59:59+09:00", now)).toBe(false);
     expect(isThisWeek("2026-09-07T00:00:00+09:00", now)).toBe(false);
+  });
+});
+
+/**
+ * 4.2 의 `오늘 저녁 N건 · 심야 N건` 이 세는 축이다.
+ *
+ * **KST 달력 날짜**로 판정한다 — 실행 환경의 타임존을 읽으면 UTC 로는 통과하고
+ * `America/Los_Angeles` 에서만 하루 어긋난다. CI 가 TZ 2종으로 한 번 더 돈다.
+ */
+describe("isTodayKst", () => {
+  const now = new Date("2026-09-10T12:00:00+09:00");
+
+  it("같은 KST 날짜면 시각과 무관하게 오늘이다", () => {
+    expect(isTodayKst("2026-09-10T00:00:00+09:00", now)).toBe(true);
+    expect(isTodayKst("2026-09-10T23:59:59+09:00", now)).toBe(true);
+  });
+
+  it("어제·내일은 오늘이 아니다", () => {
+    expect(isTodayKst("2026-09-09T23:59:59+09:00", now)).toBe(false);
+    expect(isTodayKst("2026-09-11T00:00:00+09:00", now)).toBe(false);
+  });
+
+  it("이미 지난 시각도 오늘이면 오늘이다 — 남은 시간이 아니라 날짜를 센다", () => {
+    // 4.2 가 세는 것은 `아직 갈 수 있는` 이 아니라 `오늘 열리는` 회차다
+    expect(isTodayKst("2026-09-10T09:00:00+09:00", now)).toBe(true);
+  });
+
+  it("KST 자정 경계는 UTC 가 아니라 KST 로 갈린다", () => {
+    // 2026-09-10 15:00Z = KST 로 9/11 00:00. UTC 로 세면 둘 다 9/10 이라 통과한다
+    expect(isTodayKst("2026-09-10T14:59:59Z", now)).toBe(true);
+    expect(isTodayKst("2026-09-10T15:00:00Z", now)).toBe(false);
+  });
+
+  it("`now` 쪽 경계도 KST 로 읽는다", () => {
+    const justAfterMidnightKst = new Date("2026-09-10T15:00:00Z");
+    expect(isTodayKst("2026-09-11T09:00:00+09:00", justAfterMidnightKst)).toBe(true);
+    expect(isTodayKst("2026-09-10T23:00:00+09:00", justAfterMidnightKst)).toBe(false);
   });
 });
 

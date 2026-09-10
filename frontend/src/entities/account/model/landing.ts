@@ -12,21 +12,32 @@ import type { Session } from "./types";
 
 export const ONBOARDING_ROOT = "/onboarding";
 
-/** 온보딩 퍼널 5화면. 순서가 곧 3.1~3.5 다. */
+/** 온보딩 퍼널 6화면. 순서가 곧 3.1~3.5 → 4장이다. */
 export const ONBOARDING_STEPS = {
   login: ONBOARDING_ROOT,
   terms: "/onboarding/terms",
   intro: "/onboarding/intro",
   profile: "/onboarding/profile",
   done: "/onboarding/done",
+  /** 위치 권한 (4장 — P2-6). 3.5 `홈으로 이동` 이 여기를 거쳐 홈으로 간다 */
+  location: "/onboarding/location",
 } as const;
 
 /**
- * 퍼널을 마친 뒤 가는 곳.
+ * **온보딩이 끝난 뒤 가는 곳** — 앱 본편의 입구.
  *
- * 3.5 는 **위치 권한 화면(4장)을 거쳐** 홈이라고 적었지만 그 화면은 P2-6 이다.
- * 목적지 없는 링크를 만들지 않으므로(4.29) 지금은 홈으로 직행하고, **P2-6 이
- * 이 상수 하나를 `/onboarding/location` 으로 바꾼다.**
+ * ⚠️ **P2-6 이 이 값을 `/onboarding/location` 으로 바꾸지 않았다.**
+ * `phase2-notes.md` 는 "상수 하나를 바꾸면 된다"고 적어 뒀지만, 이 상수를 읽는
+ * 자리가 둘이고 **뜻이 다르다** (`decisions.md` 4.52).
+ *
+ * | 읽는 자리 | 뜻 | 위치 권한이 끼어드나 |
+ * | --- | --- | --- |
+ * | 3.5 `홈으로 이동` | 퍼널의 다음 걸음 | ✅ → `ONBOARDING_STEPS.location` 으로 바꿨다 |
+ * | `signInLanding` 의 폴백 | **기존 회원**의 로그인 목적지 | ❌ 3.1 이 `기존 회원은 홈` 이다 |
+ *
+ * 값을 바꿨다면 로그인할 때마다 위치 권한 화면을 보는 회원이 생겼을 것이고,
+ * `landing.test.ts` 는 **상수끼리 비교하고 있어 그걸 잡지 못했다.** 그래서 그
+ * 테스트가 이제 리터럴 경로를 단언한다.
  */
 export const AFTER_ONBOARDING = "/";
 

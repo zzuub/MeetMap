@@ -5,6 +5,7 @@ export {
   isEligible,
   isOpen,
   isThisWeek,
+  isTodayKst,
   marksIneligible,
   priceFor,
   weekRangeKst,
