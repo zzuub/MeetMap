@@ -1,14 +1,14 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-09 (**Phase 1 완료** — P1-9 로 빈 상태·에러·로딩이 붙고 DoD 가 닫혔다. 다음은 Phase 2)
+> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-5 온보딩 퍼널이 붙어 DoD 앞쪽이 닫혔다. 다음은 P2-6 위치 권한)
 
 ## 어디에 무엇이 있나
 
 | 알고 싶은 것 | 문서 |
 | --- | --- |
 | 지금 어디까지 했나 / 다음은 뭔가 | [progress.md](progress.md) 1·2장 |
-| **Phase 1 착수 요점 · 막힌 것** | [phase1-notes.md](phase1-notes.md) |
+| **Phase 2 착수 요점 · 막힌 것** | [phase2-notes.md](phase2-notes.md) (Phase 1 은 [phase1-notes.md](phase1-notes.md)) |
 | 화면 사양 | [spec/00-index.md](spec/00-index.md) → 해당 화면 파일 |
 | 왜 이렇게 짰나 (되돌리기 어려운 판단) | [decisions.md](decisions.md) |
 | 무엇을 어떤 순서로 만드나 | [dev-plan.md](dev-plan.md) |
@@ -74,14 +74,14 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 
 | 위치 | 내용 |
 | --- | --- |
-| `shared/ui/` | `PrimaryButton` `Chip` `SegmentedControl` `Sheet` `Modal` `Toast`(+`useToast`) `Numeric` `Skeleton` `EmptyState` `ErrorState` `Toggle` `Checkbox` `IconButton` **`ActionLink`**(빈 상태·에러의 액션 — 이동이라 앵커다) **`RetryErrorCard`**·**`ApiErrorScreen`**(11.2 카드 + 재시도) |
+| `shared/ui/` | `PrimaryButton` `Chip` `SegmentedControl` `Sheet` `Modal` `Toast`(+`useToast`) `Numeric` `Skeleton` `EmptyState` `ErrorState` `Toggle` `Checkbox` `IconButton` **`ActionLink`**(빈 상태·에러의 액션 — 이동이라 앵커다) **`RetryErrorCard`**·**`ApiErrorScreen`**(11.2 카드 + 재시도) **`FormErrorNotice`**(제출 실패 — 폼을 지우지 않는다) |
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating`) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `user` `notification` `review` `account`(역할·라우트 가드) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) |
 | `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
 | `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) — **셋 다 자기 스켈레톤을 함께 내보낸다** |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + 나머지는 자리표시자 페이지 + **error 3개 · loading 3개 · not-found 2개** (4.41) |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **온보딩 5화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done) + 나머지는 자리표시자 + **error 4개 · loading 4개 · not-found 2개** (4.41·4.47) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 `features/` 슬라이스는 둘이고 탐색의 필터 관련은 **전부 `event-filter`** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
@@ -103,7 +103,9 @@ const feed = await eventApi.getHomeFeed({});
 
 목/실 분기는 `entities/event/api/eventApi.ts` 마지막 줄 + `NEXT_PUBLIC_USE_MOCK` 한 곳에서만 일어난다. **컴포넌트에 `if (USE_MOCK)` 을 쓰지 않는다.**
 
-개발용 역할 스위치: 콘솔에서 `document.cookie = "meetmap_mock_role=USER;path=/"` (`USER`, `PROVIDER:PENDING`, `ADMIN`). 쿠키가 없으면 게스트.
+인증·프로필은 **서버 전용 진입점**이다 — `@/entities/account/server` 의 `accountApi`·`getServerSession`, `@/entities/user/server` 의 `userApi`. 쿠키를 쓰므로 쓰기는 **Server Action 안에서만** 부른다.
+
+개발용 역할 스위치: 콘솔에서 `document.cookie = "meetmap_mock_role=USER;path=/"` (`USER`, `PROVIDER:PENDING`, `ADMIN`). ⚠️ **이 쿠키는 로그인 세션을 이기고, 켜져 있으면 온보딩 퍼널을 눌러볼 수 없다** — `isNewUser` 가 항상 거짓이다. 지우려면 `max-age=0`. 로그인이 심는 `meetmap_mock_session`·`meetmap_mock_user` 는 HttpOnly 라 개발자도구에서 지운다 (4.43).
 
 ### 코드 컨벤션 — 리뷰에서 걸리는 것들
 
@@ -143,13 +145,16 @@ const feed = await eventApi.getHomeFeed({});
 ### 이 제품에서 굳은 UI 패턴 — 어기면 일관성이 깨진다
 
 - **비활성 버튼의 라벨이 미충족 사유를 말한다.** (`필수 약관에 동의해주세요`) 별도 에러 토스트를 띄우지 않는다
+- **`?redirect=` 는 `safeRedirect` 를 거친 값만 쓴다.** `proxy.ts` 가 만든 값도 믿지 않는다 — 주소창에 직접 칠 수 있다. 검증하는 자리는 **소비 시점 한 곳**(로그인 액션)이고, 신규 가입자에게는 적용하지 않는다 (4.45)
+- **`isNewUser` 를 판정하는 자리는 로그인 액션 하나다** (`signInLanding`). 화면마다 다시 판정하지 않는다 — `/onboarding` 도 세션을 보고 튕겨내지 않는다 (4.45)
+- **가격·자격의 게이트는 세션이 아니라 프로필(`viewer`)이다.** `hasViewer` 로 읽는다 — 로그인만 하고 프로필을 건너뛴 사용자에게는 판정 근거가 없다 (4.44)
 - **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1). **주소를 손으로 조립하지 않는다** — 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 (4.24)
 - **하단 탭 두 번째는 `탐색`(리스트 기본)이다.** 지도는 목적지가 아니라 탐색의 뷰다 — 2026-09-05 개편 (5.5)
 - **뷰 토글(`리스트 / 지도`)은 아직 없다. P3-1 에서 붙인다** (4.29). 지도가 없는 동안 세그먼트 절반이 자리표시자로 가기 때문이다 — `누르면 아무 일 없는 컨트롤은 만들지 않는다`. 지금 `?view=map` 은 자리표시자 + `리스트로 보기` 링크이고, P3-1 이 토글을 붙이면서 **둘 다 지운다**
 - **`신청하기` 는 `features/event-apply` 를 거친다.** 버튼과 7.3 모달이 한 덩어리다. ⚠️ **`externalApplyUrl` 직접 접근과 슬라이스 깊은 import 를 린트가 막는다** (4.38) — 지도 마커 시트(P3-2)도 이걸 쓴다. 마감 회차도 막지 않고 모달이 알린다 (4.37)
 - **하단 CTA 의 찜·비교 담기는 슬롯으로 비어 있다** (4.36). P2-7·P3-4 는 `DetailCtaBar` 에 넘기기만 한다. **주최사 페이지 링크는 아직 없다** — P5-4 다 (4.32)
 - **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다
-- **실패 표면은 셋이고 앞의 둘은 코드·발생 시각을 노출한다** (4.40) — 화면 진입의 조회는 페이지가 `loadOrError` → `ApiErrorScreen` 으로 잡고, 목록의 `더 보기` 는 `LoadMoreError` 가 목록 아래에 그리며, `error.tsx` 는 렌더 중 예외만 받는다(거기서는 `digest` 뿐이다). 재시도 유무는 세 곳 다 `ApiError.retryable` 이 정한다. 빈 상태의 액션은 상수가 아니라 **실제로 풀리는 조건**을 고른다 (4.42)
+- **실패 표면은 넷이고 마지막 하나만 쓰기다** (4.40·4.46) — 제출 실패는 화면을 갈아끼우지 않고 **폼 안**에 `FormErrorNotice` 로 코드·시각을 남긴다(폼이 사라지면 다시 못 누른다). 나머지 셋은 읽기이고 앞의 둘은 코드·발생 시각을 노출한다 — 화면 진입의 조회는 페이지가 `loadOrError` → `ApiErrorScreen` 으로 잡고, 목록의 `더 보기` 는 `LoadMoreError` 가 목록 아래에 그리며, `error.tsx` 는 렌더 중 예외만 받는다(거기서는 `digest` 뿐이다). 재시도 유무는 세 곳 다 `ApiError.retryable` 이 정한다. 빈 상태의 액션은 상수가 아니라 **실제로 풀리는 조건**을 고른다 (4.42)
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
 - **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
 - **건수 0인 선택지는 노출하지 않는다.** 시간대 칩·지역 시트가 그렇다. 건수는 **현재 걸린 다른 필터를 반영**하고, 못 셌으면 건수를 감춘다 (4.28)

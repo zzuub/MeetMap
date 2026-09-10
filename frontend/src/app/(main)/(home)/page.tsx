@@ -1,9 +1,9 @@
-import { getServerSession } from "@/entities/account/server";
 import { eventApi } from "@/entities/event";
 import { loadOrError } from "@/shared/api";
 import { ApiErrorScreen } from "@/shared/ui";
 import { HomeHeader } from "@/widgets/app-header";
 import { HomeFeed } from "@/widgets/home-feed";
+import { loadViewerContext } from "../../_lib/viewer";
 
 /**
  * 홈 `/` (기능정의서 5장).
@@ -17,8 +17,8 @@ import { HomeFeed } from "@/widgets/home-feed";
  * 길이 같이 사라진다 (`decisions.md` 4.40).
  */
 export default async function HomePage() {
-  const [session, feed] = await Promise.all([
-    getServerSession(),
+  const [{ viewer }, feed] = await Promise.all([
+    loadViewerContext(),
     loadOrError(() => eventApi.getHomeFeed({})),
   ]);
 
@@ -30,11 +30,12 @@ export default async function HomePage() {
       {feed.ok ? (
         <HomeFeed
           feed={feed.data}
-          // 가격·자격 기준 주체는 프로필에서 온다. 목 세션에는 출생연도·성별이 없어
-          // 프로필 설정(P2-4)이 붙기 전까지는 게스트 기준(남·여 병기)으로 그린다.
-          viewer={null}
-          // 출생연도 미입력 판정도 프로필이 생긴 뒤다. 지금은 로그인 여부만 본다 (5.3)
-          showMyAgeGroup={session !== null}
+          // 가격·자격의 기준은 프로필에서 온다. 프로필을 건너뛴 사용자는 `null` 이라
+          // 로그인 상태여도 게스트와 같은 표기가 된다 (`decisions.md` 4.44)
+          viewer={viewer}
+          // 섹션 B(`내 나이대`)는 출생연도가 있어야 성립한다 — 로그인 여부가
+          // 아니라 프로필의 유무를 본다 (5.3)
+          showMyAgeGroup={viewer !== null}
         />
       ) : (
         <div className="px-5 py-16">

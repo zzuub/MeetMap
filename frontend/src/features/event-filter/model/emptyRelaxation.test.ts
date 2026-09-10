@@ -126,5 +126,5 @@ describe("0건 빈 상태의 액션", () => {
 /** 액션의 주소를 다시 조건으로 읽는다 — 왕복이 성립해야 다음 단계를 밟을 수 있다 */
 function fromHref(href: string): ExploreParams {
   const search = new URL(href, "http://localhost").searchParams;
-  return parseExploreParams(Object.fromEntries(search), { isGuest: false });
+  return parseExploreParams(Object.fromEntries(search), { hasViewer: true });
 }

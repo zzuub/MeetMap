@@ -9,6 +9,7 @@ import {
   Chip,
   EmptyState,
   ErrorState,
+  FormErrorNotice,
   Modal,
   Numeric,
   PrimaryButton,
@@ -150,6 +151,20 @@ export function SharedUiShowcase() {
       occurredAt={new Date("2026-08-31T14:32:00+09:00")}
       onRetry={() => new Promise((resolve) => setTimeout(resolve, 900))}
       onContactSupport={() => showToast("고객센터 화면은 미설계입니다")}
+    />
+  </Section>
+
+  <Section
+    title="제출 실패 알림"
+    note="11.2 — 네 번째 실패 표면. 폼을 지우지 않고 코드·시각을 남긴다 (4.46)"
+  >
+    <FormErrorNotice
+      failure={{
+        code: "SRV_500",
+        occurredAt: "2026-08-31T14:32:00+09:00",
+        title: "잠시 문제가 생겼어요",
+        description: "서버 상태를 확인하고 있어요. 잠시 후 다시 시도해주세요",
+      }}
     />
   </Section>
 

@@ -36,13 +36,17 @@ export interface ExploreParams {
 }
 
 /**
- * 게스트에게는 **인증 주체가 필요한 축을 아예 만들지 않는다** (6.1).
- * 서버가 인증 주체로 해석하는 값(`eligibleOnly`·`maxPrice`)이라 게스트에게는
+ * 인증 주체가 없으면 **그 주체가 필요한 축을 아예 만들지 않는다** (6.1).
+ * 서버가 인증 주체로 해석하는 값(`eligibleOnly`·`maxPrice`)이라 근거가 없으면
  * 의미가 없고, 파라미터를 손으로 붙여도 무시돼야 한다.
+ *
+ * ⚠️ **`hasViewer` 는 로그인 여부가 아니다.** 판정에 필요한 것은 성별·출생연도이고
+ * 그건 프로필의 값이라, 로그인했지만 프로필을 건너뛴 사용자(3.3·3.4)에게는 없다.
+ * 세션으로 판정하면 그 사람에게 근거 없는 가격 정렬이 열린다 (`decisions.md` 4.44).
  */
 export function parseExploreParams(
   params: RawSearchParams,
-  { isGuest }: { isGuest: boolean },
+  { hasViewer }: { hasViewer: boolean },
 ): ExploreParams {
   const query: EventListQuery = {
     province: DEFAULT_PROVINCE,
@@ -51,12 +55,12 @@ export function parseExploreParams(
     slot: pick(first(params.slot), TIME_SLOTS, "ALL"),
     scale: pick(first(params.scale), SCALE_OPTIONS, "ALL"),
     status: first(params.status) === "OPEN" ? "OPEN" : "ALL",
-    sort: parseSort(first(params.sort), isGuest),
+    sort: parseSort(first(params.sort), hasViewer),
     mood: parseMood(first(params.mood)),
     area: parseArea(first(params.area)),
   };
 
-  if (!isGuest) {
+  if (hasViewer) {
     query.eligibleOnly = parseEligibleOnly(first(params.eligibleOnly));
     query.maxPrice = parseMaxPrice(first(params.maxPrice));
   }
@@ -159,17 +163,17 @@ function parseMood(value: string | undefined): string[] | undefined {
  * `eligibleOnly` 처럼 키를 지우지는 않는다 — 정렬은 기본값이 있는 축이라 지우면
  * 호출부마다 `?? DEFAULT_SORT` 를 다시 쓰게 된다.
  */
-function parseSort(value: string | undefined, isGuest: boolean): SortOption {
+function parseSort(value: string | undefined, hasViewer: boolean): SortOption {
   const sort = pick(value, SORT_OPTIONS, DEFAULT_SORT);
   const needsViewer = (VIEWER_SORTS as readonly string[]).includes(sort);
 
-  return isGuest && needsViewer ? DEFAULT_SORT : sort;
+  return needsViewer && !hasViewer ? DEFAULT_SORT : sort;
 }
 
 /**
  * 3상태로 읽는다 (6.1). **부재 = 기본 ON** 이고 `=0` 만 명시적 OFF 다 — 기본이
  * ON 이라 "파라미터가 없다 = 꺼짐"으로 읽으면 기본값을 표현할 수 없다.
- * 게스트는 이 함수에 오지 않는다(축 자체를 만들지 않는다).
+ * 인증 주체가 없으면 이 함수에 오지 않는다(축 자체를 만들지 않는다).
  */
 function parseEligibleOnly(value: string | undefined): boolean {
   return value !== "0";

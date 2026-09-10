@@ -16,8 +16,8 @@ import { sortChoices } from "./sortChoices";
  * 입력을 `parseExploreParams` 로 만든다. 객체를 손으로 지으면 게스트에게 인증 축이
  * 없는 실제 형태(6.1)를 흉내내다 틀리고, 그러면 게스트 케이스가 거짓으로 통과한다.
  */
-const asUser = (params: RawSearchParams) => parseExploreParams(params, { isGuest: false });
-const asGuest = (params: RawSearchParams) => parseExploreParams(params, { isGuest: true });
+const asUser = (params: RawSearchParams) => parseExploreParams(params, { hasViewer: true });
+const asGuest = (params: RawSearchParams) => parseExploreParams(params, { hasViewer: false });
 
 const codes = (params: ExploreParams) => sortChoices(params).map((choice) => choice.code);
 
@@ -28,7 +28,7 @@ function afterPicking(params: ExploreParams, code: string): ExploreParams {
 
   const search = choice.href.split("?")[1] ?? "";
   return parseExploreParams(Object.fromEntries(new URLSearchParams(search)), {
-    isGuest: params.query.eligibleOnly === undefined,
+    hasViewer: params.query.eligibleOnly !== undefined,
   });
 }
 
