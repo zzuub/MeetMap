@@ -1,5 +1,6 @@
 import type { EventDetail } from "@/entities/event";
 import { AttendeeListBlock } from "./AttendeeListBlock";
+import { LikeButton } from "@/features/event-like";
 import { DetailCtaBar } from "./DetailCtaBar";
 import { DetailHero } from "./DetailHero";
 import { DetailSection } from "./DetailSection";
@@ -32,7 +33,8 @@ export function EventDetailView({ event }: { event: EventDetail }) {
         </DetailSection>
       </div>
 
-      <DetailCtaBar event={event} />
+      {/* 7.2 의 48px 원형. 비교 담기는 P3-4 가 채운다 (4.36) */}
+      <DetailCtaBar event={event} like={<LikeButton eventId={event.id} size="cta" />} />
     </article>
   );
 }

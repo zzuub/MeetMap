@@ -34,6 +34,8 @@ interface MockUserRecord {
   profile?: UserProfile;
   /** 선호 지역의 **현재 값**. 없으면 `profile.preferredAreas` 로 떨어진다 */
   areas?: string[];
+  /** 찜한 소개팅 id (9장). **순서가 곧 찜한 순서**다 */
+  likes?: string[];
 }
 
 export const mockUserApi: UserApi = {
@@ -69,6 +71,33 @@ export const mockUserApi: UserApi = {
 
     const record = await read();
     await write({ ...record, areas: areas.slice(0, MAX_PREFERRED_AREAS) });
+  },
+
+  async getLikedIds() {
+    await delay();
+    return (await read()).likes ?? [];
+  },
+
+  /**
+   * ⚠️ **목 저장소는 계정 쿠키 한 장이라 찜도 여기 산다.** 실 모드에서는 별도
+   * 리소스(`/users/me/likes/{eventId}`)이지만, 목에서 분리하면 쿠키가 넷이 된다
+   * (역할 스위치 · 목 세션 · 목 사용자 · 찜).
+   *
+   * **원하는 결과 상태를 받는다** — 토글이 아니다 (`decisions.md` 4.59).
+   */
+  async setLike(eventId: string, liked: boolean) {
+    await delay();
+
+    const record = await read();
+    const current = record.likes ?? [];
+    // 이미 있으면 순서를 바꾸지 않는다 — 찜 목록 정렬이 흔들린다
+    const next = liked
+      ? current.includes(eventId)
+        ? current
+        : [...current, eventId]
+      : current.filter((id) => id !== eventId);
+
+    await write({ ...record, likes: next });
   },
 };
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { EventCard, type EventCardViewer } from "@/entities/event";
+import { LikeButton } from "@/features/event-like";
 import type { HomeSection, HomeSectionLayout } from "../model/sections";
 
 interface EventSectionProps {
@@ -48,7 +49,12 @@ export function EventSection({ section, viewer }: EventSectionProps) {
       <List label={section.title}>
         {section.events.map((event) => (
           <li key={event.id} className={section.layout === "carousel" ? "shrink-0" : undefined}>
-            <EventCard event={event} variant={section.variant} viewer={viewer} />
+            <EventCard
+              event={event}
+              variant={section.variant}
+              viewer={viewer}
+              action={<LikeButton eventId={event.id} />}
+            />
           </li>
         ))}
       </List>

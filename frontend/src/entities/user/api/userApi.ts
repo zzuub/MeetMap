@@ -34,6 +34,19 @@ const httpUserApi: UserApi = {
       accessToken,
     }),
 
+  // 찜 목록은 **id 만** 받는다 (9장). 회차 본문은 목록 조회가 따로 가져온다 —
+  // 홈·탐색이 찜 상태를 알려고 회차를 통째로 다시 받을 이유가 없다 (4.59)
+  getLikedIds: ({ accessToken }: AuthContext) =>
+    fetchClient<string[]>(ENDPOINTS.user.likes, { accessToken }),
+
+  // 토글이 아니라 **원하는 결과 상태**라 메서드가 갈린다 (7.2 / 4.59)
+  setLike: async (eventId: string, liked: boolean, { accessToken }: AuthContext) => {
+    await fetchClient<void>(ENDPOINTS.user.like(eventId), {
+      method: liked ? "PUT" : "DELETE",
+      accessToken,
+    });
+  },
+
   // 선호 지역만 바꾼다 (4.3). `PUT profile` 이 아니라 `PATCH` 인 이유와 서버가
   // 지켜야 할 것 셋은 `ENDPOINTS.user.preferredAreas` 에 적어 뒀다.
   savePreferredAreas: (areas: string[], { accessToken }: AuthContext) =>

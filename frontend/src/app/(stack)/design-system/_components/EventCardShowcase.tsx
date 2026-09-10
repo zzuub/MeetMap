@@ -7,7 +7,8 @@ import {
   type EventCardVariant,
   type EventSummary,
 } from "@/entities/event";
-import { IconButton, PrimaryButton, SegmentedControl, useToast } from "@/shared/ui";
+import { LikeButton, LikeProvider } from "@/features/event-like";
+import { PrimaryButton, SegmentedControl, useToast } from "@/shared/ui";
 import { BoundarySection } from "./BoundarySection";
 import { PieceSection } from "./PieceSection";
 import { VariantSection } from "./VariantSection";
@@ -23,29 +24,24 @@ import { Section } from "./layout";
 export function EventCardShowcase({ events }: { events: EventSummary[] }) {
   const { showToast } = useToast();
   const [viewerCode, setViewerCode] = useState("F");
+  const [liked, setLiked] = useState<string[]>([]);
+
+  /** 서버 액션 자리에 들어가는 로컬 토글. 화면을 벗어나면 사라진다 */
+  const toggleShowcaseLike = async (eventId: string, next: boolean) => {
+    setLiked((prev) =>
+      next ? [...prev, eventId] : prev.filter((id) => id !== eventId),
+    );
+    return { ok: true } as const;
+  };
 
   const viewer = VIEWERS.find((v) => v.code === viewerCode)?.viewer ?? null;
 
-  /** 찜 버튼 자리를 채우는 대역. 실제 버튼은 `features/event-like` 가 만든다 (P2) */
-  const likeSlot = (
-    <IconButton
-      label="찜하기"
-      // 44×44 히트 영역은 IconButton 기본값이다 (15장). 크기를 덮어쓰면
-      // cn() 이 Tailwind 충돌을 해결하지 못해 `size-9` 와 `size-11` 이 싸운다
-      className="bg-surface/90 backdrop-blur-[2px]"
-      onClick={() => showToast("찜 버튼은 features/event-like 의 몫입니다 (P2)")}
-    >
-      <svg viewBox="0 0 24 24" className="size-5" aria-hidden>
-        <path
-          d="M12 20s-7.2-4.6-7.2-9.4A4.1 4.1 0 0 1 12 8.2a4.1 4.1 0 0 1 7.2 2.4C19.2 15.4 12 20 12 20z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </IconButton>
-  );
+  /**
+   * **실물 찜 버튼이다** (P2-7). 대역을 두지 않는 이유는 이 화면의 목적이
+   * "공통 컴포넌트가 실제로 어떻게 보이는가" 라서다 — 대역은 그 답을 못 준다.
+   * 토글은 아래 `LikeProvider` 안에서만 살고 서버에 남지 않는다.
+   */
+  const likeSlot = (event: EventSummary) => <LikeButton eventId={event.id} />;
 
   /** 마커 시트 하단의 신청 버튼. 7.3 외부 이동 모달을 경유해야 한다 (P1-8) */
   const applySlot = (
@@ -65,7 +61,7 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
         event={event}
         variant={variant}
         viewer={viewer}
-        action={variant === "sheet" ? applySlot : likeSlot}
+        action={variant === "sheet" ? applySlot : likeSlot(event)}
       />
     ),
     pick: (id) => events.find((event) => event.id === id),
@@ -90,7 +86,10 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
           바꾸면 같이 바뀐다.
         </p>
 
-        <VariantSection {...context} />
+        {/* 서버에 남기지 않는다 — 이 화면은 컴포넌트를 보는 자리다 */}
+        <LikeProvider liked={liked} toggleLike={toggleShowcaseLike}>
+          <VariantSection {...context} />
+        </LikeProvider>
       </Section>
 
       <Section
