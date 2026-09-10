@@ -135,6 +135,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 목업(`.dc.html` + 캔버스 런타임)은 **소스가 아니라 자산**이다. 2026-09-10 에
+    // 리포로 편입하면서(`docs/mockups/README.md`) 생성 코드가 린트에 걸렸다 —
+    // 우리가 고칠 파일이 아니므로 규칙을 맞추는 대신 대상에서 뺀다
+    "docs/mockups/**",
   ]),
 ]);
 
