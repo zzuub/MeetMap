@@ -4,6 +4,7 @@ import { getMockEvents, mockProviderRatingScore } from "../mock/events";
 import { MOCK_VIEWER } from "../mock/viewer";
 import { isEligible, isOpen, isThisWeek, priceFor } from "../model/derive";
 import type { EventApi } from "../model/ports";
+import { matchesSearchKeyword, normalizeSearchKeyword } from "../model/search";
 import type {
   EventDetail,
   EventListQuery,
@@ -100,20 +101,14 @@ export const mockEventApi: EventApi = {
   },
 
   async search(keyword) {
+    // 화면이 `idle` 로 보는 입력(공백만)을 여기서 `empty` 로 답하지 않게 **같은 함수**로
+    // 판정한다. 빈 검색어는 왕복하지 않는다 — 실 구현과 같은 모양이다 (`decisions.md` 4.66)
+    const normalized = normalizeSearchKeyword(keyword);
+    if (normalized === null) return [];
     await delay();
 
-    const q = keyword.trim().toLowerCase();
-    if (!q) return [];
-
-    // 검색 대상: 소개팅명 + 지역 + 주최사 (11.1). 카테고리 축은 삭제됐다.
-    return detached(
-      getMockEvents().filter((event) =>
-        [event.title, event.area, event.provider.name]
-          .join(" ")
-          .toLowerCase()
-          .includes(q),
-      ),
-    );
+    // 검색 대상: 소개팅명 · 지역 · 주최사 각각 (11.1). 카테고리 축은 삭제됐다.
+    return detached(getMockEvents().filter((event) => matchesSearchKeyword(event, normalized)));
   },
 
   async logOutboundClick() {

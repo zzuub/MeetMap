@@ -31,6 +31,7 @@ const SHAPES: Record<EventCardVariant, CardShape> = {
   list: { frame: "row", thumb: "size-[92px]", lines: 4 },
   sheet: { frame: "row", thumb: "size-[88px]", lines: 4 },
   liked: { frame: "row", thumb: "size-[66px]", lines: 3 },
+  search: { frame: "row", thumb: "size-[84px]", lines: 4 },
 };
 
 /** 줄 너비를 돌아가며 준다 — 전부 같은 길이면 텍스트가 아니라 표로 보인다 */

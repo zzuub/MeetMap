@@ -119,6 +119,22 @@ export const ENDPOINTS = {
      */
     batch: "/events/batch",
     compare: "/events/compare",
+    /**
+     * 검색 — **`GET /events/search?q=`** → `EventSummary[]` (11.1).
+     *
+     * 요구사항 다섯.
+     * 1. 대상은 **소개팅명 · 지역(`area`) · 주최사명 각각**의 부분 문자열이고 대소문자를
+     *    무시한다. 필드를 이어 붙인 문자열에서 찾지 않는다 — 경계를 넘는 일치가 생긴다
+     * 2. `q` 는 **정규화해서 보낸다**(앞뒤 공백 제거 · 연속 공백 한 칸 — `normalizeSearchKeyword`).
+     *    서버도 같은 규칙으로 읽는다. 빈 `q` 는 보내지 않는다
+     * 3. **상태로 거르지 않는다** — 마감 회차도 내린다. 결과 카드가 상태 배지를 그린다
+     * 4. 순서는 약속하지 않아도 된다 — 화면이 다가오는 순으로 정렬한다 (`decisions.md` 4.70)
+     * 5. `isLiked` 는 채우지 않아도 된다 — 화면이 읽지 않는다 (4.59)
+     *
+     * ⚠️ **페이지네이션이 없다.** 결과가 수백 건이면 한 번에 온다. 상한과 모양, 지난 회차를
+     * 내릴지는 실 API 전환 때 정한다 (`spec/14-open-items.md`) — 화면은 지난 회차가 섞여 와도
+     * 뒤로 보낸다.
+     */
     search: "/events/search",
     reviews: (id: string) => `/events/${id}/reviews`,
     /** 정산·통계용 아웃링크 로깅 (7.3) */
@@ -137,6 +153,26 @@ export const ENDPOINTS = {
     reviews: (id: string) => `/providers/${id}/reviews`,
   },
 
+  /**
+   * 검색어 집계 (`entities/search` — `decisions.md` 4.68). 검색 **실행**은 `event.search` 다.
+   *
+   * **`GET /search/trending`** →
+   * `{ baseAt: string, keywords: { keyword: string, previousRank: number | null }[] }`
+   *
+   * 요구사항 여섯.
+   * 1. `keywords` 는 **순위 순서 배열**이다 — 1위가 `[0]`. `rank` 필드를 따로 싣지 않는다.
+   *    화면이 위치로 세므로 둘을 주면 어긋날 경로만 생긴다 (4.35 1단)
+   * 2. 6개 이하. 화면이 Top 6 로 자른다 (11.1)
+   * 3. `previousRank` 는 **직전 스냅샷**의 순위(1부터)이고, 직전 순위표에 없었으면 `null`
+   *    이다(화면은 `new`). 스냅샷 간격은 서버가 정한다(가안 1시간) — 화면은 간격을 모른다
+   * 4. `baseAt` 은 그 스냅샷의 집계 시각이고 **ISO 8601 + 오프셋**(`Z` 또는 `+09:00`)이다.
+   *    화면은 KST `M/D HH:mm 기준` 으로 쓴다
+   * 5. **지금 `GET /events/search` 로 1건 이상 나오는 검색어만** 올린다. 누르면 0건인
+   *    인기 검색어는 화면이 권한 길이 빈 화면으로 가는 것이다(4.42). 결과 없음 화면의
+   *    추천 검색어도 이 목록에서 오므로 **이 보장 하나가 두 자리를 막는다**
+   * 6. 개인정보(이름·연락처)·욕설은 **서버가 걸러서** 올린다 — 사용자가 친 글자를 다른
+   *    사용자에게 보여 주는 유일한 자리다
+   */
   search: {
     trending: "/search/trending",
   },

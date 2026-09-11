@@ -23,13 +23,16 @@ export {
   providerScheduleLabel,
   providerSlotLabel,
   scaleLabel,
+  searchMetaLabel,
   timeSlotLabel,
   venueDisplay,
   type PriceDisplay,
   type RatingDisplay,
   type VenueDisplay,
 } from "./model/labels";
+export { orderUpcomingFirst } from "./model/order";
 export type { EventApi } from "./model/ports";
+export { isSameSearchKeyword, normalizeSearchKeyword } from "./model/search";
 export { HOME_SECTION_KEYS } from "./model/types";
 export type {
   EventDetail,

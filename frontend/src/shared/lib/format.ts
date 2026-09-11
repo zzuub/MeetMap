@@ -72,6 +72,17 @@ export function formatEventDateTime(iso: string): string {
 }
 
 /**
+ * 집계 기준 시각 (11.1 인기 검색어 `9/11 10:00 기준`) — KST `M/D HH:mm`.
+ *
+ * 날짜는 0 을 채우지 않고(`dateLabel` 과 같다) 시각은 채운다. 입력은 오프셋이 붙은
+ * ISO 라 `Z` 든 `+09:00` 이든 같은 답이다 (`decisions.md` 4.68).
+ */
+export function formatBaseTime(iso: string): string {
+  const parts = getKstParts(new Date(iso));
+  return `${parts.month}/${parts.day} ${pad(parts.hour)}:${pad(parts.minute)}`;
+}
+
+/**
  * 알림함의 상대 시각 (10.2).
  * 7일이 넘으면 절대 날짜로 떨어뜨린다 — "32일 전"은 읽기 어렵다.
  */

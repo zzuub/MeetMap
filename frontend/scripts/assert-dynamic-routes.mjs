@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
 /**
- * `eventApi` 를 무는 라우트가 **정적 프리렌더되지 않았는지** 빌드 산출물로 확인한다.
+ * 목을 무는 라우트가 **정적 프리렌더되지 않았는지** 빌드 산출물로 확인한다.
  *
  * 목 회차의 날짜는 이번 주 월요일 기준 상대값이라(`decisions.md` 4.31), 그 데이터를
  * 쓰는 페이지가 프리렌더되면 **빌드한 주의 날짜가 HTML 에 굳어** 영원히 안 바뀐다.
@@ -11,6 +11,10 @@ import { join, relative, sep } from "node:path";
  *
  * 그래서 사람이 눈으로 하던 확인을 그대로 자동화한다 — 빌드 stdout 의 라우트 표를
  * 읽어 대상 라우트가 전부 `ƒ`(Dynamic)인지 본다.
+ *
+ * **바늘은 실행 시각에 기대는 목을 가진 포트다** — 회차의 날짜(`eventApi` · 4.31)와
+ * 인기 검색어의 기준 시각(`searchApi` · `baseAt` = 직전 정시 · 4.68). 그런 포트가 늘면
+ * 여기에 더한다 (4.70).
  *
  * 사용법: `npm run build | tee build.log && node scripts/assert-dynamic-routes.mjs build.log`
  *
@@ -22,7 +26,7 @@ import { join, relative, sep } from "node:path";
  */
 
 const APP_DIR = join("src", "app");
-const NEEDLE = "eventApi";
+const NEEDLES = ["eventApi", "searchApi"];
 /** `next build` 의 라우트 표: `┌ ƒ /explore` / `├ ○ /likes` */
 const ROUTE_LINE = /^[┌├└│]\s*([ƒ○●λ])\s+(\S+)/;
 
@@ -31,10 +35,10 @@ if (!logPath) {
   fail("빌드 로그 경로가 필요하다: node scripts/assert-dynamic-routes.mjs <build.log>");
 }
 
-const routes = routesUsingEventApi();
+const routes = routesUsingMocks();
 if (routes.length === 0) {
-  fail(`${APP_DIR} 에서 \`${NEEDLE}\` 를 쓰는 page.tsx 를 하나도 못 찾았다 — ` +
-    "탐지가 고장 났거나 라우트 구조가 바뀌었다. 통과시키지 않는다.");
+  fail(`${APP_DIR} 에서 ${NEEDLES.map((n) => `\`${n}\``).join("·")} 를 쓰는 page.tsx 를 하나도 ` +
+    "못 찾았다 — 탐지가 고장 났거나 라우트 구조가 바뀌었다. 통과시키지 않는다.");
 }
 
 const markers = parseRouteTable(readFileSync(logPath, "utf8"));
@@ -55,32 +59,35 @@ for (const route of routes) {
 
 if (problems.length > 0) {
   fail(
-    `\`${NEEDLE}\` 를 쓰는 라우트가 정적 프리렌더됐다 — 빌드한 주의 날짜가 굳는다 ` +
-      "(`decisions.md` 4.31).\n" +
+    "시각에 기대는 목을 쓰는 라우트가 정적 프리렌더됐다 — 빌드한 시점의 날짜가 굳는다 " +
+      "(`decisions.md` 4.31 · 4.70).\n" +
       problems.map((p) => `  · ${p}`).join("\n") +
       "\n\n해당 page.tsx 에 `export const dynamic = \"force-dynamic\"` 을 붙이거나, " +
       "`cookies()`/`searchParams` 를 읽어 동적으로 만든다.",
   );
 }
 
-console.log(`✓ ${NEEDLE} 라우트 ${routes.length}개가 전부 동적이다: ${routes.join(", ")}`);
+console.log(
+  `✓ ${NEEDLES.join("·")} 라우트 ${routes.length}개가 전부 동적이다: ${routes.join(", ")}`,
+);
 
 /* ── 내부 ───────────────────────────────────────────────── */
 
 /**
- * `eventApi` 를 무는 라우트들. **`page.tsx` 뿐 아니라 그 라우트 폴더 안의 다른
- * `.tsx` 도 본다** — `explore/_components/Something.tsx` 가 직접 조회해도 결국
- * 그 라우트가 프리렌더되면 안 되는 것은 같다. `walk()` 이 이미 지나가는 파일이라
- * 필터만 넓히면 된다.
+ * 바늘을 무는 라우트들. **`page.tsx` 뿐 아니라 그 라우트 폴더 안의 다른 `.tsx` 도
+ * 본다** — `explore/_components/Something.tsx` 가 직접 조회해도 결국 그 라우트가
+ * 프리렌더되면 안 되는 것은 같다. `walk()` 이 이미 지나가는 파일이라 필터만 넓히면 된다.
  */
-function routesUsingEventApi() {
+function routesUsingMocks() {
   const routes = new Set();
   const pages = new Set();
 
   for (const file of walk(APP_DIR)) {
     if (file.endsWith(`${sep}page.tsx`)) pages.add(toRoutePath(file));
     if (!file.endsWith(".tsx") && !file.endsWith(".ts")) continue;
-    if (!readFileSync(file, "utf8").includes(NEEDLE)) continue;
+
+    const source = readFileSync(file, "utf8");
+    if (!NEEDLES.some((needle) => source.includes(needle))) continue;
     routes.add(toRoutePath(file));
   }
 

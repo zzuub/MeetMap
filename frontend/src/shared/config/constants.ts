@@ -335,6 +335,15 @@ export const QUIET_HOURS_OPTIONS = [
 
 export const SEARCH_DEBOUNCE_MS = 300;
 export const RECENT_KEYWORDS_KEY = "meetmap:recent-keywords";
+/**
+ * 최근 검색어 보관 개수 — 16장 TBD 에 구현이 정한 기본값. 375×667 에서 두 단어 검색어가
+ * 3줄에 들어가 인기 검색어 6위까지 한 화면에 보이는 수다(8개면 4줄 — 재어 보고 줄였다, `decisions.md` 4.69)
+ */
+export const RECENT_KEYWORDS_MAX = 6;
+/** 인기 검색어 표시 개수 (11.1 `Top 6`) */
+export const TRENDING_KEYWORDS_MAX = 6;
+/** 결과 없음의 추천 검색어 개수 (11.1 칩 네 개). 내용은 인기 검색어에서 온다 (4.68) */
+export const SEARCH_SUGGESTIONS_MAX = 4;
 export const COMPARE_STORAGE_KEY = "meetmap:compare";
 
 /* ── 토스트 (2.5) ───────────────────────────────────────── */

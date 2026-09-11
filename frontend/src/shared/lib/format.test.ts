@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatBaseTime,
   formatDistance,
   formatEventDate,
   formatEventDateTime,
@@ -82,6 +83,21 @@ describe("normalizeHour24", () => {
 describe("formatEventDateTime", () => {
   it("날짜와 시각을 공백 하나로 잇는다", () => {
     expect(formatEventDateTime("2026-09-04T19:30:00+09:00")).toBe("9/4(금) 19:30");
+  });
+});
+
+describe("formatBaseTime", () => {
+  it("KST `M/D HH:mm` — 날짜는 0 을 안 채우고 시각은 채운다 (11.1 `기준 시각`)", () => {
+    expect(formatBaseTime("2026-09-11T10:00:00+09:00")).toBe("9/11 10:00");
+    expect(formatBaseTime("2026-01-05T09:05:00+09:00")).toBe("1/5 09:05");
+  });
+
+  it("`Z` 로 와도 KST 로 읽는다 — 계약은 오프셋을 둘 다 허용한다 (4.68)", () => {
+    expect(formatBaseTime("2026-09-11T01:00:00Z")).toBe("9/11 10:00");
+  });
+
+  it("KST 로 날짜가 넘어가는 시각 — 로컬 TZ 를 읽으면 여기서 갈린다", () => {
+    expect(formatBaseTime("2026-09-10T15:00:00Z")).toBe("9/11 00:00");
   });
 });
 

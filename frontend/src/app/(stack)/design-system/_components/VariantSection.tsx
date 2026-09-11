@@ -1,7 +1,7 @@
 import { VariantBlock } from "./layout";
-import type { CardShowcaseContext } from "./cardShowcase";
+import { SHOWCASE_KEYWORD, type CardShowcaseContext } from "./cardShowcase";
 
-/** 카드 변형 — 14.1 의 다섯 + 찜 목록 `liked` (4.63) */
+/** 카드 변형 — 14.1 의 다섯 + 찜 목록 `liked` (4.63) + 검색 결과 `search` (4.67) */
 export function VariantSection({ events, card, sample }: CardShowcaseContext) {
   return (
     <>
@@ -33,7 +33,7 @@ export function VariantSection({ events, card, sample }: CardShowcaseContext) {
     </div>
   </VariantBlock>
 
-  <VariantBlock name="list" spec="탐색 리스트 · 검색 결과 · 썸네일 92px (6.5)">
+  <VariantBlock name="list" spec="탐색 리스트 · 썸네일 92px (6.5) — 검색 결과는 `search` 다(4.67)">
     <div className="flex flex-col gap-2">
       {events.slice(0, 2).map((event) => card(event, "list"))}
     </div>
@@ -49,6 +49,15 @@ export function VariantSection({ events, card, sample }: CardShowcaseContext) {
   >
     <div className="flex flex-col gap-2">
       {events.slice(0, 2).map((event) => card(event, "liked"))}
+    </div>
+  </VariantBlock>
+
+  <VariantBlock
+    name="search"
+    spec={`검색 결과 · 썸네일 84px · 제목 하이라이트('${SHOWCASE_KEYWORD}') · 주최사·일시·지역 (11.1) → 4.67`}
+  >
+    <div className="flex flex-col gap-2">
+      {events.slice(0, 2).map((event) => card(event, "search"))}
     </div>
   </VariantBlock>
     </>

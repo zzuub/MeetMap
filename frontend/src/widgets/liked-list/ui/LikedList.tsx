@@ -16,7 +16,7 @@ export function LikedList({
   events,
   viewer,
 }: {
-  /** 서버가 정렬해 넘긴 찜한 회차 (`orderLikedEvents`) */
+  /** 서버가 정렬해 넘긴 찜한 회차 (`orderUpcomingFirst`) */
   events: readonly EventSummary[];
   viewer: EventCardViewer | null;
 }) {

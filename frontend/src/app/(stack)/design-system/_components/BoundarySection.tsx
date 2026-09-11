@@ -19,12 +19,12 @@ export function BoundarySection({ card, pick }: CardShowcaseContext) {
     <li>
       <b className="text-text">이미지 미동의</b> — 모든 변형이 주최사 이름이 든 대체
       표시. 폭이 좁은 <code>compact</code>·<code>list</code>·<code>sheet</code>·
-      <code>liked</code> 는 이름을 숨기고 마크만 남긴다. 이미지가 없다고 소개팅을
-      숨기지 않는다.
+      <code>liked</code>·<code>search</code> 는 이름을 숨기고 마크만 남긴다. 이미지가
+      없다고 소개팅을 숨기지 않는다.
     </li>
     <li>
       <b className="text-text">마감</b> — 상태 배지는 <code>list</code>·
-      <code>sheet</code>·<code>liked</code> 에만 있다. <b className="text-text">홈은
+      <code>sheet</code>·<code>liked</code>·<code>search</code> 에만 있다. <b className="text-text">홈은
       마감을 아예 받지 않으므로</b>(5.3 · <code>getHomeFeed</code> 세 섹션 전부 모집 중)
       홈에 쓰는 세 변형에는 배지를 두지 않는다 — 같은 값만 찍히는 배지는 정보가
       아니다 → 4.23. 찜 목록은 마감돼도 남아(9장) <code>compact</code> 에 조건을 붙이지
