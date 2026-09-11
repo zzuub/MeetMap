@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { CompactCard } from "./CompactCard";
 import { FeatureCard } from "./FeatureCard";
+import { LikedCard } from "./LikedCard";
 import { ListCard } from "./ListCard";
 import { RatioCard } from "./RatioCard";
 import { SheetCard } from "./SheetCard";
@@ -20,6 +21,7 @@ const LAYOUTS: Record<EventCardVariant, ComponentType<EventCardLayoutProps>> = {
   compact: CompactCard,
   list: ListCard,
   sheet: SheetCard,
+  liked: LikedCard,
 };
 
 /**

@@ -4,6 +4,7 @@ export {
   deriveScale,
   isEligible,
   isOpen,
+  isPastDayKst,
   isThisWeek,
   isTodayKst,
   marksIneligible,

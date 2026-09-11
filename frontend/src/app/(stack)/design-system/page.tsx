@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 /**
  * Phase 0~1 산출물 확인용 페이지 (`/design-system`).
  *
- * P0-1(토큰) / P0-3(shared/ui) / P0-4(피드백 패턴) / P1-1(카드 variant 5종)의
+ * P0-1(토큰) / P0-3(shared/ui) / P0-4(피드백 패턴) / P1-1(카드 variant — P2-8 에서 `liked` 추가)의
  * 완료 조건을 눈으로 확인한다. 제품 화면이 아니므로 내비게이션에 노출하지 않고
  * 색인도 막는다. shared/ui 또는 entity 카드에 컴포넌트를 추가하면 여기에도 추가한다.
  *

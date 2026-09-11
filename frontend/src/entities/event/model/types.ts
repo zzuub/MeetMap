@@ -33,7 +33,7 @@ export type SortOption =
  * **`EventSummary.provider` 의 타입.** 목록이 나르는 주최사 최소 형태다.
  * `entities/provider` 를 import 할 수 없어 여기서 정의한다(FSD 동일 레이어 금지).
  *
- * ⚠️ 평점을 넣지 않는다 — 카드 5종 어디에도 주최사 평점을 그리지 않는다 (7.4).
+ * ⚠️ 평점을 넣지 않는다 — 카드 어느 변형에도 주최사 평점을 그리지 않는다 (7.4).
  * 그래서 `EventSummary` 만 받는 카드에서는 `.provider.rating` 이 **타입 에러**다.
  *
  * @see EventProviderDetail — `EventDetail` 쪽의 넓은 짝

@@ -31,10 +31,7 @@ export interface ViewerContext {
 }
 
 export async function loadViewerContext(): Promise<ViewerContext> {
-  const [session, accessToken] = await Promise.all([
-    getServerSession(),
-    getAccessToken(),
-  ]);
+  const { session, accessToken } = await loadSession();
 
   if (!session) return { session: null, viewer: null, likedIds: [] };
 
@@ -62,16 +59,43 @@ export async function loadViewerContext(): Promise<ViewerContext> {
   }
 }
 
+/** 로그인 여부와 API 토큰 */
+export async function loadSession(): Promise<{
+  session: Session | null;
+  accessToken: string | null;
+}> {
+  const [session, accessToken] = await Promise.all([getServerSession(), getAccessToken()]);
+  return { session, accessToken };
+}
+
 /**
- * 게스트가 찜을 누르면 갈 곳. 로그인 사용자는 `null` 이다.
+ * 프로필만. 실패하면 게스트 기준(`null`)으로 떨어진다 — 덜 개인화될 뿐이다 (4.44).
  *
- * 로그인 뒤 **원래 보던 화면으로 되돌린다** — `?redirect=` 는 소비 시점 한 곳
- * (`safeRedirect`)에서 검증되므로 여기서는 만들기만 한다 (`decisions.md` 4.45).
+ * ⚠️ **찜 목록은 `loadViewerContext` 대신 이것을 쓴다.** 그 함수는 찜 조회 실패를
+ * `[]` 로 삼키는데, 다른 화면에서는 하트가 꺼지는 정도지만 찜 목록에서는
+ * `아직 찜한 소개팅이 없어요` 라는 **틀린 빈 상태**가 된다 (`decisions.md` 4.64).
  */
+export async function loadViewer(accessToken: string | null): Promise<EventCardViewer | null> {
+  try {
+    return await userApi.getMyProfile({ accessToken });
+  } catch (error) {
+    console.warn("[viewer] 프로필 조회 실패 — 게스트 기준으로 그린다", error);
+    return null;
+  }
+}
+
+/**
+ * 로그인 화면 주소. 끝나면 **원래 보던 화면으로 되돌린다** — `?redirect=` 는 소비
+ * 시점 한 곳(`safeRedirect`)에서 검증되므로 여기서는 만들기만 한다 (`decisions.md` 4.45).
+ */
+export function signInHref(currentPath: string): string {
+  return `${ONBOARDING_ROOT}?redirect=${encodeURIComponent(currentPath)}`;
+}
+
+/** 게스트가 찜을 누르면 갈 곳. 로그인 사용자는 `null` 이다 */
 export function signInHrefFor(
   session: Session | null,
   currentPath: string,
 ): string | null {
-  if (session) return null;
-  return `${ONBOARDING_ROOT}?redirect=${encodeURIComponent(currentPath)}`;
+  return session ? null : signInHref(currentPath);
 }

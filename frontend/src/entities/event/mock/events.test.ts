@@ -87,6 +87,7 @@ describe("캐시 오염 방지", () => {
     getHomeFeed: "회차",
     getList: "회차",
     getDetail: "회차",
+    getByIds: "회차",
     getMapMarkers: "회차",
     search: "회차",
     logOutboundClick: "그 외",
@@ -99,6 +100,7 @@ describe("캐시 오염 방지", () => {
     ["getHomeFeed · newlyAdded", async () => (await mockEventApi.getHomeFeed({})).newlyAdded],
     ["getList", async () => (await mockEventApi.getList({ limit: 20 })).items],
     ["getDetail", async () => [await mockEventApi.getDetail(cachedIds()[0])]],
+    ["getByIds", async () => mockEventApi.getByIds(cachedIds())],
     ["getMapMarkers", async () => mockEventApi.getMapMarkers({})],
     ["search", async () => mockEventApi.search("소개팅")],
   ];

@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import type { EventSummary, ViewerGender } from "../../model/types";
 
-/** 카드 변형 5종 (14.1). 근거·표시 항목은 `decisions.md` 4.16 */
-export type EventCardVariant = "feature" | "ratio" | "compact" | "list" | "sheet";
+/**
+ * 카드 변형 — 14.1 의 다섯 + 찜 목록의 `liked`. 근거·표시 항목은 `decisions.md` 4.16·4.63.
+ * 하나 늘면 `LAYOUTS`·`SHAPES` 가 컴파일 에러로 짝을 요구한다
+ */
+export type EventCardVariant = "feature" | "ratio" | "compact" | "list" | "sheet" | "liked";
 
 /**
  * 가격·자격의 기준이 되는 주체. 게스트는 `null` 이다.

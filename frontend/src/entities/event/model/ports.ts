@@ -30,6 +30,15 @@ export interface EventApi {
   /** 탐색 목록. 커서 페이지네이션 (6.1) */
   getList(query: EventListQuery): Promise<CursorPage<EventSummary>>;
   getDetail(id: string): Promise<EventDetail>;
+  /**
+   * id 로 여러 건 (9장 찜 목록). **어떤 id 를 물을지는 호출부가 정한다** — 이 포트는
+   * 클라이언트에서도 도는 모듈이라 "내 찜"을 모른다 (`decisions.md` 4.59·4.62).
+   *
+   * - **상태로 거르지 않는다.** 찜한 소개팅은 마감돼도 남는다 — `getHomeFeed` 와 반대다
+   * - **없는 id 는 에러 없이 빠진다.** 삭제된 회차 하나가 목록 전체를 에러로 만들지 않게
+   * - **순서를 약속하지 않는다.** 정렬은 화면이 한다
+   */
+  getByIds(ids: readonly string[]): Promise<EventSummary[]>;
   /** 지도 마커. 뷰포트 bbox 기준 (6.6) */
   getMapMarkers(
     query: EventListQuery & { bbox?: string },

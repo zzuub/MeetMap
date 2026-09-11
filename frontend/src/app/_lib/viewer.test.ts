@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeRedirect, type Session } from "@/entities/account";
-import { signInHrefFor } from "./viewer";
+import { signInHref, signInHrefFor } from "./viewer";
 
 /**
  * 게스트가 찜을 누르면 가는 곳 (2.4 `찜 … 로그인 필요`).
@@ -33,7 +33,7 @@ describe("찜 버튼의 로그인 목적지", () => {
    * 확인한다. 만드는 쪽과 쓰는 쪽이 갈리면 게스트가 로그인 뒤 홈으로 떨어진다.
    */
   it("만든 값이 `safeRedirect` 를 통과한다", () => {
-    for (const path of ["/", "/explore?area=성수·건대", "/events/evt-1"]) {
+    for (const path of ["/", "/explore?area=성수·건대", "/events/evt-1", "/likes"]) {
       const href = signInHrefFor(null, path);
       const redirect = new URL(href!, "http://x").searchParams.get("redirect");
 
@@ -41,6 +41,12 @@ describe("찜 버튼의 로그인 목적지", () => {
       // 같은 주소이므로 디코드해 비교한다 — 리터럴 비교는 맞는 값을 실패로 잡는다
       expect(decodeURIComponent(safeRedirect(redirect) ?? ""), path).toBe(path);
     }
+  });
+
+  it("찜 목록이 세션 없이 열리면 `proxy` 와 같은 주소로 보낸다 (4.12 · 4.64)", () => {
+    // `proxy.ts` 는 `redirect=/likes` 를 붙인다. 페이지가 다른 값을 만들면 로그인 뒤
+    // 도착지가 진입 경로마다 달라진다
+    expect(signInHref("/likes")).toBe("/onboarding?redirect=%2Flikes");
   });
 
   it("조건이 걸린 탐색 주소도 통째로 들고 간다", () => {

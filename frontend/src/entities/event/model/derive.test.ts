@@ -4,6 +4,7 @@ import {
   deriveScale,
   isEligible,
   isOpen,
+  isPastDayKst,
   isThisWeek,
   isTodayKst,
   marksIneligible,
@@ -131,6 +132,37 @@ describe("isTodayKst", () => {
     const justAfterMidnightKst = new Date("2026-09-10T15:00:00Z");
     expect(isTodayKst("2026-09-11T09:00:00+09:00", justAfterMidnightKst)).toBe(true);
     expect(isTodayKst("2026-09-10T23:00:00+09:00", justAfterMidnightKst)).toBe(false);
+  });
+});
+
+/**
+ * 찜 목록 정렬(9장)이 `지난 회차` 를 가르는 축이다 (`decisions.md` 4.65).
+ * `isTodayKst` 와 같은 이유로 **KST 달력 날짜**를 본다 — CI 가 TZ 2종으로 한 번 더 돈다.
+ */
+describe("isPastDayKst", () => {
+  const now = new Date("2026-09-11T21:00:00+09:00");
+
+  it("어제까지는 지난 날이다", () => {
+    expect(isPastDayKst("2026-09-10T23:59:59+09:00", now)).toBe(true);
+    expect(isPastDayKst("2026-09-01T12:00:00+09:00", now)).toBe(true);
+  });
+
+  it("오늘은 이미 시작했어도 지난 날이 아니다 — 시각이 아니라 날짜를 센다", () => {
+    expect(isPastDayKst("2026-09-11T00:00:00+09:00", now)).toBe(false);
+    expect(isPastDayKst("2026-09-11T19:30:00+09:00", now)).toBe(false);
+  });
+
+  it("내일은 지난 날이 아니다", () => {
+    expect(isPastDayKst("2026-09-12T00:00:00+09:00", now)).toBe(false);
+  });
+
+  it("KST 자정 경계는 UTC·로컬이 아니라 KST 로 갈린다", () => {
+    // now = 9/11 00:30 KST. 9/10 23:00 KST 는 KST 로는 어제지만 UTC·LA·+14 어느 로컬
+    // 달력으로 읽어도 now 와 같은 날이다 — 로컬 TZ 를 읽는 구현은 세 TZ 모두에서 떨어진다
+    const justAfterMidnightKst = new Date("2026-09-10T15:30:00Z");
+
+    expect(isPastDayKst("2026-09-10T14:00:00Z", justAfterMidnightKst)).toBe(true);
+    expect(isPastDayKst("2026-09-10T16:00:00Z", justAfterMidnightKst)).toBe(false);
   });
 });
 

@@ -92,7 +92,7 @@ describe("찜 토스트 (7.2)", () => {
     expect(LIKE_TOAST.liked).not.toBe(LIKE_TOAST.unliked);
   });
 
-  it("해제도 알린다 — 되돌릴 수 있다는 신호다", () => {
+  it("해제도 알린다", () => {
     expect(LIKE_TOAST.unliked.trim()).not.toBe("");
   });
 });

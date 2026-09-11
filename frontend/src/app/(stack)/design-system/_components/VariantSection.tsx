@@ -1,7 +1,7 @@
 import { VariantBlock } from "./layout";
 import type { CardShowcaseContext } from "./cardShowcase";
 
-/** 카드 변형 5종 (14.1) */
+/** 카드 변형 — 14.1 의 다섯 + 찜 목록 `liked` (4.63) */
 export function VariantSection({ events, card, sample }: CardShowcaseContext) {
   return (
     <>
@@ -26,7 +26,7 @@ export function VariantSection({ events, card, sample }: CardShowcaseContext) {
 
   <VariantBlock
     name="compact"
-    spec="홈 `새로 등록된` · 찜 목록 · 썸네일 64px (5.3 섹션 C)"
+    spec="홈 `새로 등록된` · 썸네일 64px (5.3 섹션 C) — 상태 배지 없음(4.23)"
   >
     <div className="flex flex-col gap-2">
       {events.slice(0, 2).map((event) => card(event, "compact"))}
@@ -41,6 +41,15 @@ export function VariantSection({ events, card, sample }: CardShowcaseContext) {
 
   <VariantBlock name="sheet" spec="지도 마커 시트 · 썸네일 88px (6.6)">
     {card(sample(1), "sheet")}
+  </VariantBlock>
+
+  <VariantBlock
+    name="liked"
+    spec="찜 목록 · 썸네일 66px · 상태 배지 (9장) — 마감돼도 남는다 → 4.63"
+  >
+    <div className="flex flex-col gap-2">
+      {events.slice(0, 2).map((event) => card(event, "liked"))}
+    </div>
   </VariantBlock>
     </>
   );

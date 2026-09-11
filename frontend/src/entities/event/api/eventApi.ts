@@ -30,6 +30,15 @@ const httpEventApi: EventApi = {
 
   getDetail: (id) => fetchClient<EventDetail>(ENDPOINTS.event.detail(id)),
 
+  // ⚠️ 빈 배열이면 요청하지 않는다. `fetchClient` 가 빈 `ids=` 를 빼서 **조건 없는
+  // 요청**이 나간다 — 서버가 무엇을 돌려줄지 계약에 없는 모양이다
+  getByIds: async (ids) =>
+    ids.length === 0
+      ? []
+      : fetchClient<EventSummary[]>(ENDPOINTS.event.batch, {
+          query: { ids: ids.join(",") },
+        }),
+
   getMapMarkers: ({ bbox, ...query }) =>
     fetchClient<EventSummary[]>(ENDPOINTS.event.map, {
       query: { ...serializeQuery(query), bbox },

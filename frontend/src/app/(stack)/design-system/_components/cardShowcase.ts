@@ -40,11 +40,18 @@ export const BOUNDARY_CASES = [
   {
     id: "evt-007",
     label: "마감",
-    note: "인기 상위인데 마감된 건 — 홈은 이 건을 받지 않는다 (5.3)",
+    note: "인기 상위인데 마감된 건 — 홈은 이 건을 받지 않고(5.3) 찜 목록에서는 남는다(9장)",
   },
 ];
 
-export const ALL_VARIANTS: EventCardVariant[] = ["feature", "ratio", "compact", "list", "sheet"];
+export const ALL_VARIANTS: EventCardVariant[] = [
+  "feature",
+  "ratio",
+  "compact",
+  "list",
+  "sheet",
+  "liked",
+];
 
 /** P1-2 DoD — 상태 2종 */
 export const ALL_STATUSES: EventStatus[] = ["신청 가능", "마감"];

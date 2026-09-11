@@ -9,7 +9,7 @@ import { PriceText } from "../PriceText";
 import type { EventCardViewer } from "./types";
 
 /**
- * 레이아웃 5종이 공유하는 조각.
+ * 레이아웃들이 공유하는 조각.
  *
  * 크기·배치는 각 레이아웃이 정하고, 여기 있는 것은 **어느 변형에서나 같아야 하는
  * 규칙**뿐이다 — 링크 히트 영역, 가격 기준, 자격 배지 문구.

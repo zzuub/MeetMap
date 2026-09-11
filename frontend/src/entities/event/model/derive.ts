@@ -76,6 +76,16 @@ export function isTodayKst(iso: string, now: Date = new Date()): boolean {
   return kstDateKey(new Date(iso)) === kstDateKey(now);
 }
 
+/**
+ * **KST 달력으로 오늘보다 앞선 날** 열렸는가 (9장 찜 목록 정렬 — `decisions.md` 4.65).
+ *
+ * `isTodayKst` 와 같은 축이다 — 시각이 아니라 **날짜**를 본다. 오늘 19:30 회차는
+ * 21:00 에 봐도 지난 회차가 아니다. 같은 이유로 실행 환경의 타임존을 읽지 않는다.
+ */
+export function isPastDayKst(iso: string, now: Date = new Date()): boolean {
+  return kstDateKey(new Date(iso)) < kstDateKey(now);
+}
+
 /** `2026-09-10` — KST 달력 날짜. 비교에만 쓰므로 형식은 정렬 가능하기만 하면 된다 */
 function kstDateKey(at: Date): string {
   return new Date(at.getTime() + KST_OFFSET_MS).toISOString().slice(0, 10);

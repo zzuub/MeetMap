@@ -5,8 +5,11 @@ import { CARD_SHELL, CardPrice, CardTitle } from "./parts";
 import type { EventCardLayoutProps } from "./types";
 
 /**
- * `compact` — 홈 `새로 등록된 소개팅` · 찜 목록. 썸네일 64px 가로형 (5.3 섹션 C).
+ * `compact` — 홈 `새로 등록된 소개팅`. 썸네일 64px 가로형 (5.3 섹션 C).
  * 표시 항목: 썸네일, 제목, `주최사 · 시간대 시각`, 가격.
+ *
+ * 상태 배지가 없다 — 홈은 마감을 받지 않는다(4.23). 14.1 이 찜 목록과 공용으로 적었지만
+ * 찜 목록은 `liked` 로 갈라졌다 (`decisions.md` 4.63).
  */
 export function CompactCard({ event, viewer, action, href, className }: EventCardLayoutProps) {
   return (
