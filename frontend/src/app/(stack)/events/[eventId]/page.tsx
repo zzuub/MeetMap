@@ -7,7 +7,7 @@ import { EventDetailView, ShareButton } from "@/widgets/event-detail";
 import { loadViewerContext, signInHrefFor } from "../../../_lib/viewer";
 
 /**
- * 소개팅 상세 `/events/[eventId]` (7.1·7.2). **카드 5종이 전부 여기로 온다.**
+ * 소개팅 상세 `/events/[eventId]` (7.1·7.2). **카드 변형이 전부 여기로 온다.**
  *
  * 헤더에 타이틀을 주지 않는다 — 액션은 `공유` 뿐이고 소개팅명은 **히어로의 `h1`** 이다
  * (타이틀 없는 `AppHeader` 를 쓰는 화면이 지는 의무 — 4.34). `(stack)/layout.tsx` 가

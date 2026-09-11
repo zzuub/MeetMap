@@ -67,7 +67,8 @@ export const ENDPOINTS = {
      *
      * ⚠️ **회차 본문이 아니라 id 만 내려준다.** 홈·탐색은 카드의 찜 표시를 위해 이
      * 값을 읽는데, 회차를 통째로 받으면 같은 데이터를 두 번 나르게 된다. 찜 목록
-     * 화면(P2-8)이 본문을 필요로 하면 그때 `?expand=` 를 더한다.
+     * 화면(P2-8)은 본문을 **`event.batch` 로 따로** 받는다 — `?expand=` 를 더하지
+     * 않았다 (`decisions.md` 4.62).
      *
      * ⚠️ **`GET /events` 응답의 `isLiked` 와 어긋나면 안 된다.** 화면은 **이 값만**
      * 읽으므로(4.59) 어긋나도 티가 안 나지만, 실 API 는 같은 인증 주체 기준으로
@@ -96,6 +97,27 @@ export const ENDPOINTS = {
     /** 뷰포트 bbox 기준 마커 (6.6) */
     map: "/events/map",
     detail: (id: string) => `/events/${id}`,
+    /**
+     * id 로 여러 건 — **`GET /events/batch?ids=a,b,c`** → `EventSummary[]` (9장 찜 목록).
+     *
+     * 찜 목록은 `user.likes` 로 id 를 받고 이것으로 본문을 받는다. `user.likes?expand=`
+     * 로 합치지 않은 이유는 `decisions.md` 4.62 — 요약하면 **`eventApi` 는 쿠키를 못
+     * 읽는 모듈이라 "내 찜"을 물을 수 없고**, id 를 인자로 받아야 목·실이 같은 경로를
+     * 탄다. `entities/user` 는 `EventSummary` 를 이름조차 부를 수 없다(FSD).
+     *
+     * 요구사항 넷.
+     * 1. **상태로 거르지 않는다.** 마감 회차도 내린다 — 찜한 소개팅은 마감돼도 남는다
+     *    (9장). `event.home` 과 정반대라 적어 둔다
+     * 2. **없는 id 는 빼고 `200` 이다.** `404` 로 답하면 삭제된 회차 하나가 목록 전체를
+     *    에러 카드로 만든다
+     * 3. 순서는 약속하지 않아도 된다 — 화면이 개최일로 다시 정렬한다 (4.65)
+     * 4. `isLiked` 는 채우지 않아도 된다 — 화면이 읽지 않는다 (4.59)
+     *
+     * ⚠️ **id 개수 상한이 없다.** 찜 개수에 상한이 없어(9장) 쿼리스트링이 길어질 수
+     * 있다. 상한과 넘칠 때의 모양(분할 요청 / `POST` 본문)은 실 API 전환 때 정한다
+     * (`spec/14-open-items.md`).
+     */
+    batch: "/events/batch",
     compare: "/events/compare",
     search: "/events/search",
     reviews: (id: string) => `/events/${id}/reviews`,

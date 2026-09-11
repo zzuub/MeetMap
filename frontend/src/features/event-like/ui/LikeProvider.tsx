@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useToast } from "@/shared/ui";
 import { LIKE_FAILED_TOAST, LIKE_TOAST, type LikeResult } from "../model/copy";
+import { toggleLikedId } from "../model/likedIds";
 
 interface LikeContextValue {
   isLiked: (eventId: string) => boolean;
@@ -58,13 +59,8 @@ export function LikeProvider({
   const { showToast } = useToast();
   const [, startTransition] = useTransition();
 
-  const [optimistic, apply] = useOptimistic(
-    liked,
-    (current: readonly string[], eventId: string) =>
-      current.includes(eventId)
-        ? current.filter((id) => id !== eventId)
-        : [...current, eventId],
-  );
+  // 리듀서는 떼어 테스트한다 — 찜 목록이 이 결과로 카드를 지운다 (`decisions.md` 4.64)
+  const [optimistic, apply] = useOptimistic(liked, toggleLikedId);
 
   // 매 렌더 새 `Set` 을 만들지 않는다 — 카드가 수십 장이면 조회가 그만큼 돈다
   const likedSet = useMemo(() => new Set(optimistic), [optimistic]);

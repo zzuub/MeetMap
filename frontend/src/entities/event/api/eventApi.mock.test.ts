@@ -462,6 +462,36 @@ describe("mockEventApi", () => {
     expect(await mockEventApi.search("   ")).toEqual([]);
   });
 
+  it("getByIds 는 마감 회차도 돌려준다 — 찜한 소개팅은 마감돼도 남는다 (9장)", async () => {
+    // `getHomeFeed` 와 반대 규칙이다. 거를 대상이 실제로 있어야 이 테스트가 뜻을 갖는다
+    const closed = MOCK_EVENTS.filter((event) => !isOpen(event));
+    expect(closed.length).toBeGreaterThan(0);
+
+    const got = await mockEventApi.getByIds(closed.map((event) => event.id));
+    expect(got.map((event) => event.id).sort()).toEqual(closed.map((event) => event.id).sort());
+  });
+
+  it("getByIds 는 없는 id 를 에러 없이 뺀다 — 삭제된 회차 하나가 목록을 죽이지 않게", async () => {
+    const [first] = MOCK_EVENTS;
+
+    const got = await mockEventApi.getByIds([first.id, "없는-회차"]);
+    expect(got.map((event) => event.id)).toEqual([first.id]);
+  });
+
+  it("getByIds 는 빈 요청에 빈 배열이다", async () => {
+    expect(await mockEventApi.getByIds([])).toEqual([]);
+  });
+
+  it("getByIds 가 돌려준 객체를 고쳐도 다음 조회에 새지 않는다 (4.31 `detached`)", async () => {
+    const [first] = MOCK_EVENTS;
+
+    const [got] = await mockEventApi.getByIds([first.id]);
+    got.title = "바뀐 제목";
+
+    const [again] = await mockEventApi.getByIds([first.id]);
+    expect(again.title).toBe(first.title);
+  });
+
   it("없는 id 는 404 ApiError 로 떨어진다", async () => {
     await expect(mockEventApi.getDetail("nope")).rejects.toMatchObject({
       status: 404,

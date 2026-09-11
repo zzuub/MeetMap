@@ -83,6 +83,16 @@ export const mockEventApi: EventApi = {
     return detached([found])[0];
   },
 
+  async getByIds(ids) {
+    // 빈 요청은 왕복하지 않는다 — 실 구현과 같은 모양이어야 화면이 차이를 모른다
+    if (ids.length === 0) return [];
+    await delay();
+
+    // 상태로 거르지 않는다. 찜한 소개팅은 마감돼도 목록에 남는다 (9장)
+    const wanted = new Set(ids);
+    return detached(getMockEvents().filter((event) => wanted.has(event.id)));
+  },
+
   async getMapMarkers(query) {
     await delay();
     // bbox 는 목에서 무시한다. 필터 결과와 마커 소스가 같아야 한다는 규칙(6.6)만 지킨다.

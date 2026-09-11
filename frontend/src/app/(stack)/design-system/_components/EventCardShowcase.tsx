@@ -16,7 +16,7 @@ import { ALL_VARIANTS, VIEWERS, type CardShowcaseContext } from "./cardShowcase"
 import { Section } from "./layout";
 
 /**
- * P1-1·P1-2 산출물 — 카드 5종 / 조각 6종 / 경계값.
+ * P1-1·P1-2 산출물 — 카드 변형 / 조각 6종 / 경계값. 변형 수는 `ALL_VARIANTS` 가 센다.
  *
  * 세 섹션이 같은 `viewer` 기준을 봐야 해서(가격·자격 배지가 함께 바뀐다) 상태를
  * 여기 한 곳에 두고 렌더 함수만 내려보낸다.
@@ -69,9 +69,14 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
   };
 
   return (
-    <>
+    /*
+      서버에 남기지 않는다 — 이 화면은 컴포넌트를 보는 자리다.
+      ⚠️ **찜 버튼을 그리는 섹션이 둘이다**(변형 · 경계값). 둘 다 `card()` 를 쓰므로
+      공급자는 그 둘을 함께 덮어야 한다 — 변형 섹션만 두르면 페이지가 500 이다 (4.51 표)
+    */
+    <LikeProvider liked={liked} toggleLike={toggleShowcaseLike}>
       <Section
-        title="소개팅 카드 — variant 5종"
+        title={`소개팅 카드 — variant ${ALL_VARIANTS.length}종`}
         note="14.1 / 5.3 / 6.5 / 6.6 — 한 컴포넌트에 variant prop 으로 통합"
       >
         <SegmentedControl
@@ -86,10 +91,7 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
           바꾸면 같이 바뀐다.
         </p>
 
-        {/* 서버에 남기지 않는다 — 이 화면은 컴포넌트를 보는 자리다 */}
-        <LikeProvider liked={liked} toggleLike={toggleShowcaseLike}>
-          <VariantSection {...context} />
-        </LikeProvider>
+        <VariantSection {...context} />
       </Section>
 
       <Section
@@ -100,7 +102,7 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
       </Section>
 
       <Section
-        title="카드 스켈레톤 — variant 5종"
+        title={`카드 스켈레톤 — variant ${ALL_VARIANTS.length}종`}
         note="11.3 — 진짜 카드와 같은 높이여야 한다. 낮으면 응답이 온 순간 아래가 밀린다"
       >
         <div className="-mx-5 flex items-start gap-3 overflow-x-auto px-5 pb-1">
@@ -115,10 +117,10 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
 
       <Section
         title="카드 경계값"
-        note="P1-0 목 데이터에 심어 둔 경계가 5종에서 각각 어떻게 떨어지는지"
+        note="P1-0 목 데이터에 심어 둔 경계가 변형마다 어떻게 떨어지는지"
       >
         <BoundarySection {...context} />
       </Section>
-    </>
+    </LikeProvider>
   );
 }

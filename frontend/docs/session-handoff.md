@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-10 (**Phase 2 진행 중** — P2-1~P2-7 로 **DoD 를 양쪽 다 닫았다**. 다음은 P2-8 찜 목록)
+> 마지막 갱신: 2026-09-11 (**Phase 2 진행 중** — P2-8 찜 목록까지. 다음은 P2-9 검색)
 
 ## 어디에 무엇이 있나
 
@@ -84,10 +84,10 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/lib/` | `cn` `clampSelection` `highlightKeyword` `useFocusTrap` `useLockBodyScroll` `useIsClient` + 포매터(`formatPrice` `formatEventDate` …) + **`rating`**(`ratingScore`·`canShowRating`) |
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS` `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
-| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃 5종·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) **`geo`**(역지오코딩 포트 + `nearestArea` — 좌표를 지역 마스터로 되돌린다, 4.54) |
+| `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃(변형 표 `LAYOUTS`)·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) **`geo`**(역지오코딩 포트 + `nearestArea` — 좌표를 지역 마스터로 되돌린다, 4.54) |
 | `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만, 화면 셋은 순수 컴포넌트) · **`event-like`**(찜 — 상태는 **화면마다 하나**인 `LikeProvider`, 버튼은 읽기만. 원본은 `likedIds` 이고 `isLiked` 는 안 읽는다 → 4.59) · **`event-filter`** — `exploreParams`(URL ↔ 조회 파라미터 변환. 6.1 계약) + **필터 시트 · 지역 시트 · 적용 필터 칩 줄 · 상단 컨트롤 · 정렬 `select`** + `exploreFacets`(축별 건수) |
-| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) — **셋 다 자기 스켈레톤을 함께 내보낸다** |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **온보딩 6화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done·location) + 나머지는 자리표시자 + **error 4개 · loading 4개 · not-found 2개** (4.41·4.47) |
+| `widgets/` | `app-header`(`AppHeader` 스택용 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소·참석자 링크 · 하단 고정 CTA + `ShareButton`) **`liked-list`**(찜 목록 — 서버 prop 이 아니라 **낙관 상태로 거른다**, 4.64) — **넷 다 자기 스켈레톤을 함께 내보낸다** |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 뷰. 지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **찜 목록 `/likes`** + **온보딩 6화면**(`/onboarding` + `(funnel)/` 안의 terms·intro·profile·done·location) + 나머지는 자리표시자 + **error 4개 · loading 5개 · not-found 2개** (4.41·4.47) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 `features/` 슬라이스는 둘이고 탐색의 필터 관련은 **전부 `event-filter`** — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
@@ -126,9 +126,9 @@ const feed = await eventApi.getHomeFeed({});
 
 ### 확인 방법
 
-- `/design-system` — `shared/ui` 전 컴포넌트 + **카드 5종·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
+- `/design-system` — `shared/ui` 전 컴포넌트 + **카드 변형 전부·조각 6종·경계값**이 렌더되는 페이지. 새 공통 컴포넌트를 만들면 여기에도 추가한다
 - `npm test`(vitest) / `npm run lint` / `npm run build`
-- **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다
+- **날짜 로직을 건드리면 `TZ=America/Los_Angeles npm test` 도 돌린다.** CI 가 그 TZ 와 `Pacific/Kiritimati` 로 한 번 더 돈다 — `weekRangeKst` 가 로컬 TZ 를 읽으면 UTC 로는 통과하고 거기서만 깨진다. ⚠️ **Windows 의 Git Bash 는 `TZ` 를 네이티브 프로세스에 넘기지 않는다** — PowerShell 에서 `$env:TZ = "America/Los_Angeles"` 로 돌리고 `getTimezoneOffset()` 을 먼저 찍어 확인한다 (2026-09-11 — Bash 로 돌린 두 TZ 가 실제로는 KST 였다)
 - ⚠️ **목 회차는 `getMockEvents()` 로 가져온다** — `MOCK_EVENTS` 상수를 직접 쓰지 않는다. 날짜는 `mock/dates.ts` 의 `schedule(일수, 시각)` 로 만들고 **절대값을 넣지 않는다**(등록일 일수는 전부 음수). 반환은 `readonly` 라 제자리 정렬 금지, 회차를 돌려주는 목 메서드는 `detached` 를 거친다. 목을 무는 페이지는 **정적 프리렌더로 두지 않는다** — CI 가 `scripts/assert-dynamic-routes.mjs` 로 검사한다. 넷 다 어기면 화면이 빈 게 아니라 **조용히 틀린 건수**가 된다. 경위·근거는 `decisions.md` 4.31
 - 개발 서버는 3001 포트. Bash 로 띄우지 말고 Browser 도구(`preview_start`)를 쓴다
 
@@ -147,7 +147,7 @@ const feed = await eventApi.getHomeFeed({});
 - **표시 임계 5건** — 후기 5건 미만이면 평점 숫자를 숨기고 `후기 N건` 만. 평점은 **항상 건수와 함께** 쓴다(`4.6 (23)`)
 - **정렬은 임계를 쓰지 않는다** — 하드 컷은 절벽을 만든다. `ratingScore = (C×m + 평점합)/(C+n)`, `C=10` `m=4.3`. 후기 0건 주최사는 맨 아래가 아니라 **중간**에 놓인다
 - **`ratingScore` 를 화면에 노출하지 않는다.** 원본 평균과 나란히 보이면 설명할 수 없다
-- **회차에는 평점이 없다.** 평점은 주최사에 쌓이고, 카드 5종은 평점을 그리지 않는다. 평점이 나오는 화면은 상세 주최사 블록(7.1)·주최사 페이지(7.4)·비교함(8장)·후기 목록(10.4) 넷뿐이다 (`decisions.md` 4.19·4.20)
+- **회차에는 평점이 없다.** 평점은 주최사에 쌓이고, 카드는 어느 변형도 평점을 그리지 않는다. 평점이 나오는 화면은 상세 주최사 블록(7.1)·주최사 페이지(7.4)·비교함(8장)·후기 목록(10.4) 넷뿐이다 (`decisions.md` 4.19·4.20)
 - ⚠️ `entities/event` 는 `entities/provider` 를 **import 할 수 없다**(FSD 동일 레이어). event 가 쓰는 `{ id, name }` 는 event 슬라이스가 직접 정의한다
 
 ### 이 제품에서 굳은 UI 패턴 — 어기면 일관성이 깨진다
@@ -164,7 +164,7 @@ const feed = await eventApi.getHomeFeed({});
 - **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다
 - **실패 표면은 넷이고 마지막 하나만 쓰기다** (4.40·4.46) — 제출 실패는 화면을 갈아끼우지 않고 **폼 안**에 `FormErrorNotice` 로 코드·시각을 남긴다(폼이 사라지면 다시 못 누른다). 나머지 셋은 읽기이고 앞의 둘은 코드·발생 시각을 노출한다 — 화면 진입의 조회는 페이지가 `loadOrError` → `ApiErrorScreen` 으로 잡고, 목록의 `더 보기` 는 `LoadMoreError` 가 목록 아래에 그리며, `error.tsx` 는 렌더 중 예외만 받는다(거기서는 `digest` 뿐이다). 재시도 유무는 세 곳 다 `ApiError.retryable` 이 정한다. 빈 상태의 액션은 상수가 아니라 **실제로 풀리는 조건**을 고른다 (4.42)
 - **홈에는 필터를 두지 않는다.** 퀵 필터 칩 바는 삭제됐다. 필터는 탐색 화면 한 곳뿐이다 (기능정의서 5.4)
-- **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23)
+- **홈은 마감된 소개팅을 받지 않는다.** 세 섹션 전부 모집 중만이고(서버 책임 — `EventApi.getHomeFeed` 계약), 그래서 홈 카드에는 상태 배지가 없다 (`decisions.md` 4.23). 찜 목록은 반대로 **마감돼도 남아** `liked` 카드가 배지를 그린다 (4.63)
 - **건수 0인 선택지는 노출하지 않는다.** 시간대 칩·지역 시트가 그렇다. 건수는 **현재 걸린 다른 필터를 반영**하고, 못 셌으면 건수를 감춘다 (4.28)
 - **적용된 필터는 눈에 보여야 한다.** 탐색 상단의 적용 필터 칩 줄(6.2)이 그 역할이다. 지역은 예외 — **상단 지역 버튼 라벨**이 그 자리다 (6.2 표시 제외). **`초기화` 는 셋이고 지우는 대상이 다 다르다** — 칩 줄 쪽은 자격까지 끄고 시간대를 남기고, 시트 쪽은 자격을 남기고 시간대를 되돌리며(4.26), 0건 빈 상태 쪽은 **그 0건을 만든 축 하나**만 푼다 (4.42)
 - **연령은 필터가 아니라 자격이다.** 프로필 출생연도로 처음부터 걸러 보여주고(`eligibleOnly`), 넓히고 싶을 때 끄게 한다. **게스트·출생연도 미입력자는 전건**을 본다(판정 근거가 없다), 자격 토글을 **끄면** 자격 밖 카드에 `내 나이대 아님` 을 붙인다 (6.4)
