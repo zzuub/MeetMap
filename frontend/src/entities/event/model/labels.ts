@@ -121,6 +121,19 @@ export function providerScheduleLabel(
   return `${event.provider.name} · ${event.dateLabel} ${event.timeLabel}`;
 }
 
+/**
+ * `'로테이션서울 · 9/4(금) 19:30 · 성수·건대'` — 검색 결과 카드 (11.1).
+ *
+ * 지역은 `locationLabel`(`강남역 인근`)이 아니라 **`area` 그대로**다 — 검색 대상 필드라
+ * 결과가 왜 걸렸는지를 카드가 보여 줘야 한다. `건대` 로 찾은 사람에게 `성수 루프탑 …`
+ * 만 보이면 엉뚱한 결과로 읽힌다 (`decisions.md` 4.67).
+ */
+export function searchMetaLabel(
+  event: Pick<EventSummary, "provider" | "dateLabel" | "timeLabel" | "area">,
+): string {
+  return `${providerScheduleLabel(event)} · ${event.area}`;
+}
+
 /** `'로테이션서울 · 디너 19:30'` — 홈 `새로 등록된` 소형 카드 (5.3) */
 export function providerSlotLabel(
   event: Pick<EventSummary, "provider" | "timeSlot" | "timeLabel">,

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { eventApi } from "@/entities/event";
+import { eventApi, orderUpcomingFirst } from "@/entities/event";
 import { userApi } from "@/entities/user/server";
 import { LikeProvider, toggleLikeAction } from "@/features/event-like";
 import { loadOrError } from "@/shared/api";
 import { ApiErrorScreen } from "@/shared/ui";
-import { LikedHeader, LikedList, orderLikedEvents } from "@/widgets/liked-list";
+import { LikedHeader, LikedList } from "@/widgets/liked-list";
 import { loadSession, loadViewer, signInHref } from "../../_lib/viewer";
 
 const LIKES_PATH = "/likes";
@@ -43,7 +43,7 @@ export default async function LikesPage() {
           <LikedList
             // 서버에서 한 번 정렬한다 — 클라이언트가 `new Date()` 를 다시 읽으면 KST
             // 자정 무렵 서버와 다른 순서를 그려 하이드레이션이 어긋난다
-            events={orderLikedEvents(liked.data.events, new Date())}
+            events={orderUpcomingFirst(liked.data.events, new Date())}
             viewer={viewer}
           />
         </LikeProvider>

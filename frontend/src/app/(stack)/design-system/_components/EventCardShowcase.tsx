@@ -12,7 +12,12 @@ import { PrimaryButton, SegmentedControl, useToast } from "@/shared/ui";
 import { BoundarySection } from "./BoundarySection";
 import { PieceSection } from "./PieceSection";
 import { VariantSection } from "./VariantSection";
-import { ALL_VARIANTS, VIEWERS, type CardShowcaseContext } from "./cardShowcase";
+import {
+  ALL_VARIANTS,
+  SHOWCASE_KEYWORD,
+  VIEWERS,
+  type CardShowcaseContext,
+} from "./cardShowcase";
 import { Section } from "./layout";
 
 /**
@@ -55,15 +60,26 @@ export function EventCardShowcase({ events }: { events: EventSummary[] }) {
 
   const context: CardShowcaseContext = {
     events,
-    card: (event, variant: EventCardVariant) => (
-      <EventCard
-        key={`${variant}-${event.id}`}
-        event={event}
-        variant={variant}
-        viewer={viewer}
-        action={variant === "sheet" ? applySlot : likeSlot(event)}
-      />
-    ),
+    card: (event, variant: EventCardVariant) =>
+      // `search` 만 검색어를 받는다 — 타입이 나머지 변형에는 못 넘기게 막는다 (4.67)
+      variant === "search" ? (
+        <EventCard
+          key={`${variant}-${event.id}`}
+          event={event}
+          variant="search"
+          keyword={SHOWCASE_KEYWORD}
+          viewer={viewer}
+          action={likeSlot(event)}
+        />
+      ) : (
+        <EventCard
+          key={`${variant}-${event.id}`}
+          event={event}
+          variant={variant}
+          viewer={viewer}
+          action={variant === "sheet" ? applySlot : likeSlot(event)}
+        />
+      ),
     pick: (id) => events.find((event) => event.id === id),
     sample: (index) => events[index % Math.max(events.length, 1)],
   };

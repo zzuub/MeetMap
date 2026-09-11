@@ -11,6 +11,7 @@ import {
   providerScheduleLabel,
   providerSlotLabel,
   scaleLabel,
+  searchMetaLabel,
   timeSlotLabel,
   venueDisplay,
 } from "./labels";
@@ -156,6 +157,13 @@ describe("메타 줄", () => {
 
   it("소형 카드는 날짜 대신 시간대를 쓴다 (5.3)", () => {
     expect(providerSlotLabel(event)).toBe("로테이션서울 · 디너 19:30");
+  });
+
+  it("검색 결과는 지역을 `area` 그대로 붙인다 — 검색 대상 필드라서다 (11.1 · 4.67)", () => {
+    // `locationLabel` 을 거치면 `강남역 인근` 이 되어 `역삼` 으로 찾은 이유가 사라진다
+    expect(searchMetaLabel({ ...event, area: "강남·역삼" })).toBe(
+      "로테이션서울 · 9/4(금) 19:30 · 강남·역삼",
+    );
   });
 
   const detailBase = {

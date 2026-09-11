@@ -19,7 +19,8 @@ export interface HomeSection {
   title: string;
   /** 섹션 조건이 프리셋으로 걸린 탐색 (5-8). 도착한 화면이 칩 줄로 되비춘다 (P1-5c) */
   moreHref: string;
-  variant: EventCardVariant;
+  /** 홈에는 검색어가 없다 — 검색어를 요구하는 `search` 변형은 타입이 막는다 (`decisions.md` 4.67) */
+  variant: Exclude<EventCardVariant, "search">;
   layout: HomeSectionLayout;
   events: EventSummary[];
 }

@@ -26,7 +26,10 @@ describe("카드 쇼케이스", () => {
     );
 
     expect(html).toContain("찜 목록 · 썸네일 66px");
+    expect(html).toContain("검색 결과 · 썸네일 84px");
     expect(html).toContain("카드 경계값");
     expect(html).toContain('aria-label="찜하기"');
+    // `search` 변형이 검색어를 받아 실제로 칠한다 (4.67)
+    expect(html).toMatch(/<mark[^>]*>로테이션<\/mark>/);
   });
 });

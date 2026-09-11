@@ -4,7 +4,7 @@ import { ActionLink, EmptyState } from "@/shared/ui";
  * 매칭되지 않는 주소 전체 (11.2).
  *
  * 루트 `not-found.tsx` 는 **앱의 어떤 라우트에도 안 걸린 URL** 을 받는다 — 오타,
- * 옛 링크, 아직 안 만든 화면(`/compare`·`/search`·`/providers/[id]`)이 그것이다.
+ * 옛 링크, 아직 안 만든 화면(`/compare`·`/providers/[id]`)이 그것이다.
  * 지금까지는 Next 기본 404(영문)로 떨어지고 있었다.
  *
  * 셸이 없다 — 루트 레이아웃은 프로바이더만 얹으므로 폭·배경을 직접 잡는다. 하단

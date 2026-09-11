@@ -2,6 +2,7 @@ import { ENDPOINTS, fetchClient, type CursorPage } from "@/shared/api";
 import { USE_MOCK } from "@/shared/config";
 import { isOpen } from "../model/derive";
 import type { EventApi } from "../model/ports";
+import { normalizeSearchKeyword } from "../model/search";
 import {
   HOME_SECTION_KEYS,
   type EventDetail,
@@ -44,8 +45,14 @@ const httpEventApi: EventApi = {
       query: { ...serializeQuery(query), bbox },
     }),
 
-  search: (keyword) =>
-    fetchClient<EventSummary[]>(ENDPOINTS.event.search, { query: { q: keyword } }),
+  // ⚠️ 빈 검색어는 요청하지 않고, 보내는 값은 **정규화한 것**이다 — 서버와 화면이 같은
+  // 글자를 본다 (`getByIds` 의 빈 배열과 같은 이유 · `decisions.md` 4.66)
+  search: async (keyword) => {
+    const q = normalizeSearchKeyword(keyword);
+    return q === null
+      ? []
+      : fetchClient<EventSummary[]>(ENDPOINTS.event.search, { query: { q } });
+  },
 
   logOutboundClick: async (id) => {
     try {

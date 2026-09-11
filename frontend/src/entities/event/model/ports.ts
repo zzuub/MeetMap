@@ -43,6 +43,14 @@ export interface EventApi {
   getMapMarkers(
     query: EventListQuery & { bbox?: string },
   ): Promise<EventSummary[]>;
+  /**
+   * 검색 (11.1) — 소개팅명 · 지역 · 주최사명 부분 일치, 대소문자 무시. 페이지네이션이 없다.
+   *
+   * - 키워드는 `normalizeSearchKeyword` 로 정규화한다. **비면 요청 없이 `[]`** (목·실 같다)
+   * - **상태로 거르지 않는다** — 결과 카드가 상태 배지를 그린다
+   * - **순서를 약속하지 않는다** — 화면이 `orderUpcomingFirst` 로 정렬한다 (`decisions.md` 4.70)
+   * - 계약 전문은 `ENDPOINTS.event.search`
+   */
   search(keyword: string): Promise<EventSummary[]>;
   /** 아웃링크 클릭 로깅 (7.3). 실패해도 사용자 흐름을 막지 않는다. */
   logOutboundClick(id: string): Promise<void>;

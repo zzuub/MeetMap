@@ -443,11 +443,11 @@ describe("mockEventApi", () => {
     ).toBe(true);
   });
 
-  it("검색은 소개팅명·지역·주최사를 본다", async () => {
+  it("검색은 소개팅명·지역·주최사를 각각 본다", async () => {
     const keyword = "성수";
     const hits = await mockEventApi.search(keyword);
     const expected = MOCK_EVENTS.filter((e) =>
-      [e.title, e.area, e.provider.name].join(" ").includes(keyword),
+      [e.title, e.area, e.provider.name].some((field) => field.includes(keyword)),
     );
     expect(expected.length, `목 데이터에 '${keyword}' 가 없다`).toBeGreaterThan(0);
     expect(hits.map((e) => e.id).sort()).toEqual(expected.map((e) => e.id).sort());
@@ -460,6 +460,15 @@ describe("mockEventApi", () => {
         .sort(),
     );
     expect(await mockEventApi.search("   ")).toEqual([]);
+  });
+
+  it("검색어를 화면과 같은 규칙으로 정규화한다 — 공백이 늘어도 같은 결과다 (4.66)", async () => {
+    // 제목의 앞 두 단어를 공백 셋으로 잇는다. 정규화를 안 하면 0건이 된다
+    const [first] = MOCK_EVENTS;
+    const spaced = `  ${first.title.split(" ").slice(0, 2).join("   ")}  `;
+
+    const hits = await mockEventApi.search(spaced);
+    expect(hits.map((e) => e.id)).toContain(first.id);
   });
 
   it("getByIds 는 마감 회차도 돌려준다 — 찜한 소개팅은 마감돼도 남는다 (9장)", async () => {

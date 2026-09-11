@@ -4,6 +4,7 @@ import { FeatureCard } from "./FeatureCard";
 import { LikedCard } from "./LikedCard";
 import { ListCard } from "./ListCard";
 import { RatioCard } from "./RatioCard";
+import { SearchCard } from "./SearchCard";
 import { SheetCard } from "./SheetCard";
 import type {
   EventCardLayoutProps,
@@ -13,7 +14,7 @@ import type {
 
 /**
  * 변형 → 레이아웃. **변형을 추가하는 일이 파일 하나 + 이 표 한 줄**이 되도록 둔다.
- * 한 함수에서 분기하면 6번째 변형이 올 때마다 기존 코드를 연다.
+ * 한 함수에서 분기하면 새 변형이 올 때마다 기존 코드를 연다.
  */
 const LAYOUTS: Record<EventCardVariant, ComponentType<EventCardLayoutProps>> = {
   feature: FeatureCard,
@@ -22,6 +23,7 @@ const LAYOUTS: Record<EventCardVariant, ComponentType<EventCardLayoutProps>> = {
   list: ListCard,
   sheet: SheetCard,
   liked: LikedCard,
+  search: SearchCard,
 };
 
 /**
@@ -40,6 +42,7 @@ export function EventCard({
   action,
   href,
   eligibleOnly,
+  keyword,
   className,
 }: EventCardProps) {
   const Layout = LAYOUTS[variant];
@@ -51,6 +54,7 @@ export function EventCard({
       action={action}
       href={href ?? `/events/${event.id}`}
       eligibleOnly={eligibleOnly}
+      keyword={keyword}
       className={className}
     />
   );

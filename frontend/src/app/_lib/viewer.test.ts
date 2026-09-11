@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeRedirect, type Session } from "@/entities/account";
+import { searchHref } from "@/features/event-search";
 import { signInHref, signInHrefFor } from "./viewer";
 
 /**
@@ -47,6 +48,16 @@ describe("찜 버튼의 로그인 목적지", () => {
     // `proxy.ts` 는 `redirect=/likes` 를 붙인다. 페이지가 다른 값을 만들면 로그인 뒤
     // 도착지가 진입 경로마다 달라진다
     expect(signInHref("/likes")).toBe("/onboarding?redirect=%2Flikes");
+  });
+
+  it("검색 결과에서 누르면 **같은 검색어**를 들고 가고, 소비 시점 검증을 그대로 통과한다 (4.66 표 20번)", () => {
+    const path = searchHref("성수 루프탑");
+    const redirect = new URL(signInHrefFor(null, path) ?? "", "http://x").searchParams.get(
+      "redirect",
+    );
+
+    expect(path).toBe("/search?q=%EC%84%B1%EC%88%98+%EB%A3%A8%ED%94%84%ED%83%91");
+    expect(safeRedirect(redirect)).toBe(path);
   });
 
   it("조건이 걸린 탐색 주소도 통째로 들고 간다", () => {

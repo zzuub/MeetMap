@@ -51,7 +51,14 @@ export const ALL_VARIANTS: EventCardVariant[] = [
   "list",
   "sheet",
   "liked",
+  "search",
 ];
+
+/**
+ * `search` 변형이 칠할 검색어 (11.1 · 4.67). 목 제목 대부분에 들어 있고, 안 든 회차
+ * (`을지로 …`·`여의도 …`)는 **하이라이트 없는 결과**가 어떻게 보이는지를 보여 준다
+ */
+export const SHOWCASE_KEYWORD = "로테이션";
 
 /** P1-2 DoD — 상태 2종 */
 export const ALL_STATUSES: EventStatus[] = ["신청 가능", "마감"];
