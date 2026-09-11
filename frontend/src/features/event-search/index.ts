@@ -12,7 +12,7 @@ export {
   searchHref,
   type RawSearchParams,
 } from "./model/searchParams";
-export { suggestKeywords } from "./model/suggestions";
+export { isTrending, suggestKeywords } from "./model/suggestions";
 export { KeywordSuggestions } from "./ui/KeywordSuggestions";
 export { RecentKeywords } from "./ui/RecentKeywords";
 export { RememberOnResultClick } from "./ui/RememberOnResultClick";

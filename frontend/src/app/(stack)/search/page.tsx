@@ -2,6 +2,7 @@ import { eventApi, orderUpcomingFirst } from "@/entities/event";
 import { searchApi, type TrendingSnapshot } from "@/entities/search";
 import { LikeProvider, toggleLikeAction } from "@/features/event-like";
 import {
+  isTrending,
   parseSearchParams,
   searchHref,
   suggestKeywords,
@@ -68,6 +69,17 @@ export default async function SearchPage({
 
   if (found.data.length === 0) {
     const trending = await loadTrending();
+
+    /*
+      계약 위반의 **관측 지점** — 인기 검색어가 0건을 냈다(`ENDPOINTS.search.trending` 5번).
+      막지 않는다: 화면은 이미 성립하고(추천 칩에서 이 검색어는 빠진다), 막으려면 인기
+      검색어마다 검색을 더 돌려야 한다. `exploreFacets` 의 `console.warn` 과 같은 자리다 (4.68)
+    */
+    if (isTrending(trending, keyword)) {
+      console.warn(
+        `[search] 인기 검색어가 0건을 냈다 — 계약 위반(ENDPOINTS.search.trending 5번) · ${keyword} · 스냅샷 ${trending?.baseAt}`,
+      );
+    }
 
     return (
       <>
