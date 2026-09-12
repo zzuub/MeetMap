@@ -4,6 +4,7 @@ import type {
   HomeFeed,
   HomeSectionKey,
 } from "@/entities/event";
+import { exploreHref } from "@/features/event-filter";
 import { DISTRICT_LABEL } from "@/shared/config";
 
 /**
@@ -25,25 +26,31 @@ export interface HomeSection {
   events: EventSummary[];
 }
 
+/**
+ * `전체보기 >` 의 프리셋도 `exploreHref` 로 만든다 (4.24). 손으로 쓰던 때는 기본값
+ * (`view=list` · `sort=popular` · `eligibleOnly=1`)이 주소에 실려 있었다 — 4.25 가 싣지 않기로
+ * 한 값이다. 뜻은 같다: `내 나이대` 의 `eligibleOnly` 는 로그인 사용자의 기본값이라 주소에서
+ * 빠져도 켜진 채 도착한다.
+ */
 const SECTIONS = [
   {
     key: "weeklyPopular",
     title: "이번 주 인기 소개팅",
-    moreHref: "/explore?view=list&sort=popular&when=THIS_WEEK",
+    moreHref: exploreHref({ view: "list", query: { sort: "popular", when: "THIS_WEEK" } }),
     variant: "feature",
     layout: "carousel",
   },
   {
     key: "myAgeGroup",
     title: "내 나이대 소개팅",
-    moreHref: "/explore?view=list&eligibleOnly=1",
+    moreHref: exploreHref({ view: "list", query: { eligibleOnly: true } }),
     variant: "ratio",
     layout: "carousel",
   },
   {
     key: "newlyAdded",
     title: "새로 등록된 소개팅",
-    moreHref: "/explore?view=list&sort=latest",
+    moreHref: exploreHref({ view: "list", query: { sort: "latest" } }),
     variant: "compact",
     layout: "list",
   },
@@ -93,7 +100,7 @@ export function districtShortcuts(sections: readonly HomeSection[]): DistrictSho
         code: event.district,
         label: DISTRICT_LABEL[event.district],
         // 프로모 카드가 지도로 보내므로 칩도 지도로 보낸다 (5-6 과 같은 뷰)
-        href: `/explore?view=map&district=${event.district}`,
+        href: exploreHref({ view: "map", query: { district: event.district } }),
       });
     }
   }

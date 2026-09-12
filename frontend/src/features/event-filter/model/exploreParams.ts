@@ -27,8 +27,10 @@ import {
 /** Next 의 `searchParams` 가 주는 모양 그대로 받는다 */
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
-/** 리스트/지도는 같은 목록을 보는 두 방식이다 (6.2 뷰 토글) */
-export type ExploreView = "list" | "map";
+/** 리스트/지도는 같은 목록을 보는 두 방식이다 (6.2 뷰 토글). 첫째가 기본값이다 */
+export const EXPLORE_VIEWS = ["list", "map"] as const;
+
+export type ExploreView = (typeof EXPLORE_VIEWS)[number];
 
 export interface ExploreParams {
   view: ExploreView;
@@ -65,7 +67,16 @@ export function parseExploreParams(
     query.maxPrice = parseMaxPrice(first(params.maxPrice));
   }
 
-  return { view: first(params.view) === "map" ? "map" : "list", query };
+  return { view: parseExploreView(params), query };
+}
+
+/**
+ * 뷰만 읽는다. **인증 주체와 무관한 축이라** 프로필을 읽기 전에 알 수 있다 — 페이지가 로딩
+ * 폴백의 모양(카드 / 지도)을 고르는 데 쓴다 (`decisions.md` 4.71).
+ */
+export function parseExploreView(params: RawSearchParams): ExploreView {
+  const value = first(params.view);
+  return EXPLORE_VIEWS.find((view) => view === value) ?? EXPLORE_VIEWS[0];
 }
 
 /**

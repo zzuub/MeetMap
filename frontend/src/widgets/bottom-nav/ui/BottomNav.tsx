@@ -95,7 +95,9 @@ const TABS: TabItem[] = [
   {
     // 지도는 목적지가 아니라 탐색의 뷰 하나다 (6.2 뷰 토글). 탭이 `지도` 였을 때는
     // 홈의 `전체보기 >` 로 리스트에 도착해도 탭은 지도가 켜졌다 → 5.5
-    href: "/explore?view=list",
+    // 기본값 `view=list` 는 주소에 싣지 않는다(4.25). 조건이 없는 주소라 `exploreHref` 없이
+    // 적는다 — 모든 화면에 뜨는 탭바가 `event-filter` 배럴을 끌어오지 않게 한다
+    href: "/explore",
     match: "/explore",
     label: "탐색",
     icon: (

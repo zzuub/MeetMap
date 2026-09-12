@@ -1,16 +1,22 @@
+import { Suspense } from "react";
 import { eventApi } from "@/entities/event";
 import {
   exploreFacets,
   exploreHref,
   parseExploreParams,
+  parseExploreView,
+  type ExploreParams,
   type RawSearchParams,
 } from "@/features/event-filter";
-import { loadOrError } from "@/shared/api";
-import { ActionLink, ApiErrorScreen } from "@/shared/ui";
-import { ExploreBoard } from "@/widgets/explore-board";
-import { PhasePlaceholder } from "../../_components/PhasePlaceholder";
 import { LikeProvider, toggleLikeAction } from "@/features/event-like";
-import { loadViewerContext, signInHrefFor } from "../../_lib/viewer";
+import { loadOrError, type ApiError } from "@/shared/api";
+import { ApiErrorScreen } from "@/shared/ui";
+import {
+  ExploreBoard,
+  ExploreBoardSkeleton,
+  ExploreMapBoard,
+} from "@/widgets/explore-board";
+import { loadViewerContext, signInHrefFor, type ViewerContext } from "../../_lib/viewer";
 
 /**
  * 탐색 `/explore` (기능정의서 6장).
@@ -28,66 +34,87 @@ export default async function ExplorePage({
   // Next 16 에서 Promise 다 (session-handoff 4장)
   searchParams: Promise<RawSearchParams>;
 }) {
-  const [{ session, viewer, likedIds }, raw] = await Promise.all([
-    loadViewerContext(),
-    searchParams,
-  ]);
-  const params = parseExploreParams(raw, { hasViewer: viewer !== null });
+  const raw = await searchParams;
 
   /*
-    지도는 P3-1 이라 아직 자리표시자다. 뷰 토글을 그리지 않기로 한 이상(4.29) 이
-    화면에는 상단 컨트롤이 통째로 없으므로, **리스트로 돌아갈 길을 여기가 준다** —
-    홈 지도 프로모 카드(5-6)로 이미 도달 가능한 화면이라 편도가 되면 안 된다.
-    걸어둔 조건은 그대로 들고 간다(`exploreHref`).
+    **폴백은 뷰마다 모양이 다르다** — 리스트는 카드, 지도는 지도 로딩 오버레이(11.3).
+    `loading.tsx` 는 쿼리를 못 봐서 두 뷰에 공통인 윗부분까지만 그리고, 나머지는 뷰를 아는
+    여기서 고른다. 뷰는 인증 주체와 무관해 프로필을 읽기 전에 안다 (`decisions.md` 4.71).
   */
-  if (params.view === "map") {
-    return (
-      <PhasePlaceholder
-        title="지도 뷰"
-        phase="Phase 3 · P3-1"
-        spec="6.6"
-        action={
-          <ActionLink href={exploreHref({ ...params, view: "list" })} replace>
-            리스트로 보기
-          </ActionLink>
-        }
-      />
-    );
-  }
+  return (
+    <Suspense fallback={<ExploreBoardSkeleton view={parseExploreView(raw)} />}>
+      <ExploreContent raw={raw} />
+    </Suspense>
+  );
+}
 
-  /*
-    시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 목록과 함께 받는다.
+async function ExploreContent({ raw }: { raw: RawSearchParams }) {
+  const context = await loadViewerContext();
+  const params = parseExploreParams(raw, { hasViewer: context.viewer !== null });
 
-    **둘을 한 덩어리로 잡는다.** 목록만 오고 패싯이 죽으면 컨트롤이 있는 값을 감추고,
-    반대면 결과 없이 컨트롤만 남는다 — 어느 쪽도 화면으로 성립하지 않는다. 부분
-    성공을 그리느니 코드가 붙은 에러 카드 하나가 낫다 (11.2 / `decisions.md` 4.40).
-  */
+  return params.view === "map" ? (
+    <MapView params={params} />
+  ) : (
+    <ListView params={params} context={context} />
+  );
+}
+
+/*
+  두 뷰 다 시간대 칩(6.2)·지역 시트(6.3)가 건수 0인 항목을 감춰야 해서 결과와 함께 받는다.
+
+  **둘을 한 덩어리로 잡는다.** 결과만 오고 패싯이 죽으면 컨트롤이 있는 값을 감추고,
+  반대면 결과 없이 컨트롤만 남는다 — 어느 쪽도 화면으로 성립하지 않는다. 부분
+  성공을 그리느니 코드가 붙은 에러 카드 하나가 낫다 (11.2 / `decisions.md` 4.40).
+*/
+async function ListView({
+  params,
+  context,
+}: {
+  params: ExploreParams;
+  context: ViewerContext;
+}) {
   const loaded = await loadOrError(() =>
     Promise.all([
       eventApi.getList({ ...params.query, limit: PAGE_SIZE }),
       exploreFacets(params.query),
     ]),
   );
-
-  if (!loaded.ok) {
-    return (
-      <div className="px-5 py-16">
-        <ApiErrorScreen error={loaded.error} resource="collection" />
-      </div>
-    );
-  }
+  if (!loaded.ok) return <ExploreError error={loaded.error} />;
 
   const [page, facets] = loaded.data;
 
   return (
     <LikeProvider
-      liked={likedIds}
+      liked={context.likedIds}
       // 걸어 둔 조건까지 들고 돌아온다 — 게스트가 필터를 다시 짜지 않게 한다
-      signInHref={signInHrefFor(session, exploreHref(params))}
+      signInHref={signInHrefFor(context.session, exploreHref(params))}
       toggleLike={toggleLikeAction}
     >
-      <ExploreBoard page={page} params={params} facets={facets} viewer={viewer} />
+      <ExploreBoard page={page} params={params} facets={facets} viewer={context.viewer} />
     </LikeProvider>
+  );
+}
+
+/**
+ * 지도 뷰 (6.6). 마커는 **조건의 전건**이다 — `bbox` 를 보내지 않는다. 그래서 뷰포트를
+ * 옮겨도 다시 조회하지 않고, 클라이언트 조회 자리·응답 경합·캐시가 생기지 않는다
+ * (`decisions.md` 4.71 · 4.58). 실패는 리스트와 같은 에러 카드다 — 4.40 표에 줄이 늘지 않는다.
+ */
+async function MapView({ params }: { params: ExploreParams }) {
+  const loaded = await loadOrError(() =>
+    Promise.all([eventApi.getMapMarkers(params.query), exploreFacets(params.query)]),
+  );
+  if (!loaded.ok) return <ExploreError error={loaded.error} />;
+
+  const [events, facets] = loaded.data;
+  return <ExploreMapBoard events={events} params={params} facets={facets} />;
+}
+
+function ExploreError({ error }: { error: ApiError }) {
+  return (
+    <div className="px-5 py-16">
+      <ApiErrorScreen error={error} resource="collection" />
+    </div>
   );
 }
 

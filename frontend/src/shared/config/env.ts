@@ -19,3 +19,12 @@ export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
 
 /** 목 응답에 걸어줄 인위적 지연(ms). 스켈레톤·로딩 상태를 실제로 보기 위한 값. */
 export const MOCK_LATENCY_MS = 300;
+
+/**
+ * 카카오맵 JavaScript 키 (P3-1 · `decisions.md` 4.71).
+ *
+ * **브라우저에 그대로 드러나는 값이다** — 막는 수단은 키가 아니라 카카오 콘솔의 도메인
+ * 등록이다. 비어 있으면(CI · 키 없는 머신) 지도는 SDK 를 부르지 않고 `MAP_KEY_MISSING`
+ * 카드를 그린다. 테스트·빌드는 키 없이 통과한다.
+ */
+export const KAKAO_MAP_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY ?? "";

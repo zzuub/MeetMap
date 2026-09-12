@@ -5,9 +5,16 @@ import {
   type HomeFeed,
   type HomeSectionKey,
 } from "@/entities/event";
+import { parseExploreParams } from "@/features/event-filter";
 import { districtShortcuts, homeSections } from "./sections";
 
 type DistrictCode = EventSummary["district"];
+
+/** 링크가 도착한 탐색 화면의 조건 — 문자열이 아니라 **읽힌 결과**를 본다 */
+function landing(href: string) {
+  const search = new URL(href, "http://localhost").searchParams;
+  return parseExploreParams(Object.fromEntries(search), { hasViewer: true });
+}
 
 /**
  * 목 데이터를 쓰지 않고 직접 짓는다. 여기서 볼 것은 **섹션을 넣고 빼는 규칙**이지
@@ -101,7 +108,17 @@ describe("homeSections", () => {
     expect(sections.map((s) => s.variant)).toEqual(["feature", "ratio", "compact"]);
     // 프리셋이 같으면 세 `전체보기 >` 가 같은 화면으로 간다 (5-8)
     expect(new Set(sections.map((s) => s.moreHref)).size).toBe(sections.length);
-    for (const section of sections) expect(section.moreHref).toContain("view=list");
+    // 셋 다 리스트다 — 기본값이라 주소에 `view` 가 실리지 않을 뿐이다 (4.25)
+    for (const section of sections) expect(landing(section.moreHref).view).toBe("list");
+  });
+
+  it("`전체보기 >` 의 프리셋이 도착한 화면에 걸린다 — 주소는 exploreHref 가 만든다 (4.24)", () => {
+    const [weekly, age, fresh] = homeSections(full, { showMyAgeGroup: true });
+
+    expect(landing(weekly.moreHref).query).toMatchObject({ when: "THIS_WEEK", sort: "popular" });
+    // 로그인 사용자의 기본값이라 주소에서 빠져도 켜진 채 도착한다
+    expect(landing(age.moreHref).query.eligibleOnly).toBe(true);
+    expect(landing(fresh.moreHref).query.sort).toBe("latest");
   });
 });
 
@@ -128,6 +145,16 @@ describe("districtShortcuts", () => {
 
     expect(districtShortcuts(sections)[0].label).toBe("성동구");
     expect(districtShortcuts(sections)[0].href).toContain("district=SEONGDONG");
+  });
+
+  it("칩은 그 구가 걸린 지도로 간다 — 프로모 카드와 같은 뷰다 (5-6 · 5-7)", () => {
+    const sections = homeSections(feedOf({ weeklyPopular: [event("a", "MAPO")] }), {
+      showMyAgeGroup: true,
+    });
+    const landed = landing(districtShortcuts(sections)[0].href);
+
+    expect(landed.view).toBe("map");
+    expect(landed.query.district).toBe("MAPO");
   });
 
   it("4개를 넘기지 않는다", () => {

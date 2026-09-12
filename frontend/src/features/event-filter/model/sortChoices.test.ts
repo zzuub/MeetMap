@@ -116,7 +116,7 @@ describe("가는 곳", () => {
   });
 
   it("지도 뷰에서도 view 축이 유지된다", () => {
-    // 정렬은 렌즈를 바꾸지 않는다. 지도에서 고른 정렬이 리스트로 튕기면 안 된다
+    // 지도에는 정렬 셀렉트가 없지만(4.71) 주소 규칙은 뷰와 무관하다 — 정렬이 렌즈를 바꾸면 안 된다
     const choice = sortChoices(asUser({ view: "map" })).find(
       (item) => item.code === "latest",
     );

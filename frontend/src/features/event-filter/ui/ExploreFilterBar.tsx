@@ -25,9 +25,10 @@ import { RegionSheet } from "./RegionSheet";
 /**
  * 탐색 상단 컨트롤 (6.2) — 지역 버튼 · 시간대 칩 · 필터 버튼 · 적용 필터 칩 줄.
  *
- * **URL 을 쓰는 유일한 클라이언트 자리다.** 조건을 걸 때도 풀 때도 `exploreHref` 를
- * 거친다 — 여기서 쿼리스트링을 손으로 이어 붙이는 순간 `eligibleOnly` 를 지워
- * 기본값(ON)으로 되살리는 경로가 열린다 (`decisions.md` 4.25).
+ * **URL 을 쓰는 클라이언트 자리 셋 중 하나다**(이 바 · `SortSelect` · `ViewToggle`).
+ * 셋 다 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 — 쿼리스트링을 손으로 이어 붙이는
+ * 순간 `eligibleOnly` 를 지워 기본값(ON)으로 되살리는 경로가 열린다 (`decisions.md` 4.25).
+ * 손으로 쓴 `/explore?` 는 `exploreAddress.test` 가 찾는다.
  *
  * **전환 표시는 사용자가 보고 있는 자리에 붙인다.** `/explore` 의 `loading.tsx` 가
  * 이 자리를 대신하지 않는다 — 아래 이동이 전부 `startTransition` 안이라 이미 마운트된
