@@ -1,7 +1,7 @@
 # 세션 인수인계 — Claude 전용
 
 > 새 세션이 **맨 먼저, 이것만** 읽는다. 여기 없는 건 필요할 때 아래 표에서 찾아 편다.
-> 마지막 갱신: 2026-09-11 (**Phase 2 완료** — P2-9 검색까지. 다음은 Phase 3 · P3-1 지도)
+> 마지막 갱신: 2026-09-12 (**P3-1 지도 완료** — SDK · 마커 · 줌 · 뷰 토글. 다음은 P3-2 마커 시트)
 
 ## 어디에 무엇이 있나
 
@@ -85,9 +85,9 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 | `shared/api/` | `fetchClient` `ApiError` `ENDPOINTS`(**프론트-백 계약서**) `CursorPage` `paginateArray` **`loadOrError`**(조회 실패를 잡는 유일한 형태) **`errorScreen`**(8종 → 화면 표) |
 | `shared/config/` | `constants.ts`(도메인 마스터) `theme.ts` `env.ts` |
 | `entities/` | `event`(타입 + 포트 + mock/http + 목 8건 + **`ui/EventCard/` 레이아웃(변형 표 `LAYOUTS`)·조각 6종** + `EventCardSkeleton` + `labels`) **`provider`**(주최사 4곳·평점) `notification` `review` **`account`**(역할·라우트 가드 + **`accountApi` 포트** + `safeRedirect`·`signInLanding`) **`user`**(**`userApi` 포트** + 약관·프로필 입력 규칙 + 3.5 문구) **`geo`**(역지오코딩 포트 + `nearestArea`, 4.54) **`search`**(인기 검색어 포트 — 검색 **실행**은 `eventApi.search`, 4.68) |
-| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만) · **`event-like`**(찜 — 상태는 **화면마다 하나**인 `LikeProvider`, 원본은 `likedIds` → 4.59) · **`event-filter`**(`exploreParams` URL ↔ 조회 파라미터 6.1 + 필터·지역 시트 · 칩 줄 · 정렬 `select` · `exploreFacets`) · **`event-search`**(검색 입력 · 최근/인기/추천 칩 — 주소를 바꾸는 자리는 `SearchProvider` 하나, 4.66) |
+| `features/` | **`event-apply`**(신청 버튼 + 외부 이동 모달 7.3 · 필수 문구는 `model/copy.ts`) · **`location-permission`**(위치 권한 3상태 — 훅은 게이트에만) · **`event-like`**(찜 — 상태는 **화면마다 하나**인 `LikeProvider`, 원본은 `likedIds` → 4.59) · **`event-filter`**(`exploreParams` URL ↔ 조회 파라미터 6.1 + 필터·지역 시트 · 칩 줄 · 정렬 `select` · `exploreFacets`) · **`event-search`**(검색 입력 · 최근/인기/추천 칩 — 주소를 바꾸는 자리는 `SearchProvider` 하나, 4.66) · **`event-map`**(카카오 SDK 로더 · 지도 컨트롤러 · 마커 · 줌 — **`bbox` 를 안 보낸다**, 4.71) |
 | `widgets/` | `app-header`(`AppHeader` 스택용 — 제목 자리를 채우는 `children` 슬롯 · **`HomeHeader`** 홈용) `bottom-nav` **`home-feed`** **`explore-board`** **`event-detail`**(히어로·정보 카드·주최사 블록·장소 · 하단 고정 CTA + `ShareButton`) **`liked-list`**(낙관 상태로 거른다, 4.64) **`search-board`**(검색 본문 — idle·결과·0건 + 결과 수 live region) — 목록 위젯은 자기 스켈레톤을 함께 내보낸다 |
-| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(지도 뷰는 자리표시자) + **상세 `/events/[eventId]`** + **찜 목록 `/likes`** + **검색 `/search`**(입력창은 `search/layout.tsx`) + **온보딩 6화면** + 나머지는 자리표시자 + **error 4개 · loading 6개 · not-found 2개** (4.41·4.47) |
+| `app/` | `(main)` `(stack)` `(onboarding)` 3개 라우트 그룹 셸 + **홈 `/`** + **탐색 `/explore`**(리스트 · 지도 두 뷰) + **상세 `/events/[eventId]`** + **찜 목록 `/likes`** + **검색 `/search`**(입력창은 `search/layout.tsx`) + **온보딩 6화면** + 나머지는 자리표시자 + **error 4개 · loading 6개 · not-found 2개** (4.41·4.47) |
 | `src/proxy.ts` | 라우트 가드 (미들웨어 아님 — 4장 참조) |
 
 탐색의 필터 관련은 **전부 `event-filter`** 다 — 다른 슬라이스로 나누면 `serializeExploreParams` 를 참조할 수 없다(동일 레이어 금지).
@@ -150,7 +150,7 @@ FSD 5개 레이어. `app → widgets → features → entities → shared` **단
 - **탐색 필터·정렬·뷰는 URL 쿼리스트링이 원본.** `useState` 로 들고 있지 않는다. 변환은 `features/event-filter` 의 `parseExploreParams`/`serializeExploreParams` 한 곳이고, **알 수 없는 값은 에러가 아니라 기본값으로** 떨어뜨린다 (6.1). **주소를 손으로 조립하지 않는다** — 조건을 걸 때도 풀 때도 `exploreHref` 를 거친다 (4.24)
 - **검색어도 URL(`?q=`)이 원본이고 조회는 페이지(서버)가 한다.** 커밋은 전부 `replace` 라 같은 화면 안 `popstate` 가 없고, 입력창은 마운트 때만 URL 을 읽는다. 주소는 `searchHref` 로 만든다. ⚠️ 입력창을 든 `search/layout.tsx` 가 `useSearchParams` 를 쓰므로 **`await connection()` 을 빼면 빌드가 멈춘다** (4.66). 검색어를 받는 카드는 **`search` 변형뿐**이다 — `keyword` 는 유니온 prop 이다 (4.67)
 - **`localStorage` 를 읽는 UI 는 서버 스냅샷 `unknown` 에서 시작한다** — 서버 렌더에서 `없습니다` 를 그리지 않고, 저장이 막히면 섹션을 뺀다. `recentKeywordsStore` 가 선례다(4.69 — 비교함 P3-3 도 같은 문제다)
-- **하단 탭 두 번째는 `탐색`(리스트 기본)이고 지도는 그 뷰다** (5.5). **뷰 토글은 아직 없다** — P3-1 이 붙이면서 `?view=map` 자리표시자와 `리스트로 보기` 링크를 **둘 다 지운다**. `누르면 아무 일 없는 컨트롤은 만들지 않는다` (4.29)
+- **하단 탭 두 번째는 `탐색`(리스트 기본)이고 지도는 그 뷰다** (5.5). **뷰 토글은 결과 수 줄 오른쪽**이고 지도 뷰에는 정렬이 없다. 지도 마커는 **조건의 전건**이라 `bbox` 를 안 보낸다 — 뷰포트를 옮겨도 다시 조회하지 않는다. 키(`NEXT_PUBLIC_KAKAO_MAP_APP_KEY`)가 없으면 `MAP_KEY_MISSING` 카드이고 test·build 는 통과한다 (4.71)
 - **`신청하기` 는 `features/event-apply` 를 거친다.** 버튼과 7.3 모달이 한 덩어리다. ⚠️ **`externalApplyUrl` 직접 접근과 슬라이스 깊은 import 를 린트가 막는다** (4.38) — 지도 마커 시트(P3-2)도 이걸 쓴다. 마감 회차도 막지 않고 모달이 알린다 (4.37)
 - **상세 하단 CTA 의 비교 담기 자리는 슬롯으로 비어 있다** (4.36 — P3-4 가 `DetailCtaBar` 에 넘기기만 한다). **주최사 페이지 링크는 아직 없다** — P5-4 다 (4.32)
 - **정렬은 5종이고 게스트는 가격 정렬을 못 본다.** 옵션을 감추는 것은 화면(`sortChoices` + `hasViewerAxes`)이지만 **값을 막는 것은 파싱(`parseSort`)** 이다 — 손으로 붙인 `?sort=priceDesc` 가 남으면 `select` 가 아무것도 선택 못 한 상태로 뜬다 (4.30). 평점 정렬은 게스트에게도 보인다

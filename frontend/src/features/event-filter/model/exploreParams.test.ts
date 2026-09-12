@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AREAS, DEFAULT_SORT, MOOD_TAGS, PRICE_CAPS, VIEWER_SORTS } from "@/shared/config";
 import {
   parseExploreParams,
+  parseExploreView,
   serializeExploreParams,
   type RawSearchParams,
 } from "./exploreParams";
@@ -132,6 +133,23 @@ describe("parseExploreParams", () => {
 
   it("같은 키가 두 번 오면 첫 값을 쓴다", () => {
     expect(asUser({ slot: ["DINNER", "MORNING"] }).query.slot).toBe("DINNER");
+  });
+});
+
+describe("parseExploreView", () => {
+  it("parseExploreParams 의 view 와 같다 — 인증 주체와 무관해 프로필 전에 읽는다 (4.71)", () => {
+    const inputs: RawSearchParams[] = [
+      {},
+      { view: "map" },
+      { view: "list" },
+      { view: "globe" },
+      { view: ["map", "list"] },
+    ];
+
+    for (const raw of inputs) {
+      expect(parseExploreView(raw)).toBe(asUser(raw).view);
+      expect(parseExploreView(raw)).toBe(asGuest(raw).view);
+    }
   });
 });
 

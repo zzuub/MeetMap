@@ -1,8 +1,6 @@
 import Link from "next/link";
+import { exploreHref } from "@/features/event-filter";
 import type { DistrictShortcut } from "../model/sections";
-
-/** 반경값은 아직 설정과 연동되지 않는다 — **TBD** (5-6) */
-const RADIUS_LABEL = "내 주변 3km";
 
 /**
  * 지도 프로모 카드 (5-6 / 5-7).
@@ -10,6 +8,11 @@ const RADIUS_LABEL = "내 주변 3km";
  * 홈에서 화면을 떠나는 두 경로 중 하나다(나머지는 `전체보기 >`). 칩이 아니라
  * 카드인 것이 중요하다 — 홈에는 필터가 없고, 이동한다는 사실이 형태로 드러나야
  * 기대를 배신하지 않는다 (5.4).
+ *
+ * ⚠️ **5-6 의 `내 주변 3km` 와 `가까운` 을 쓰지 않는다.** P3-1 로 도착하는 지도가 실제가
+ * 됐는데, 지도의 중심은 사용자 위치가 아니라 **결과 범위**이고 반경 축도 없다 — 카드가
+ * 3km 를 약속하고 지도가 서울 전역을 그리면 두 화면이 어긋난다 (`decisions.md` 4.56 · 4.71,
+ * 사양 갱신 대기는 `spec/14-open-items.md`).
  */
 export function MapPromoCard({ shortcuts }: { shortcuts: DistrictShortcut[] }) {
   return (
@@ -34,11 +37,11 @@ export function MapPromoCard({ shortcuts }: { shortcuts: DistrictShortcut[] }) {
         <div className="min-w-0 flex-1">
           <h2 className="text-[15px] font-bold text-text">
             {/* 카드 전체가 클릭 영역이다. 칩은 z-10 으로 이 위에 올라간다 (4.16 과 같은 방식) */}
-            <Link href="/explore?view=map" className="after:absolute after:inset-0 after:content-['']">
-              지도에서 가까운 소개팅 찾기
+            <Link href={MAP_HREF} className="after:absolute after:inset-0 after:content-['']">
+              지도에서 소개팅 찾기
             </Link>
           </h2>
-          <p className="mt-0.5 text-[12px] text-text-sub">{RADIUS_LABEL}</p>
+          <p className="mt-0.5 text-[12px] text-text-sub">어디서 열리는지 한눈에 보기</p>
         </div>
       </div>
 
@@ -60,3 +63,6 @@ export function MapPromoCard({ shortcuts }: { shortcuts: DistrictShortcut[] }) {
     </article>
   );
 }
+
+/** 조건 없는 지도 뷰. 주소는 `exploreHref` 가 만든다 (4.24) */
+const MAP_HREF = exploreHref({ view: "map", query: {} });

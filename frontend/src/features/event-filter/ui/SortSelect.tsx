@@ -9,17 +9,17 @@ import { sortChoices } from "../model/sortChoices";
 import type { ExploreParams } from "../model/exploreParams";
 
 /**
- * 정렬 `select` (6.2). 결과 수 줄의 오른쪽에 붙는다.
+ * 정렬 `select` (6.2). 결과 수 줄의 오른쪽, 뷰 토글 앞에 붙는다.
  *
  * **목적지는 `sortChoices` 가 만든다** — 여기서 `?sort=` 만 갈아끼우면 `eligibleOnly=0`
  * 이 떨어져 자격 필터가 기본값(ON)으로 되살아난다 (`decisions.md` 4.24·4.25).
  *
- * **전환 표시를 같이 붙인다.** `/explore` 는 동적 라우트인데 `loading.tsx` 가 아직
- * 없어서(P1-9) 고른 뒤 응답까지 화면이 그대로 서 있는다 — 목록이 그대로면 안 눌린
- * 것처럼 보인다. 필터 시트의 `N개 결과 보기` 와 같은 표시(흐려짐 + `aria-busy`)다.
+ * **전환 표시를 같이 붙인다.** 조건 변경은 트랜지션 안의 이동이라 `loading.tsx` 폴백이
+ * 뜨지 않는다(4.41) — 고른 뒤 응답까지 목록이 그대로면 안 눌린 것처럼 보인다. 필터
+ * 시트의 `N개 결과 보기` 와 같은 표시(흐려짐 + `aria-busy`)다.
  *
- * 뷰 토글(`리스트 / 지도`)은 이 줄에 없다. 지도가 P3-1 이라 절반이 자리표시자로
- * 가는 컨트롤이 되어 P3-1 로 미뤘다 (`decisions.md` 4.29).
+ * **지도 뷰에는 없다** — 정렬은 지도에서 보이는 것을 바꾸지 않아 누르면 아무 일도 없는
+ * 컨트롤이 된다. 값은 URL 에 남아 리스트로 돌아오면 그 순서다 (`decisions.md` 4.71).
  */
 export function SortSelect({ params }: { params: ExploreParams }) {
   const router = useRouter();
