@@ -7,6 +7,10 @@ import type { KakaoMapsApi, KakaoMapsShell } from "./kakaoTypes";
  * `next/script` 가 아니라 `<script>` 를 직접 붙인다 — 실패한 스크립트를 떼고 다시 붙이는
  * **재시도**와 끝없는 로딩을 끊는 **시간 제한**을 이쪽이 쥐어야 11.2 의 재시도 규칙을 지킨다.
  * 판단은 `createKakaoLoader` 에 떼어 가짜 스크립트·가짜 타이머로 잠근다 (4.10 · 4.61).
+ *
+ * ⚠️ **재시도가 붙이는 것과 기다리는 것이 다르다.** 받기가 실패했으면 떼고 새로 붙이지만,
+ * 시간 제한으로 끊었을 때는 **받던 것을 그대로 기다린다** — 내려받기는 취소되지 않으므로
+ * 새로 붙이면 곧 도착할 것을 버리고 처음부터 받는다 (PR #48 리뷰 · `decisions.md` 4.71).
  */
 
 export type MapLoadFailureKind = "NO_KEY" | "SCRIPT" | "TIMEOUT" | "SDK";
@@ -51,61 +55,87 @@ export interface KakaoLoader {
 export function createKakaoLoader(deps: KakaoLoaderDeps): KakaoLoader {
   let pending: Promise<KakaoMapsApi> | null = null;
 
+  /**
+   * 붙여 둔 스크립트가 본체까지 띄우는 약속 — **시간 제한과 무관하게 산다.**
+   *
+   * `script.remove()` 는 이미 시작된 내려받기를 취소하지 못한다. 그래서 시간 제한으로 끊을
+   * 때는 떼지 않고 이것을 남겨 두고, 다음 호출이 **받던 것을 그대로 기다린다.** 떼고 다시
+   * 붙이면 곧 도착할 것을 버리고 처음부터 받는다.
+   */
+  let ready: Promise<KakaoMapsApi> | null = null;
+
+  function loadSdkOnce(): Promise<KakaoMapsApi> {
+    if (ready) return ready;
+
+    let removeScript = () => {};
+    const started = new Promise<KakaoMapsApi>((resolve, reject) => {
+      removeScript = deps.injectScript(sdkUrl(deps.appKey), {
+        load() {
+          const maps = deps.readMaps();
+          if (!maps) {
+            reject(mapLoadFailure("SDK"));
+            return;
+          }
+          maps.load(() => (isReady(maps) ? resolve(maps) : reject(mapLoadFailure("SDK"))));
+        },
+        error: () => reject(mapLoadFailure("SCRIPT")),
+      });
+    });
+
+    // **스크립트가 틀어진 경우만** 떼고 비운다 — 다음 호출이 새로 붙이는 것이 재시도다
+    const guarded = started.catch((failure: unknown) => {
+      removeScript();
+      if (ready === guarded) ready = null;
+      throw failure;
+    });
+
+    ready = guarded;
+    return guarded;
+  }
+
+  function attempt(): Promise<KakaoMapsApi> {
+    return new Promise((resolve, reject) => {
+      if (!deps.appKey) {
+        reject(mapLoadFailure("NO_KEY"));
+        return;
+      }
+
+      // 다른 화면이 이미 띄워 두었다
+      const present = deps.readMaps();
+      if (present && isReady(present)) {
+        resolve(present);
+        return;
+      }
+
+      let settled = false;
+      const settle = (done: () => void) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        done();
+      };
+
+      // 시간 제한은 **이 기다림만** 끊는다. 재시도는 제 타이머를 새로 갖는다
+      const timer = setTimeout(() => settle(() => reject(mapLoadFailure("TIMEOUT"))), deps.timeoutMs);
+
+      loadSdkOnce().then(
+        (maps) => settle(() => resolve(maps)),
+        // 끊긴 뒤에 오면 `settled` 가 삼킨다 — 발생 시각은 실패가 난 그때다
+        (failure: unknown) => settle(() => reject(failure)),
+      );
+    });
+  }
+
   return {
     load() {
-      // 동시에 불러도 스크립트는 하나다. 실패하면 비워 다음 호출이 다시 붙인다 — 그게 재시도다
-      pending ??= attempt(deps).catch((failure: unknown) => {
+      // 동시에 불러도 스크립트는 하나다. 실패하면 비워 다음 호출이 다시 시도한다
+      pending ??= attempt().catch((failure: unknown) => {
         pending = null;
         throw failure;
       });
       return pending;
     },
   };
-}
-
-function attempt(deps: KakaoLoaderDeps): Promise<KakaoMapsApi> {
-  return new Promise((resolve, reject) => {
-    if (!deps.appKey) {
-      reject(mapLoadFailure("NO_KEY"));
-      return;
-    }
-
-    // 다른 화면이 이미 띄워 두었다
-    const present = deps.readMaps();
-    if (present && isReady(present)) {
-      resolve(present);
-      return;
-    }
-
-    let settled = false;
-    let removeScript = () => {};
-
-    const settle = (done: () => void) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      done();
-    };
-    const fail = (kind: MapLoadFailureKind) =>
-      settle(() => {
-        removeScript();
-        reject(mapLoadFailure(kind));
-      });
-
-    const timer = setTimeout(() => fail("TIMEOUT"), deps.timeoutMs);
-
-    removeScript = deps.injectScript(sdkUrl(deps.appKey), {
-      load() {
-        const maps = deps.readMaps();
-        if (!maps) {
-          fail("SDK");
-          return;
-        }
-        maps.load(() => (isReady(maps) ? settle(() => resolve(maps)) : fail("SDK")));
-      },
-      error: () => fail("SCRIPT"),
-    });
-  });
 }
 
 /** `autoload=false` — 스크립트가 뜬 뒤 `kakao.maps.load` 로 본체를 부른다. 시점을 우리가 쥔다 */

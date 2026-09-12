@@ -163,7 +163,7 @@ describe("실패 — 11.2 처럼 코드 · 시각 · 재시도 여부를 든다"
     await expect(retried).resolves.toMatchObject({ Map: BODY.Map });
   });
 
-  it("끝없이 기다리지 않는다 — 시간 제한에서 떼고 재시도할 수 있다", async () => {
+  it("끝없이 기다리지 않는다 — 시간 제한에서 끊고 재시도할 수 있다", async () => {
     const fake = setup();
     let settled = false;
     const waiting = fake.loader.load();
@@ -182,7 +182,59 @@ describe("실패 — 11.2 처럼 코드 · 시각 · 재시도 여부를 든다"
     });
     await vi.advanceTimersByTimeAsync(1);
     await assertion;
+
+    // 떼지 않는다 — `script.remove()` 는 이미 시작된 내려받기를 취소하지 못한다
+    expect(fake.scripts[0].removed).toBe(false);
+  });
+
+  it("시간 제한 뒤 재시도는 받던 스크립트를 그대로 기다린다 — 두 번 받지 않는다", async () => {
+    const fake = setup();
+    const timedOut = fake.loader.load();
+    const assertion = expect(timedOut).rejects.toMatchObject({ kind: "TIMEOUT" });
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    await assertion;
+
+    const retried = fake.loader.load();
+    expect(fake.scripts).toHaveLength(1);
+
+    // 처음 붙인 그 스크립트가 뒤늦게 도착하면 재시도가 그것으로 끝난다
+    fake.shellArrives();
+    fake.bodyArrives();
+    await expect(retried).resolves.toMatchObject({ Map: BODY.Map });
+  });
+
+  it("시간 제한 뒤 재시도도 제 시간 제한을 갖는다 — 첫 타이머를 물려받지 않는다", async () => {
+    const fake = setup();
+    const timedOut = fake.loader.load();
+    const first = expect(timedOut).rejects.toMatchObject({ kind: "TIMEOUT" });
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    await first;
+
+    const retried = fake.loader.load();
+    const second = expect(retried).rejects.toMatchObject({ kind: "TIMEOUT" });
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    await second;
+
+    expect(fake.scripts).toHaveLength(1);
+  });
+
+  it("받기가 실패하면 떼고 비운다 — 시간 제한으로 끊긴 뒤에 와도 다음 재시도가 새로 붙인다", async () => {
+    const fake = setup();
+    const timedOut = fake.loader.load();
+    const assertion = expect(timedOut).rejects.toMatchObject({ kind: "TIMEOUT" });
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    await assertion;
+
+    // 기다림은 이미 끊겼지만 내려받기는 살아 있었고, 그것이 실패했다
+    fake.scripts[0].error();
+    await Promise.resolve();
     expect(fake.scripts[0].removed).toBe(true);
+
+    const retried = fake.loader.load();
+    expect(fake.scripts).toHaveLength(2);
+    fake.shellArrives();
+    fake.bodyArrives();
+    await expect(retried).resolves.toMatchObject({ Map: BODY.Map });
   });
 
   it("시간 제한 뒤에 늦게 뜬 스크립트는 결과를 뒤집지 않는다", async () => {

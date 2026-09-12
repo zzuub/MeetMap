@@ -38,7 +38,9 @@ export function EventMapCanvas({ events, listHref }: EventMapProps) {
   const [level, setLevel] = useState<number | null>(null);
   const [attempt, setAttempt] = useState(0);
 
-  // 마커 안은 React 가 그린다(링크·포커스·접근 이름). SDK 에는 빈 상자만 넘긴다
+  // 마커 안은 React 가 그린다(링크·포커스·접근 이름). SDK 에는 빈 상자만 넘긴다.
+  // 결과가 바뀌면 **상자를 다시 만든다** — id 가 겹쳐도 재사용하지 않는다. 헌 상자는 헌
+  // 오버레이와 함께 나가고(`showPins` 의 `setMap(null)`) 포털도 key 로 함께 언마운트된다
   const pins = useMemo(
     () =>
       events.map((event) => ({

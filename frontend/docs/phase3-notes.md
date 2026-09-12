@@ -27,6 +27,7 @@ Phase 1·2 의 것은 [phase1-notes.md](phase1-notes.md) · [phase2-notes.md](ph
 | 지도 레벨 상수(`MIN/MAX/EMPTY/FIT_FLOOR`)와 `FIT_PADDING` 은 **재지 않은 초기값**이다 | `features/event-map/model/viewport.ts` | 키가 생기면 375×667 에서 재서 고친다. 지금 값은 서울 기준의 추정이다 |
 | 거리순 정렬 축 (4.56 · 6.2 TBD) | `features/location-permission` 의 `MAP_AXIS_PHRASES` · `locationViews.test.tsx` | **지도가 위치를 안 읽어 원점이 없다**(4.54). 축을 세우려면 먼저 "지도 중심을 어디로 잡나"를 뒤집어야 하고, 그 판에 `SORT_OPTIONS` 에 `distance` 를 더하면 4장 문구 넷이 테스트에서 깨진다 |
 | 터치 타깃 44×44 (15장) — 탐색 화면 여섯이 34~40px 이다 | `SegmentedControl` · `SortSelect` · 칩 · 필터 · 지역 버튼 | 하나만 올리면 줄이 어긋난다. **화면 단위로 한 판**에 올릴 일이다 (`spec/14-open-items.md`) |
+| **마커 건수 상한이 없다** — 결과 수 = 마커 수 = DOM 오버레이 수이고 `showPins` 는 결과가 바뀔 때마다 전부 다시 만든다 | `ENDPOINTS.event.map` 요구사항 5번 · `mapController.showPins` | 4.71 본문의 `bbox 를 켜는 판` 은 **서울 밖 확장**이고, 이건 **서울 안에서 주최사가 느는** 다른 축이다. 자르면 6.6 의 `동일 목록` 이 깨지므로, 먼저 **몇 건부터 무거운지 재는** 일이다 (PR #48 리뷰) |
 | 마커가 겹칠 때 (클러스터링 · 선택 마커 강조) | `features/event-map` | 6.6 이 클러스터링을 TBD 로 뒀다. 목 8건은 안 겹쳐 아직 안 보인다 — **실 데이터에서 처음 보인다** |
 | `calc(100vh - 250px)` · 최소 420px 을 안 쓴다 | 6.6 표 · `MapFrame` | 잰 값이 사양과 다르다. 사양 갱신 대기 → `spec/14-open-items.md` |
 

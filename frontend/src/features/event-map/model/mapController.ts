@@ -76,7 +76,13 @@ export function createMapController(
         return overlay;
       });
 
-      // 같은 결과면 사용자가 옮겨 둔 범위를 지킨다. 0건이면 보던 곳에 머문다
+      /*
+        같은 결과면 사용자가 옮겨 둔 범위를 지킨다. 0건이면 보던 곳에 머문다.
+
+        ⚠️ **0건 가지는 지금 앱에서 도달하지 않는다** — `ExploreMapBoard` 가 0건이면 지도를
+        아예 안 그린다(4.71 표). 남겨 두는 것은 P3-2 가 지도를 붙인 채 결과를 바꾸는 길을
+        만들기 때문이고, 그때 이 안전망이 처음 실전에 선다 (PR #48 리뷰).
+      */
       const ids = pins.map((pin) => pin.id).sort().join(",");
       if (ids !== shownIds && pins.length > 0) applyViewport(maps, map, planViewport(pins));
       shownIds = ids;
